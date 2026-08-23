@@ -7,7 +7,7 @@ Windows desktop **영상 플레이어**. Local files only. No store, DRM, accoun
 - **Containers:** MP4, MKV, AVI, WMV, MOV
 - **Video:** H.264, HEVC, VP9, AV1, MPEG-4 ASP
 - **Audio:** AAC, AC-3, E-AC-3, MP3, FLAC, Opus, PCM
-- **Subtitles:** SRT, SMI, embedded in MKV/MOV. Same-folder same-stem: `stem.srt`, `stem.smi`, `stem.ko.srt`. `.en` is suggested as the secondary (top) track. **보기 > 자막** opens the sheet. **CC** toggles the primary (bottom) track only.
+- **Subtitles:** SRT, SMI, embedded in MKV/MOV. Primary autoload prefers `stem.ko.srt`, then `stem.srt` / `stem.smi`. `.en.srt` is suggested for secondary and never auto-on. **보기 > 자막** opens the sheet. **CC** click toggles primary only.
 - **Decoder:** libmpv (FFmpeg). Media Foundation alone is not used
 - **GPU:** D3D11VA / DXVA when possible. Hardware failure falls back to software and keeps playing. Status bar shows **failures only** (unsupported codec name, HW fallback)
 - **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO
@@ -23,7 +23,7 @@ Windows desktop **영상 플레이어**. Local files only. No store, DRM, accoun
 - Video uses remaining width. No large centered play icon. Click the video surface to toggle play/pause
 - Transport: prev | **-10초** | play | **+10초** | next (icon only) | seek | volume | **1.0x** | **CC** | fullscreen
 - Time overlay sits above the transport. **다음 화** is an end-region video overlay, not a transport label
-- Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only. Auto countdown **취소 (N)** runs only when an in-season marker exists (chapter aliases stay manual). No external skip database
+- Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only. Sources: locked chapter aliases and **보기 > 여기까지 스킵** (season-folder key, shared). No marker hides the button. Default On is button only; **건너뛰기 자동** is a 3s cancel. Recap wins overlap. Credits CTA while in credits; next-episode CTA after credits end in the last 10s. No IntroDB
 - Status bar is a dashed slot and **hidden when idle**. Failure line only: **미지원** / **SW 폴백**
 - No always-on-top pin
 

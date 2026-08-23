@@ -1,30 +1,23 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace VideoPlayer.Core.Skip;
 
-/// <summary>Maps local chapter titles to skip kinds. No external skip database.</summary>
+/// <summary>
+/// Designer-locked chapter aliases only. No IntroDB, accounts, or extra synonyms.
+/// </summary>
 public static class ChapterAliases
 {
-    private static readonly string[] Recap =
+    public static IReadOnlyList<string> Locked { get; } =
     [
-        "recap", "previously", "previously on", "last time", "previouslyon",
-        "리캡", "지난이야기", "지난 이야기", "이전 줄거리", "지난줄거리"
+        "intro", "opening", "recap", "credits", "outro",
+        "오프닝", "도입", "리캡", "예고", "엔딩", "크레딧"
     ];
 
-    private static readonly string[] Intro =
-    [
-        "intro", "introduction", "opening", "opening credits", "op", "cold open",
-        "title sequence", "main title",
-        "인트로", "오프닝", "오프닝곡", "오프닝 크레딧", "오프닝크레딧"
-    ];
-
-    private static readonly string[] Credits =
-    [
-        "credits", "end credits", "ending", "ending credits", "ed", "outro",
-        "closing credits", "end titles",
-        "크레딧", "엔딩", "엔딩곡", "엔딩 크레딧", "엔딩크레딧"
-    ];
+    private static readonly string[] Recap = ["recap", "리캡", "예고"];
+    private static readonly string[] Intro = ["intro", "opening", "오프닝", "도입"];
+    private static readonly string[] Credits = ["credits", "outro", "엔딩", "크레딧"];
 
     public static SkipKind? Classify(string? title)
     {
@@ -81,14 +74,22 @@ public static class ChapterAliases
                 continue;
             }
 
-            if (key == needle || key.StartsWith(needle + " ", StringComparison.Ordinal)
-                || key.EndsWith(" " + needle, StringComparison.Ordinal)
-                || key.Contains(" " + needle + " ", StringComparison.Ordinal))
+            if (key == needle)
             {
                 return true;
             }
 
-            if (!needle.Contains(' ', StringComparison.Ordinal) && IsHangul(needle[0]) && key.Contains(needle, StringComparison.Ordinal))
+            if (IsHangul(needle[0]))
+            {
+                if (key.Contains(needle, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if (Regex.IsMatch(key, $@"\b{Regex.Escape(needle)}\b", RegexOptions.CultureInvariant))
             {
                 return true;
             }

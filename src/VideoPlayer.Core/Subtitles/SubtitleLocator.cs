@@ -52,10 +52,21 @@ public static class SubtitleLocator
     public static IReadOnlyList<string> SidecarFileNames(string stem)
         =>
         [
+            stem + ".ko.srt",
             stem + ".srt",
-            stem + ".smi",
-            stem + ".ko.srt"
+            stem + ".smi"
         ];
+
+    public static string? PreferPrimary(IReadOnlyList<string> tracks)
+    {
+        var ko = tracks.FirstOrDefault(path => path.EndsWith(".ko.srt", StringComparison.OrdinalIgnoreCase));
+        if (ko is not null)
+        {
+            return ko;
+        }
+
+        return tracks.FirstOrDefault(path => !IsEnglishSidecar(path));
+    }
 
     public static IReadOnlyList<string> FindAllTracks(string mediaPath)
     {

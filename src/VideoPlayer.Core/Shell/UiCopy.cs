@@ -66,6 +66,8 @@ public static class UiCopy
     public const string SkipCredits = "크레딧 건너뛰기";
     public const string SkipCancel = "취소";
     public const string SkipCancelCountdown = "취소 ({0})";
+    public const string SkipToHere = "여기까지 스킵";
+    public const string SkipAuto = "건너뛰기 자동";
 
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
 }

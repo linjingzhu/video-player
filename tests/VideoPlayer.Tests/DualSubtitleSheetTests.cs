@@ -21,6 +21,9 @@ public class DualSubtitleSheetTests
         Assert.True(sheet.PrimaryIsBottom);
         Assert.True(sheet.SecondaryIsTop);
         Assert.False(sheet.CcOpensSheet);
+        Assert.False(sheet.CcHasLongPress);
+        Assert.False(sheet.HasDelaySheet);
+        Assert.True(sheet.SecondaryNeverAutoOn);
         Assert.Equal("#141418", sheet.PanelColor);
         Assert.Equal("#0B0B0D", sheet.BackgroundColor);
         Assert.Equal("#0A84FF", sheet.AccentColor);
@@ -56,6 +59,35 @@ public class DualSubtitleSheetTests
         Assert.True(SubtitleLocator.IsEnglishSidecar(session.Shell.Subtitles.SuggestedSecondaryPath));
         Assert.Null(session.Shell.Subtitles.SecondaryPath);
         Assert.Equal("드라마.en.srt", session.Shell.Subtitles.SecondaryRows.First(row => row.Suggested).Label);
+    }
+
+    [Fact]
+    public void Primary_prefers_ko_srt_then_existing_autoload()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("드라마.mkv", [1]);
+        File.WriteAllText(Path.Combine(workspace.Root, "드라마.srt"), """
+            1
+            00:00:00,000 --> 00:00:02,000
+            기본
+            """);
+        File.WriteAllText(Path.Combine(workspace.Root, "드라마.ko.srt"), """
+            1
+            00:00:00,000 --> 00:00:02,000
+            한글
+            """);
+        File.WriteAllText(Path.Combine(workspace.Root, "드라마.en.srt"), """
+            1
+            00:00:00,000 --> 00:00:02,000
+            Hello
+            """);
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        session.Open(video);
+        session.Tick(DateTimeOffset.UtcNow);
+        Assert.Equal("한글", session.Shell.OverlaySubtitle);
+        Assert.EndsWith("드라마.ko.srt", session.Shell.Subtitles.PrimaryPath, StringComparison.Ordinal);
+        Assert.Null(session.Shell.Subtitles.SecondaryPath);
+        Assert.True(session.Shell.Subtitles.SecondaryNeverAutoOn);
     }
 
     [Fact]
@@ -152,6 +184,9 @@ public class DualSubtitleSheetTests
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(TransportControl.Captions, order[8]);
         Assert.DoesNotContain("SubtitleSheet", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Delay", Enum.GetNames<TransportControl>());
+        Assert.False(PlayerShell.Boot().Subtitles.HasDelaySheet);
+        Assert.False(PlayerShell.Boot().Subtitles.CcHasLongPress);
         using var workspace = new TempWorkspace();
         var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
         Assert.False(session.Shell.Subtitles.Open);

@@ -36,6 +36,11 @@
                   FontSize="13" FontWeight="Regular"/>
         <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
+        <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
+        <MenuItem x:Name="SkipAutoItem" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
+                  Click="SkipAuto_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
         <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
         <MenuItem x:Name="AutoNextItem" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"

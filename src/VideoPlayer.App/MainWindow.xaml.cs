@@ -273,6 +273,20 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
+    private void SkipToHere_Click(object sender, RoutedEventArgs e)
+    {
+        _session.MarkSkipToHere();
+        RefreshShell();
+    }
+
+    private void SkipAuto_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem item)
+        {
+            _session.SkipAutoEnabled = item.IsChecked;
+        }
+    }
+
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
         => e.Handled = true;
 

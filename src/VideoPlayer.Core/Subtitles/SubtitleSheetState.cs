@@ -23,6 +23,9 @@ public sealed class SubtitleSheetState
     public string AccentColor { get; } = SkinA.Accent;
     public int PanelRadius { get; } = SkinA.RadiusPanel;
     public bool CcOpensSheet { get; } = false;
+    public bool CcHasLongPress { get; } = false;
+    public bool HasDelaySheet { get; } = false;
+    public bool SecondaryNeverAutoOn { get; } = true;
     public bool PrimaryIsBottom { get; } = true;
     public bool SecondaryIsTop { get; } = true;
 

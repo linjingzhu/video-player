@@ -3,8 +3,8 @@ using VideoPlayer.Core.Playback;
 namespace VideoPlayer.Core.Skip;
 
 /// <summary>
-/// Skip regions from chapter aliases and in-season markers only.
-/// Never consults an external skip database or guesses from fingerprints.
+/// Skip regions from locked chapter aliases and season-folder user markers only.
+/// Overlap: recap before intro. No IntroDB.
 /// </summary>
 public static class SkipDetector
 {

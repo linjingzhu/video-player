@@ -80,6 +80,10 @@ public sealed class SkipCapsuleState
     public string AccentColor { get; } = SkinA.Accent;
     public int CapsuleRadius { get; } = SkinA.RadiusPill;
     public bool UsesExternalDatabase { get; } = false;
+    public bool UsesIntroDb { get; } = false;
+    public bool UsesAccounts { get; } = false;
+    public bool DefaultIsButtonOnly { get; } = true;
+    public bool AutoEnabled { get; set; }
 
     public string Label => Kind switch
     {
@@ -109,7 +113,7 @@ public sealed class SkipCapsuleState
         Kind = segment.Kind;
         Source = segment.Source;
         SkipTo = segment.End;
-        AutoPending = autoPending && segment.Source == SkipSource.Marker;
+        AutoPending = autoPending;
         AutoSeconds = AutoPending ? Math.Max(0, autoSeconds) : 0;
     }
 }

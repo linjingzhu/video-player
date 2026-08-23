@@ -17,6 +17,7 @@ public sealed class PlaybackSession
     private IReadOnlyList<SkipSegment> _skipSegments = [];
     private readonly HashSet<SkipKind> _dismissedSkips = [];
     private readonly SkipAutoOffer _skipAuto = new();
+    private SeasonSkipStore _seasonSkips = new();
     private double _skipBoundDuration;
     private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
     private bool _endedHandled;
@@ -43,6 +44,12 @@ public sealed class PlaybackSession
     public AppSettings Settings { get; private set; } = new();
     public AutoNextOffer AutoNextOffer { get; } = new();
     public SkipAutoOffer SkipAuto => _skipAuto;
+    public SeasonSkipStore SeasonSkips => _seasonSkips;
+    public bool SkipAutoEnabled
+    {
+        get => Shell.Skip.AutoEnabled;
+        set => Shell.Skip.AutoEnabled = value;
+    }
     public int JumpSeconds => Settings.JumpSeconds;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
@@ -358,6 +365,25 @@ public sealed class PlaybackSession
         SeekAbsolute(target);
     }
 
+    public SkipSegment? MarkSkipToHere()
+    {
+        if (!Engine.IsOpen || Current is not { } current)
+        {
+            return null;
+        }
+
+        var marked = _seasonSkips.MarkToHere(current.Path, Engine.Position);
+        if (marked is null)
+        {
+            return null;
+        }
+
+        Persist();
+        LoadSkipSegments(current.Path);
+        UpdateSkipCapsule(DateTimeOffset.UtcNow);
+        return marked;
+    }
+
     public void CancelSkipAuto()
     {
         _skipAuto.Cancel();
@@ -535,10 +561,13 @@ public sealed class PlaybackSession
 
     private void UpdateNextEpisodeChrome(DateTimeOffset now)
     {
+        var inCredits = InCreditsRegion();
+        var creditsEnded = CreditsEnded();
         var inEndRegion = Engine.IsOpen
                           && CompletionPolicy.IsInLastTenSeconds(Engine.Position, Engine.Duration)
-                          && NextEpisodePath() is not null;
-        Shell.NextEpisode.ShowCta = inEndRegion || AutoNextOffer.Pending;
+                          && NextEpisodePath() is not null
+                          && (!HasCreditsSegment() || creditsEnded);
+        Shell.NextEpisode.ShowCta = !inCredits && (inEndRegion || AutoNextOffer.Pending);
         Shell.NextEpisode.AutoNextPending = AutoNextOffer.Pending;
         Shell.NextEpisode.Label = AutoNextOffer.Pending
             ? $"{UiCopy.NextEpisode} ({Math.Ceiling(AutoNextOffer.Remaining(now).TotalSeconds):0})"
@@ -590,7 +619,12 @@ public sealed class PlaybackSession
         Shell.OverlaySubtitle = "";
         Shell.OverlaySecondarySubtitle = "";
 
-        foreach (var sidecar in SubtitleLocator.FindSidecars(mediaPath))
+        var sidecars = SubtitleLocator.FindSidecars(mediaPath);
+        var preferred = SubtitleLocator.PreferPrimary(sidecars);
+        var ordered = preferred is null
+            ? sidecars
+            : sidecars.OrderBy(path => string.Equals(path, preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1).ToList();
+        foreach (var sidecar in ordered)
         {
             var parsed = SubtitleParser.ParseFile(sidecar);
             if (parsed.Cues.Count > 0)
@@ -632,9 +666,26 @@ public sealed class PlaybackSession
 
     private void LoadSkipSegments(string mediaPath)
     {
-        var markers = SeasonSkipMarkers.Load(mediaPath);
+        var markers = _seasonSkips.ForMedia(mediaPath);
         _skipSegments = SkipDetector.Detect(Engine.Chapters, markers, Engine.Duration);
         _skipBoundDuration = Engine.Duration;
+    }
+
+    private bool HasCreditsSegment()
+        => _skipSegments.Any(segment => segment.Kind == SkipKind.Credits);
+
+    private bool InCreditsRegion()
+    {
+        var credits = _skipSegments.FirstOrDefault(segment => segment.Kind == SkipKind.Credits);
+        return credits is not null
+               && !_dismissedSkips.Contains(SkipKind.Credits)
+               && credits.Contains(Engine.Position);
+    }
+
+    private bool CreditsEnded()
+    {
+        var credits = _skipSegments.FirstOrDefault(segment => segment.Kind == SkipKind.Credits);
+        return credits is not null && Engine.Position >= credits.End;
     }
 
     private void RefreshSkipSegmentsIfNeeded()
@@ -670,7 +721,7 @@ public sealed class PlaybackSession
             return;
         }
 
-        var auto = active.Source == SkipSource.Marker && !_skipAuto.WasCancelled(active.Kind);
+        var auto = SkipAutoEnabled && !_skipAuto.WasCancelled(active.Kind);
         if (auto)
         {
             if (!_skipAuto.Pending || _skipAuto.Kind != active.Kind)
@@ -745,6 +796,7 @@ public sealed class PlaybackSession
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
         Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
         Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
+        _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName));
         RefreshSidebar();
     }
 
@@ -768,6 +820,7 @@ public sealed class PlaybackSession
         WriteOptional("recent-series.json", RecentSeries.ToJson());
         WriteOptional("window.json", Window.ToJson());
         WriteOptional(AppSettings.FileName, Settings.ToJson());
+        WriteOptional(SeasonSkipStore.FileName, _seasonSkips.ToJson());
     }
 
     private string? ReadOptional(string name)
