@@ -32,7 +32,7 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="4,0"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
@@ -179,7 +179,7 @@
       <Setter Property="Width" Value="28"/>
       <Setter Property="Height" Value="28"/>
       <Setter Property="Margin" Value="0"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="2"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -204,7 +204,7 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="16,8"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
@@ -232,7 +232,7 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="{StaticResource CaptureBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FontFamily" Value="{StaticResource CaptureFont}"/>
       <Setter Property="FontSize" Value="12"/>
@@ -264,7 +264,7 @@
       <Setter Property="Background" Value="{StaticResource CaptureAccentBrush}"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Foreground" Value="{StaticResource CaptureOnAccentBrush}"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="18,8"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Template">
         <Setter.Value>
@@ -283,8 +283,8 @@
       </Setter>
     </Style>
     <Style x:Key="CaptureFormatButton" TargetType="Button" BasedOn="{StaticResource CaptureSheetButton}">
-      <Setter Property="MinWidth" Value="28"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="MinWidth" Value="52"/>
+      <Setter Property="Padding" Value="12,6"/>
       <Setter Property="Margin" Value="0,0,6,0"/>
     </Style>
     <FontFamily x:Key="ClipFont">Segoe UI Variable, Segoe UI</FontFamily>
@@ -299,7 +299,7 @@
       <Setter Property="Foreground" Value="{StaticResource ClipTextBrush}"/>
       <Setter Property="Background" Value="#FF0E0E0E"/>
       <Setter Property="BorderBrush" Value="{StaticResource ClipBorderBrush}"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="16,8"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FontFamily" Value="{StaticResource ClipFont}"/>
       <Setter Property="FontSize" Value="12"/>
@@ -330,12 +330,12 @@
       <Setter Property="Foreground" Value="{StaticResource ClipOnAccentBrush}"/>
     </Style>
     <Style x:Key="ClipFormatButton" TargetType="Button" BasedOn="{StaticResource ClipSheetButton}">
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="0,0,6,0"/>
-      <Setter Property="MinWidth" Value="28"/>
+      <Setter Property="MinWidth" Value="72"/>
     </Style>
     <Style x:Key="ClipStepperButton" TargetType="Button" BasedOn="{StaticResource ClipSheetButton}">
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="8,2"/>
       <Setter Property="MinWidth" Value="28"/>
       <Setter Property="Margin" Value="0"/>
     </Style>
@@ -453,7 +453,7 @@
       <Setter Property="Foreground" Value="{StaticResource PackTextBrush}"/>
       <Setter Property="FontFamily" Value="{StaticResource PackFont}"/>
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="12,8"/>
       <Setter Property="Margin" Value="0,0,0,6"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>

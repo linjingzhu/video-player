@@ -435,7 +435,7 @@
                              Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
                   <Button x:Name="ClipPingPongToggle" Click="ClipPingPong_Click"
                           HorizontalAlignment="Left" Style="{StaticResource ClipSheetButton}"
-                          Padding="4" MinWidth="28"/>
+                          Padding="18,5" MinWidth="52"/>
                 </Grid>
                 <Grid x:Name="ClipPaletteRow" Margin="0,0,0,10" Visibility="Collapsed">
                   <Grid.ColumnDefinitions>

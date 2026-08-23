@@ -50,7 +50,6 @@ public class SkinATokenTests
         Assert.Equal(0.40, SkinA.BorderOpacity);
         Assert.Equal(4, SkinA.ButtonPadding);
         Assert.Equal(SkinA.SpacingMin, SkinA.ButtonPadding);
-        Assert.Equal(28, SkinA.ButtonMinWidth);
         Assert.Equal(2, SkinA.IoTickSizePx);
         Assert.True(SkinA.IoTicksAreSquares);
         Assert.False(SkinA.IoTicksAreEllipses);
@@ -136,12 +135,16 @@ public class SkinATokenTests
         Assert.Contains("<Rectangle x:Name=\"InTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle x:Name=\"OutTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);
-        Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
-        Assert.Contains("MinWidth\" Value=\"28\"", appXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("MinWidth\" Value=\"52\"", appXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("MinWidth\" Value=\"72\"", appXaml, StringComparison.Ordinal);
-        Assert.Contains("MinWidth=\"28\"", mainXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("MinWidth=\"52\"", mainXaml, StringComparison.Ordinal);
+        var iconStyle = SliceBetween(appXaml, "x:Key=\"IconButton\"", "x:Key=\"SkinATextButton\"");
+        var textStyle = SliceBetween(appXaml, "x:Key=\"SkinATextButton\"", "x:Key=\"SkinAPlayButton\"");
+        Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", iconStyle, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", textStyle, StringComparison.Ordinal);
+        Assert.Contains("MinWidth\" Value=\"52\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("MinWidth\" Value=\"72\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("MinWidth=\"52\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"16,8\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"8,4\"", seriesXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"14,6\"", seriesXaml, StringComparison.Ordinal);
         Assert.Contains("BorderBrush=\"#66222222\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("PlaceTick(System.Windows.Shapes.Rectangle", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"Stop", mainXaml, StringComparison.Ordinal);
@@ -149,7 +152,6 @@ public class SkinATokenTests
         Assert.Contains("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"NextCtaButton\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Orientation=\"Vertical\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Padding\" Value=\"4\"", seriesXaml, StringComparison.Ordinal);
         Assert.Contains("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("E10600", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("CornerRadius=\"2\"", urlXaml, StringComparison.Ordinal);
@@ -215,5 +217,14 @@ public class SkinATokenTests
         }
 
         throw new FileNotFoundException(relative);
+    }
+
+    private static string SliceBetween(string text, string start, string end)
+    {
+        var from = text.IndexOf(start, StringComparison.Ordinal);
+        Assert.True(from >= 0, start);
+        var until = text.IndexOf(end, from, StringComparison.Ordinal);
+        Assert.True(until > from, end);
+        return text[from..until];
     }
 }

@@ -40,7 +40,6 @@ public static class SkinA
     public const bool ChromeIsSolid = true;
     public const int HairlineThicknessPx = 1;
     public const int ButtonPadding = 4;
-    public const int ButtonMinWidth = 28;
     public const int IoTickSizePx = 2;
     public const bool IoTicksAreSquares = true;
     public const bool IoTicksAreEllipses = false;

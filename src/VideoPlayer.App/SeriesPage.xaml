@@ -53,7 +53,7 @@
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="8,4"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -80,7 +80,7 @@
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
-      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Padding" Value="14,6"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
