@@ -74,12 +74,12 @@
             BorderBrush="#66222222" BorderThickness="0,1,0,0" Height="40" Padding="12,0"
             ClipToBounds="True">
       <Grid>
-        <Border Background="#14FFFFFF" IsHitTestVisible="False" Effect="{StaticResource SkinAChromeBlur}"/>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
+        <Border Background="#14FFFFFF" IsHitTestVisible="False" Effect="{StaticResource SkinAChromeBlur}"/>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Button x:Name="PrevButton" Click="Prev_Click" ToolTip="이전 화" Style="{StaticResource IconButton}">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
