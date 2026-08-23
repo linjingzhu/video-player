@@ -14,7 +14,7 @@
         AllowDrop="True"
         PreviewKeyDown="OnPreviewKeyDown"
         PreviewMouseMove="OnPreviewMouseMove"
-        PreviewMouseWheel="OnPreviewMouseWheel"
+        PreviewMouseDown="OnPreviewMouseDown"
         Closing="OnClosing">
   <DockPanel>
     <Menu x:Name="MainMenu" DockPanel.Dock="Top" Background="#14FFFFFF" Foreground="#FFF5F5F7"
@@ -110,12 +110,37 @@
           </Canvas>
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-          <Path Stroke="#FFF5F5F7" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                StrokeLineJoin="Round" VerticalAlignment="Center" Margin="0,0,8,0"
-                Data="M 2,9 H 6 L 11,5 V 19 L 6,15 H 2 Z M 14,9 C 16,10 16,14 14,15"/>
-          <Slider x:Name="VolumeSlider" Width="90" Minimum="0" Maximum="1" Value="1"
-                  VerticalAlignment="Center" Style="{StaticResource ChromeSlider}"
-                  ValueChanged="Volume_Changed"/>
+          <Grid x:Name="VolumeHost" VerticalAlignment="Center" PreviewMouseWheel="Volume_MouseWheel">
+            <Button x:Name="VolumeButton" Click="VolumeButton_Click"
+                    PreviewMouseWheel="Volume_MouseWheel"
+                    ToolTip="음량" Style="{StaticResource IconButton}">
+              <Path Stroke="#FFF5F5F7" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    StrokeLineJoin="Round"
+                    Data="M 2,9 H 6 L 11,5 V 19 L 6,15 H 2 Z M 14,9 C 16,10 16,14 14,15"/>
+            </Button>
+            <Popup x:Name="VolumePopover"
+                   PlacementTarget="{Binding ElementName=VolumeButton}"
+                   Placement="Top"
+                   VerticalOffset="-6"
+                   AllowsTransparency="True"
+                   StaysOpen="True"
+                   Closed="VolumePopover_Closed">
+              <Border x:Name="VolumePopoverPanel" Width="48" Padding="8,10" CornerRadius="12"
+                      Background="#E6141418"
+                      PreviewMouseWheel="Volume_MouseWheel">
+                <StackPanel>
+                  <TextBlock x:Name="VolumePercent" Text="100" HorizontalAlignment="Center"
+                             Foreground="#FFF5F5F7"
+                             FontFamily="Segoe UI Variable, Segoe UI"
+                             FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                  <Slider x:Name="VolumeSlider" Height="88" Minimum="0" Maximum="1" Value="1"
+                          Orientation="Vertical" HorizontalAlignment="Center"
+                          Style="{StaticResource VerticalChromeSlider}"
+                          ValueChanged="Volume_Changed"/>
+                </StackPanel>
+              </Border>
+            </Popup>
+          </Grid>
           <Button x:Name="SpeedButton" Content="1.0x" Click="CycleSpeed_Click" Style="{StaticResource SkinATextButton}"/>
           <Button x:Name="CaptionsButton" Content="CC" Click="Captions_Click" Style="{StaticResource SkinATextButton}"/>
           <Button Click="Fullscreen_Click" ToolTip="전체화면" Style="{StaticResource IconButton}">

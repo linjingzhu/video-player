@@ -331,6 +331,51 @@
       <Setter Property="MinWidth" Value="28"/>
       <Setter Property="Margin" Value="0"/>
     </Style>
+    <Style x:Key="VerticalChromeSlider" TargetType="Slider">
+      <Setter Property="Orientation" Value="Vertical"/>
+      <Setter Property="Minimum" Value="0"/>
+      <Setter Property="IsMoveToPointEnabled" Value="True"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+            <Grid HorizontalAlignment="Center">
+              <Border Width="4" Background="{StaticResource SkinATrackRestBrush}" CornerRadius="999" Margin="0,6"/>
+              <Track x:Name="PART_Track" Orientation="Vertical">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Command="Slider.DecreaseLarge" IsHitTestVisible="False">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Width="4" Background="{StaticResource SkinAAccentBrush}" CornerRadius="999"
+                                HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb Width="12" Height="12">
+                    <Thumb.Template>
+                      <ControlTemplate TargetType="Thumb">
+                        <Ellipse Fill="{StaticResource SkinAThumbBrush}"/>
+                      </ControlTemplate>
+                    </Thumb.Template>
+                  </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Command="Slider.IncreaseLarge">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent" Width="16"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style x:Key="ChromeSlider" TargetType="Slider">
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="Minimum" Value="0"/>

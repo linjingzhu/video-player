@@ -23,6 +23,8 @@ public sealed class PlaybackSession
     private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
     private bool _endedHandled;
     private bool _capturing;
+    private bool _muted;
+    private double _unmutedVolume = 1;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null)
     {
@@ -35,6 +37,7 @@ public sealed class PlaybackSession
         ApplyClipFolder();
         RefreshSeriesPanel();
         SyncClipSheet();
+        SyncVolumeChrome();
     }
 
     public IMediaEngine Engine { get; }
@@ -394,11 +397,60 @@ public sealed class PlaybackSession
         Shell.Transport.Speed = Speed;
     }
 
-    public void AdjustVolume(double delta)
+    public void AdjustVolume(double delta) => SetVolume(Engine.Volume + delta);
+
+    public void SetVolume(double volume)
     {
-        Engine.Volume = Math.Clamp(Engine.Volume + delta, 0, 1);
-        Shell.Transport.Volume = Engine.Volume;
+        var clamped = Math.Clamp(volume, 0, 1);
+        Engine.Volume = clamped;
+        if (clamped > 0)
+        {
+            _unmutedVolume = clamped;
+            _muted = false;
+        }
+        else
+        {
+            _muted = true;
+        }
+
+        SyncVolumeChrome();
     }
+
+    public void ToggleMute()
+    {
+        if (_muted || Engine.Volume <= 0)
+        {
+            var restore = _unmutedVolume > 0 ? _unmutedVolume : 1;
+            _muted = false;
+            Engine.Volume = restore;
+        }
+        else
+        {
+            _unmutedVolume = Engine.Volume > 0 ? Engine.Volume : _unmutedVolume;
+            _muted = true;
+            Engine.Volume = 0;
+        }
+
+        SyncVolumeChrome();
+    }
+
+    public bool HandleHotkey(string key)
+    {
+        if (!VolumeChrome.IsMuteKey(key))
+        {
+            return false;
+        }
+
+        ToggleMute();
+        return true;
+    }
+
+    public void ToggleVolumePopover()
+    {
+        Shell.Volume.PopoverOpen = !Shell.Volume.PopoverOpen;
+    }
+
+    public void CloseVolumePopover() => Shell.Volume.PopoverOpen = false;
 
     public void ToggleCaptions()
     {
@@ -1135,11 +1187,18 @@ public sealed class PlaybackSession
         Shell.Transport.Position = Engine.Position;
         Shell.Transport.Duration = Engine.Duration;
         Shell.Transport.Volume = Engine.Volume;
+        SyncVolumeChrome();
         Shell.Transport.Speed = Speed;
         Shell.Transport.HasPrevious = PreviousEpisodePath() is not null;
         Shell.Transport.HasNext = NextEpisodePath() is not null;
         Shell.OverlayTime = $"{Shell.Transport.PositionText} / {Shell.Transport.DurationText}";
         Shell.IsPaused = Engine.IsPaused;
+    }
+
+    private void SyncVolumeChrome()
+    {
+        Shell.Transport.Volume = Engine.Volume;
+        Shell.Volume.Sync(Engine.Volume, _muted);
     }
 
     private void RefreshSidebar()

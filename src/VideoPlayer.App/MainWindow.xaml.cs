@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly MpvMediaEngine _engine;
     private readonly FfmpegClipRunner _clipRunner = new();
     private bool _fullscreen;
+    private bool _syncingVolumeUi;
     private WindowState _windowedState = WindowState.Normal;
     private WindowStyle _windowedStyle = WindowStyle.SingleBorderWindow;
 
@@ -112,6 +113,7 @@ public partial class MainWindow : Window
         ApplyChromeVisibility();
         ApplyCaptureChrome();
         RefreshClipChrome();
+        SyncVolumeUi();
     }
 
     private void ApplyCaptureChrome()
@@ -567,14 +569,75 @@ public partial class MainWindow : Window
     private void SeekSlider_Committed(object sender, MouseButtonEventArgs e)
         => _session.SeekAbsolute(SeekSlider.Value);
 
+    private void SyncVolumeUi()
+    {
+        _syncingVolumeUi = true;
+        try
+        {
+            var volume = _session.Shell.Volume;
+            VolumeSlider.Value = volume.Level;
+            VolumePercent.Text = volume.PercentText;
+            VolumePopover.IsOpen = volume.PopoverOpen;
+        }
+        finally
+        {
+            _syncingVolumeUi = false;
+        }
+    }
+
     private void Volume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_session is null)
+        if (_syncingVolumeUi || _session is null)
         {
             return;
         }
 
-        _session.AdjustVolume(e.NewValue - _session.Engine.Volume);
+        _session.SetVolume(e.NewValue);
+        VolumePercent.Text = _session.Shell.Volume.PercentText;
+    }
+
+    private void VolumeButton_Click(object sender, RoutedEventArgs e)
+    {
+        _session.ToggleVolumePopover();
+        VolumePopover.IsOpen = _session.Shell.Volume.PopoverOpen;
+    }
+
+    private void VolumePopover_Closed(object? sender, EventArgs e)
+        => _session.CloseVolumePopover();
+
+    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!VolumePopover.IsOpen || IsVolumeUiSource(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        _session.CloseVolumePopover();
+        VolumePopover.IsOpen = false;
+    }
+
+    private static bool IsVolumeUiSource(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (source is FrameworkElement element
+                && element.Name is "VolumeHost" or "VolumeButton" or "VolumePopoverPanel"
+                    or "VolumeSlider" or "VolumePercent")
+            {
+                return true;
+            }
+
+            source = VisualTreeHelper.GetParent(source);
+        }
+
+        return false;
+    }
+
+    private void Volume_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        _session.AdjustVolume(e.Delta > 0 ? 0.05 : -0.05);
+        SyncVolumeUi();
+        e.Handled = true;
     }
 
     private void SeriesPage_EpisodeActivated(object sender, SeriesListItem item)
@@ -768,6 +831,11 @@ public partial class MainWindow : Window
                 ToggleFullscreen();
                 e.Handled = true;
                 break;
+            case Key.M when Keyboard.Modifiers == ModifierKeys.None:
+                _session.ToggleMute();
+                RefreshShell();
+                e.Handled = true;
+                break;
             case Key.C when Keyboard.Modifiers == ModifierKeys.None:
                 _session.ToggleCaptions();
                 e.Handled = true;
@@ -777,13 +845,6 @@ public partial class MainWindow : Window
 
     private void OnPreviewMouseMove(object sender, MouseEventArgs e)
         => _session.NoteActivity(DateTimeOffset.UtcNow);
-
-    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
-    {
-        _session.AdjustVolume(e.Delta > 0 ? 0.05 : -0.05);
-        VolumeSlider.Value = _session.Engine.Volume;
-        e.Handled = true;
-    }
 
     protected override void OnDrop(DragEventArgs e)
     {
