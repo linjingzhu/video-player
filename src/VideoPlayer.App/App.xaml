@@ -10,7 +10,14 @@
     <SolidColorBrush x:Key="MutedBrush" Color="#FF9A9A9A"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#FFE8E8E8"/>
     <SolidColorBrush x:Key="HoverBrush" Color="#FF2A2A2A"/>
+    <SolidColorBrush x:Key="PackPanelBrush" Color="#E6141418"/>
+    <SolidColorBrush x:Key="PackAccentBrush" Color="#FF0A84FF"/>
+    <SolidColorBrush x:Key="PackTextBrush" Color="#FFF5F5F7"/>
+    <SolidColorBrush x:Key="PackMutedBrush" Color="#FF8E8E93"/>
+    <SolidColorBrush x:Key="PackHairlineBrush" Color="#66FFFFFF"/>
+    <FontFamily x:Key="PackFont">Segoe UI Variable, Segoe UI</FontFamily>
     <DropShadowEffect x:Key="OverlayShadow" Color="#FF000000" BlurRadius="8" ShadowDepth="0" Opacity="0.85"/>
+    <DropShadowEffect x:Key="PackSheetShadow" Color="#FF000000" BlurRadius="18" ShadowDepth="0" Opacity="0.45"/>
     <SolidColorBrush x:Key="CaptureSheetBrush" Color="#FF141418"/>
     <SolidColorBrush x:Key="CaptureAccentBrush" Color="#FF0A84FF"/>
     <SolidColorBrush x:Key="CaptureTextBrush" Color="#FFF5F5F7"/>
@@ -316,6 +323,57 @@
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+    </Style>
+    <Style x:Key="SkipCapsuleButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Foreground" Value="{StaticResource PackTextBrush}"/>
+      <Setter Property="FontFamily" Value="{StaticResource PackFont}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="SubtitleRowButton" TargetType="Button">
+      <Setter Property="Background" Value="#22141418"/>
+      <Setter Property="BorderBrush" Value="#332C2C2E"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="{StaticResource PackTextBrush}"/>
+      <Setter Property="FontFamily" Value="{StaticResource PackFont}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="10" Padding="{TemplateBinding Padding}">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#33141418"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="CcOnButton" TargetType="Button" BasedOn="{StaticResource SkinATextButton}">
+      <Setter Property="Foreground" Value="{StaticResource PackAccentBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource PackAccentBrush}"/>
     </Style>
   </Application.Resources>
 </Application>

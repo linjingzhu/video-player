@@ -34,6 +34,13 @@
                   FontSize="13" FontWeight="Regular"/>
         <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
+        <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
+        <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
+        <MenuItem x:Name="SkipAutoItem" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
+                  Click="SkipAuto_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
         <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
         <MenuItem x:Name="AutoNextItem" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
@@ -95,7 +102,7 @@
                   VerticalAlignment="Center" Style="{StaticResource ChromeSlider}"
                   ValueChanged="Volume_Changed"/>
           <Button x:Name="SpeedButton" Content="1.0x" Click="CycleSpeed_Click" Style="{StaticResource SkinATextButton}"/>
-          <Button Content="CC" Click="Captions_Click" Style="{StaticResource SkinATextButton}"/>
+          <Button x:Name="CaptionsButton" Content="CC" Click="Captions_Click" Style="{StaticResource SkinATextButton}"/>
           <Button Click="Fullscreen_Click" ToolTip="전체화면" Style="{StaticResource IconButton}">
             <Path Stroke="#FFF5F5F7" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                   Data="M 5,9 V 5 H 9 M 15,5 H 19 V 9 M 19,15 V 19 H 15 M 9,19 H 5 V 15"/>
@@ -142,14 +149,33 @@
                          HorizontalAlignment="Left" VerticalAlignment="Bottom"
                          Margin="16,0,0,12" Style="{StaticResource SkinAMetaText}"
                          IsHitTestVisible="False"/>
+              <TextBlock x:Name="OverlaySecondarySubtitle" Text="" HorizontalAlignment="Center" VerticalAlignment="Top"
+                         Margin="24,28,24,0" FontSize="18" TextAlignment="Center"
+                         Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>
               <TextBlock x:Name="OverlaySubtitle" Text="" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                          Margin="24,0,24,40" FontSize="20" TextAlignment="Center"
                          Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>
-              <StackPanel x:Name="NextCtaPanel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,16"
-                          Visibility="Collapsed">
-                <Button x:Name="NextCtaButton" Content="다음 화 >" Click="Next_Click" Style="{StaticResource NextCtaButton}"/>
-                <Button x:Name="CancelAutoNextButton" Content="취소" Click="CancelAutoNext_Click" Margin="0,6,0,0"
-                        Style="{StaticResource SkinATextButton}" Visibility="Collapsed"/>
+              <StackPanel x:Name="VideoOverlayStack" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,16">
+                <Border x:Name="SkipCapsule" HorizontalAlignment="Right" Margin="0,0,0,10"
+                        Padding="16,8" CornerRadius="999"
+                        Background="{StaticResource PackPanelBrush}"
+                        BorderBrush="{StaticResource PackHairlineBrush}" BorderThickness="1"
+                        PreviewMouseLeftButtonDown="OverlayChrome_MouseDown"
+                        Visibility="Collapsed">
+                  <StackPanel>
+                    <Button x:Name="SkipCapsuleButton" Content="인트로 건너뛰기"
+                            Click="SkipCapsule_Click" Style="{StaticResource SkipCapsuleButton}"/>
+                    <Button x:Name="SkipCancelButton" Content="취소 (3)"
+                            Click="SkipCancel_Click" Style="{StaticResource SkipCapsuleButton}"
+                            FontSize="11" Foreground="{StaticResource PackMutedBrush}"
+                            Margin="0,2,0,0" Visibility="Collapsed"/>
+                  </StackPanel>
+                </Border>
+                <StackPanel x:Name="NextCtaPanel" HorizontalAlignment="Right" Visibility="Collapsed">
+                  <Button x:Name="NextCtaButton" Content="다음 화 >" Click="Next_Click" Style="{StaticResource NextCtaButton}"/>
+                  <Button x:Name="CancelAutoNextButton" Content="취소" Click="CancelAutoNext_Click" Margin="0,6,0,0"
+                          Style="{StaticResource SkinATextButton}" Visibility="Collapsed"/>
+                </StackPanel>
               </StackPanel>
               <Border x:Name="CaptureBanner" HorizontalAlignment="Center" VerticalAlignment="Top"
                       Margin="0,16,0,0" Padding="14,8" CornerRadius="10"
@@ -237,6 +263,31 @@
                       <Button Grid.Column="2" Content="변경" Click="CaptureChangeFolder_Click" Style="{StaticResource CaptureSheetButton}"/>
                     </Grid>
                   </StackPanel>
+                </DockPanel>
+              </Border>
+              <Border x:Name="SubtitleSheet" Width="320" HorizontalAlignment="Right" VerticalAlignment="Center"
+                      Margin="0,16,16,16" Padding="16,14" CornerRadius="12"
+                      Background="{StaticResource PackPanelBrush}"
+                      Effect="{StaticResource PackSheetShadow}"
+                      PreviewMouseLeftButtonDown="OverlayChrome_MouseDown"
+                      Visibility="Collapsed">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Top" Text="자막"
+                             FontFamily="{StaticResource PackFont}" FontSize="20" FontWeight="SemiBold"
+                             Foreground="{StaticResource PackTextBrush}" Margin="0,0,0,12"/>
+                  <TextBlock DockPanel.Dock="Bottom" Text="주 · 상단에 보조"
+                             FontFamily="{StaticResource PackFont}" FontSize="11"
+                             Foreground="{StaticResource PackMutedBrush}" Margin="0,10,0,0"/>
+                  <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                      <TextBlock Text="보조 자막 (상단)" FontSize="11" Foreground="{StaticResource PackMutedBrush}"
+                                 FontFamily="{StaticResource PackFont}" Margin="0,0,0,6"/>
+                      <StackPanel x:Name="SecondarySubtitleRows"/>
+                      <TextBlock Text="주 자막 (하단)" FontSize="11" Foreground="{StaticResource PackMutedBrush}"
+                                 FontFamily="{StaticResource PackFont}" Margin="0,8,0,6"/>
+                      <StackPanel x:Name="PrimarySubtitleRows"/>
+                    </StackPanel>
+                  </ScrollViewer>
                 </DockPanel>
               </Border>
             </Grid>

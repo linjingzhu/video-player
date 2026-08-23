@@ -1,7 +1,8 @@
 namespace VideoPlayer.Core.Shell;
 
 /// <summary>
-/// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome only.
+/// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
+/// and to this pack's skip capsule and subtitle sheet only.
 /// Does not change A v2 shell structure, layout, or behavior.
 /// Capture sheet chrome also uses these values.
 /// </summary>
@@ -51,4 +52,5 @@ public static class SkinA
     public const bool NoGlow = true;
     public const bool NoBoxyButtons = true;
     public const bool NoEmoji = true;
+    public const bool CapsuleHasHairline = true;
 }

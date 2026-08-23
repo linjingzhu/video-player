@@ -10,6 +10,7 @@ using VideoPlayer.Core.Capture;
 using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
+using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.App;
 
@@ -63,11 +64,24 @@ public partial class MainWindow : Window
         OverlayTime.Text = shell.OverlayTime;
         OverlayTime.Visibility = !_fullscreen || shell.ChromeVisible ? Visibility.Visible : Visibility.Collapsed;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
+        OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
         SpeedButton.Content = shell.Transport.SpeedText;
         PrevButton.IsEnabled = shell.Transport.HasPrevious;
         NextButton.IsEnabled = shell.Transport.HasNext;
+        CaptionsButton.Style = shell.Transport.CaptionsOn
+            ? (Style)FindResource("CcOnButton")
+            : (Style)FindResource("SkinATextButton");
+        SkipCapsule.Visibility = shell.Skip.Visible ? Visibility.Visible : Visibility.Collapsed;
+        SkipCapsuleButton.Content = shell.Skip.Label;
+        SkipCancelButton.Content = shell.Skip.CancelLabel;
+        SkipCancelButton.Visibility = shell.Skip.TwoLine ? Visibility.Visible : Visibility.Collapsed;
+        SubtitleSheet.Visibility = shell.Subtitles.Open ? Visibility.Visible : Visibility.Collapsed;
+        if (shell.Subtitles.Open)
+        {
+            BindSubtitleRows();
+        }
         NextCtaButton.Content = shell.NextEpisode.Label;
         NextCtaPanel.Visibility = shell.NextEpisode.ShowCta ? Visibility.Visible : Visibility.Collapsed;
         CancelAutoNextButton.Visibility = shell.NextEpisode.AutoNextPending ? Visibility.Visible : Visibility.Collapsed;
@@ -227,7 +241,54 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
-    private void Captions_Click(object sender, RoutedEventArgs e) => _session.ToggleCaptions();
+    private void Captions_Click(object sender, RoutedEventArgs e)
+    {
+        _session.ToggleCaptions();
+        RefreshShell();
+    }
+
+    private void SubtitlesMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session.Shell.Subtitles.Open)
+        {
+            _session.CloseSubtitleSheet();
+        }
+        else
+        {
+            _session.OpenSubtitleSheet();
+        }
+
+        RefreshShell();
+    }
+
+    private void SkipCapsule_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SkipActiveSegment();
+        RefreshShell();
+    }
+
+    private void SkipCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _session.CancelSkipAuto();
+        RefreshShell();
+    }
+
+    private void SkipToHere_Click(object sender, RoutedEventArgs e)
+    {
+        _session.MarkSkipToHere();
+        RefreshShell();
+    }
+
+    private void SkipAuto_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem item)
+        {
+            _session.SkipAutoEnabled = item.IsChecked;
+        }
+    }
+
+    private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
+        => e.Handled = true;
 
     private void ShowSeries_Click(object sender, RoutedEventArgs e) => ShowSeriesPage();
 
@@ -406,6 +467,68 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
+    private void BindSubtitleRows()
+    {
+        FillSubtitleRows(SecondarySubtitleRows, _session.Shell.Subtitles.SecondaryRows, secondary: true);
+        FillSubtitleRows(PrimarySubtitleRows, _session.Shell.Subtitles.PrimaryRows, secondary: false);
+    }
+
+    private void FillSubtitleRows(StackPanel host, IReadOnlyList<SubtitleTrackRow> rows, bool secondary)
+    {
+        host.Children.Clear();
+        foreach (var row in rows)
+        {
+            var label = new TextBlock { Text = row.Label, VerticalAlignment = VerticalAlignment.Center };
+            var mark = new TextBlock
+            {
+                Text = row.Selected ? "✓" : "",
+                Foreground = (System.Windows.Media.Brush)FindResource("PackAccentBrush"),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            Grid.SetColumn(mark, 1);
+            grid.Children.Add(label);
+            grid.Children.Add(mark);
+
+            var button = new Button
+            {
+                Content = grid,
+                Tag = (secondary, row.Path),
+                Style = (Style)FindResource("SubtitleRowButton")
+            };
+            if (row.Selected)
+            {
+                button.BorderBrush = (System.Windows.Media.Brush)FindResource("PackAccentBrush");
+                button.BorderThickness = new Thickness(1.5);
+            }
+
+            button.Click += SubtitleRow_Click;
+            host.Children.Add(button);
+        }
+    }
+
+    private void SubtitleRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: (bool secondary, string? path) })
+        {
+            return;
+        }
+
+        if (secondary)
+        {
+            _session.SelectSecondarySubtitle(path);
+        }
+        else
+        {
+            _session.SelectPrimarySubtitle(path);
+        }
+
+        RefreshShell();
+    }
+
     private void ToggleFullscreen()
     {
         if (_fullscreen)
@@ -469,6 +592,11 @@ public partial class MainWindow : Window
                 break;
             case Key.Right:
                 _session.SkipForward();
+                e.Handled = true;
+                break;
+            case Key.Escape when _session.Shell.Subtitles.Open:
+                _session.CloseSubtitleSheet();
+                RefreshShell();
                 e.Handled = true;
                 break;
             case Key.Escape when _session.Shell.Capture.Open:

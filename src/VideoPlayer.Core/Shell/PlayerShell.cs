@@ -1,4 +1,6 @@
 using VideoPlayer.Core.Capture;
+using VideoPlayer.Core.Skip;
+using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.Core.Shell;
 
@@ -18,8 +20,11 @@ public sealed class PlayerShell
     public OverlayTimeState OverlayClock { get; } = new();
     public CaptureSheetState Capture { get; } = new();
     public CaptureBannerState CaptureBanner { get; } = new();
+    public SkipCapsuleState Skip { get; } = new();
+    public SubtitleSheetState Subtitles { get; } = new();
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
+    public string OverlaySecondarySubtitle { get; set; } = "";
     public bool IsPaused { get; set; } = true;
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
@@ -172,6 +177,8 @@ public sealed class NextEpisodeChrome
     public bool OverlayOnly { get; } = true;
     public bool EndRegionOnly { get; } = true;
     public bool OnTransport { get; } = false;
+    public bool SharesSkipCorner { get; } = true;
+    public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomRight;
     public string Label { get; set; } = UiCopy.NextEpisodeCta;
     public string CancelLabel { get; } = UiCopy.NextEpisodeCancel;
 }

@@ -53,6 +53,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
     public bool HardwareActive => !string.Equals(MpvNative.ReadString(_mpv, "hwdec-current"), "no", StringComparison.OrdinalIgnoreCase)
                                   && !string.IsNullOrEmpty(MpvNative.ReadString(_mpv, "hwdec-current"));
     public string? LastError { get; private set; }
+    public IReadOnlyList<MediaChapter> Chapters => ReadChapters();
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
@@ -265,5 +266,31 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
 
         var text = MpvNative.ReadString(_mpv, name);
         return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 0;
+    }
+
+    private IReadOnlyList<MediaChapter> ReadChapters()
+    {
+        if (!_available || !IsOpen)
+        {
+            return [];
+        }
+
+        var countText = MpvNative.ReadString(_mpv, "chapter-list/count");
+        if (!int.TryParse(countText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count <= 0)
+        {
+            return [];
+        }
+
+        var chapters = new List<MediaChapter>(count);
+        var duration = Duration;
+        for (var i = 0; i < count; i++)
+        {
+            var title = MpvNative.ReadString(_mpv, $"chapter-list/{i}/title") ?? "";
+            var start = ReadDouble($"chapter-list/{i}/time");
+            var end = i + 1 < count ? ReadDouble($"chapter-list/{i + 1}/time") : duration;
+            chapters.Add(new MediaChapter(title, start, end));
+        }
+
+        return chapters;
     }
 }
