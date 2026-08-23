@@ -219,6 +219,12 @@ public class SeriesOnTokenTests
         Assert.Contains("PlacementMode.MousePoint", codeBehind, StringComparison.Ordinal);
         Assert.Contains("QuickMenuButton.ContextMenu", codeBehind, StringComparison.Ordinal);
         Assert.Contains("ShouldOpenStageMenuFromRightClick", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("OriginatesOnTransportOrMenu", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("|| source is ContextMenu", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("|| source is MenuItem", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("|| source is System.Windows.Controls.Menu", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("source is ContextMenu or MenuItem", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("MenuItem or System.Windows.Controls.Menu", codeBehind, StringComparison.Ordinal);
         Assert.Equal(2, CountOccurrences(mainXaml, "<ContextMenu "));
         Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
