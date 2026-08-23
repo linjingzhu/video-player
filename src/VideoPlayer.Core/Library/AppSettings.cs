@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using VideoPlayer.Core.Playback;
 
 namespace VideoPlayer.Core.Library;
 
@@ -8,6 +9,7 @@ namespace VideoPlayer.Core.Library;
 /// <see cref="JumpSeconds"/> is reserved for v1.5 skip interval; v1 keeps default 10
 /// and wireframe copy ±10초. No settings UI in P0.
 /// Capture and clip-save keep last-used folders on separate keys.
+/// HDR is a global 자동 / 끄기 key (default 자동).
 /// </summary>
 public sealed class AppSettings
 {
@@ -15,10 +17,12 @@ public sealed class AppSettings
     public const string JumpSecondsKey = "jumpSeconds";
     public const string CaptureFolderKey = "captureFolder";
     public const string ClipFolderKey = "clipFolder";
+    public const string HdrKey = "hdr";
 
     public int JumpSeconds { get; private set; } = JumpInterval.DefaultSeconds;
     public string? CaptureFolder { get; private set; }
     public string? ClipFolder { get; private set; }
+    public HdrMode Hdr { get; private set; } = HdrPassThrough.Default;
 
     /// <summary>v1.5 live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
     public int SetJumpSeconds(int seconds)
@@ -39,8 +43,16 @@ public sealed class AppSettings
         return ClipFolder;
     }
 
+    public HdrMode SetHdr(HdrMode mode)
+    {
+        Hdr = HdrPassThrough.Clamp(mode);
+        return Hdr;
+    }
+
     public string ToJson()
-        => JsonSerializer.Serialize(new AppSettingsDto(JumpSeconds, CaptureFolder, ClipFolder), JsonOptions);
+        => JsonSerializer.Serialize(
+            new AppSettingsDto(JumpSeconds, CaptureFolder, ClipFolder, HdrPassThrough.ToSetting(Hdr)),
+            JsonOptions);
 
     public static AppSettings FromJson(string? json)
     {
@@ -83,6 +95,12 @@ public sealed class AppSettings
                     settings.ClipFolder = value;
                 }
             }
+
+            if (document.RootElement.TryGetProperty(HdrKey, out var hdr)
+                && hdr.ValueKind == JsonValueKind.String)
+            {
+                settings.Hdr = HdrPassThrough.Parse(hdr.GetString());
+            }
         }
         catch (JsonException)
         {
@@ -92,7 +110,7 @@ public sealed class AppSettings
         return settings;
     }
 
-    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder, string? ClipFolder);
+    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder, string? ClipFolder, string Hdr);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

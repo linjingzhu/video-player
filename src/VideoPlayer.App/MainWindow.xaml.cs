@@ -480,6 +480,18 @@ public partial class MainWindow : Window
         }
     }
 
+    private void HdrAuto_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetHdrMode(HdrMode.Auto);
+        RefreshShell();
+    }
+
+    private void HdrOff_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetHdrMode(HdrMode.Off);
+        RefreshShell();
+    }
+
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
         => e.Handled = true;
 

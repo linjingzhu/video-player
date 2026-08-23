@@ -35,6 +35,7 @@ public sealed class PlaybackSession
         Speed = PlaybackSpeed.Default;
         AutoNext = true;
         ApplyClipFolder();
+        ApplyHdr();
         RefreshSeriesPanel();
         SyncClipSheet();
         SyncVolumeChrome();
@@ -56,6 +57,7 @@ public sealed class PlaybackSession
         get => Shell.Skip.AutoEnabled;
         set => Shell.Skip.AutoEnabled = value;
     }
+    public HdrMode HdrMode => Settings.Hdr;
     public int JumpSeconds => Settings.JumpSeconds;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
@@ -425,6 +427,14 @@ public sealed class PlaybackSession
     public int SetJumpSeconds(int seconds)
     {
         var applied = Settings.SetJumpSeconds(seconds);
+        Persist();
+        return applied;
+    }
+
+    public HdrMode SetHdrMode(HdrMode mode)
+    {
+        var applied = Settings.SetHdr(mode);
+        ApplyHdr();
         Persist();
         return applied;
     }
@@ -1020,6 +1030,13 @@ public sealed class PlaybackSession
 
     private void ApplyClipFolder()
         => Shell.Clip.FolderPath = ClipSave.ResolveFolder(Settings.ClipFolder);
+
+    private void ApplyHdr()
+    {
+        var mode = Settings.Hdr;
+        Shell.Hdr.Mode = mode;
+        Engine.SetHdrMode(mode);
+    }
 
     private void SyncClipSheet()
     {

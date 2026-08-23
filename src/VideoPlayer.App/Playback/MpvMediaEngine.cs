@@ -57,6 +57,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
     public string? LastError { get; private set; }
     public IReadOnlyList<MediaChapter> Chapters => ReadChapters();
     public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks => ReadSubtitleTracks();
+    public HdrMode HdrMode { get; private set; } = HdrPassThrough.Default;
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
@@ -209,6 +210,17 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         }
     }
 
+    public void SetHdrMode(HdrMode mode)
+    {
+        HdrMode = HdrPassThrough.Clamp(mode);
+        if (!_available)
+        {
+            return;
+        }
+
+        ApplyHdrOptions(HdrMode, beforeInitialize: false);
+    }
+
     public void Close()
     {
         if (_available)
@@ -231,6 +243,21 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         Host.Dispose();
     }
 
+    private void ApplyHdrOptions(HdrMode mode, bool beforeInitialize)
+    {
+        foreach (var option in HdrPassThrough.RuntimeOptions(mode))
+        {
+            if (beforeInitialize)
+            {
+                MpvNative.Option(_mpv, option.Name, option.Value);
+            }
+            else
+            {
+                MpvNative.Set(_mpv, option.Name, option.Value);
+            }
+        }
+    }
+
     private void TryCreate()
     {
         try
@@ -249,7 +276,9 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
 
             MpvNative.Option(_mpv, "hwdec", "d3d11va");
             MpvNative.Option(_mpv, "hwdec-extra-frames", "0");
-            MpvNative.Option(_mpv, "vo", "gpu");
+            MpvNative.Option(_mpv, "gpu-api", HdrPassThrough.GpuApi);
+            MpvNative.Option(_mpv, "vo", HdrPassThrough.Vo);
+            ApplyHdrOptions(HdrMode.Auto, beforeInitialize: true);
             MpvNative.Option(_mpv, "keep-open", "yes");
             MpvNative.Option(_mpv, "osc", "no");
             MpvNative.Option(_mpv, "input-default-bindings", "no");
