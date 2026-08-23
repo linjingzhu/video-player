@@ -22,6 +22,8 @@
       <MenuItem Header="파일" Background="#14FFFFFF" Foreground="#FFF5F5F7" FontSize="12" FontWeight="Regular">
         <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
+        <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="12" FontWeight="Regular"/>
         <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
         <Separator/>
@@ -30,7 +32,7 @@
       </MenuItem>
       <TextBlock Text="|" Margin="4,0" VerticalAlignment="Center" Style="{StaticResource SkinAMetaText}" IsHitTestVisible="False"/>
       <MenuItem Header="보기" Background="#14FFFFFF" Foreground="#FFF5F5F7" FontSize="12" FontWeight="Regular">
-        <MenuItem Header="시리즈" Click="ShowSeries_Click" Background="#FF141418" Foreground="#FFF5F5F7"
+        <MenuItem x:Name="ShowSeriesItem" Header="시리즈" Click="ShowSeries_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
         <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
@@ -47,10 +49,10 @@
                   Click="AutoNext_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
         <Separator/>
-        <MenuItem Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
+        <MenuItem x:Name="CaptureMenuItem" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                   Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
-        <MenuItem Header="구간 저장" Click="ClipSaveMenu_Click"
+        <MenuItem x:Name="ClipSaveMenuItem" Header="구간 저장" Click="ClipSaveMenu_Click"
                   Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
       </MenuItem>

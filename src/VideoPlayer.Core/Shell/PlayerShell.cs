@@ -1,5 +1,6 @@
 using VideoPlayer.Core.Capture;
 using VideoPlayer.Core.Clip;
+using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Skip;
 using VideoPlayer.Core.Subtitles;
 
@@ -17,6 +18,7 @@ public sealed class PlayerShell
     public StatusBarState Status { get; } = new();
     public FullscreenChrome Fullscreen { get; } = new();
     public SeriesPanelState Series { get; } = new();
+    public FileOnlyFeatureState FileOnly { get; } = new();
     public NextEpisodeChrome NextEpisode { get; } = new();
     public OverlayTimeState OverlayClock { get; } = new();
     public CaptureSheetState Capture { get; } = new();
@@ -195,6 +197,7 @@ public sealed class SeriesPanelState
     public string OpenFolderLabel { get; } = UiCopy.OpenFolder;
     public string BackLabel { get; } = UiCopy.Back;
     public bool PlaylistButton { get; } = false;
+    public bool Enabled { get; set; } = true;
     public SeriesDrillLevel Level { get; set; } = SeriesDrillLevel.Shows;
     public string Heading { get; set; } = "";
     public List<SeriesListItem> Items { get; set; } = [];

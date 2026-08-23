@@ -63,6 +63,12 @@ public sealed class PlaybackSession
     public bool IsCapturing => _capturing;
     public string? LastUnsupportedCodec { get; private set; }
     public SeriesDrillDown Series => _drill;
+    public MediaSourceKind SourceKind => Current?.Kind ?? MediaSourceKind.None;
+    public bool IsUrlSource => SourceKind == MediaSourceKind.HttpUrl;
+    public bool CanUseSeriesTree => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.SeriesTree);
+    public bool CanAutoNext => AutoNext && FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.AutoNext);
+    public bool CanCapture => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.Capture) && Engine.IsOpen;
+    public bool CanClipSave => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.ClipSave) && Engine.IsOpen;
 
     public OpenMediaResult Open(string path)
     {
@@ -73,79 +79,35 @@ public sealed class PlaybackSession
             return new OpenMediaResult { Success = false, Path = path ?? "", Error = check.Error, Status = Shell.Status.Text };
         }
 
-        if (SupportedFormats.IsOutOfScopeContainer(check.FullPath) || !SupportedFormats.IsSupportedContainer(check.FullPath))
+        if (RejectUnsupportedContainer(check.FullPath, check.FullPath) is { } rejected)
         {
-            var name = Path.GetExtension(check.FullPath).TrimStart('.').ToUpperInvariant();
-            LastUnsupportedCodec = string.IsNullOrEmpty(name) ? "알 수 없음" : name;
-            Shell.Status.Fail(StatusText.Unsupported(LastUnsupportedCodec));
-            return OpenMediaResult.Unsupported(check.FullPath, LastUnsupportedCodec);
-        }
-
-        Checkpoint("episode-change");
-
-        var opened = Engine.Open(check.FullPath, preferHardware: true);
-        if (!opened.Success)
-        {
-            LastUnsupportedCodec = opened.UnsupportedCodecName;
-            Shell.Status.Fail(opened.Status);
-            return opened with { AddedToRecent = false };
-        }
-
-        if (opened.VideoCodec is not null &&
-            (SupportedFormats.IsOutOfScopeCodec(opened.VideoCodec) || !SupportedFormats.IsSupportedVideoCodec(opened.VideoCodec)))
-        {
-            LastUnsupportedCodec = SupportedFormats.DisplayCodecName(opened.VideoCodec);
-            Engine.Close();
-            Current = null;
-            Shell.Status.Fail(StatusText.Unsupported(opened.VideoCodec));
-            return OpenMediaResult.Unsupported(check.FullPath, opened.VideoCodec);
+            return rejected;
         }
 
         var identity = File.Exists(check.FullPath)
             ? MediaIdentity.FromFile(check.FullPath)
-            : new MediaIdentity(check.FullPath, 0);
-        Current = identity;
-        _endedHandled = false;
-        AutoNextOffer.ResetForNewTitle();
-        ResetSkipForNewTitle();
-        Shell.Clip.ClearMarks();
-        Shell.Clip.Open = false;
-        Shell.ClipBanner.Clear();
+            : new MediaIdentity(check.FullPath, 0, MediaSourceKind.LocalFile);
+        return PlayOpened(check.FullPath, identity, addToRecent: true, loadSidecars: true);
+    }
 
-        if (!opened.HardwareActive)
+    public OpenMediaResult OpenUrl(string? url)
+    {
+        var check = OpenUrlRules.Validate(url);
+        if (!check.Success || check.FullPath is null)
         {
-            Shell.Status.Fail(_hw.OnHardwareFailed(opened.VideoCodec, opened.AudioCodec).StatusText);
-        }
-        else
-        {
-            Shell.Status.Clear();
+            Shell.Status.Fail(check.Error ?? UiCopy.OpenUrlHttpOnlyReason);
+            return new OpenMediaResult { Success = false, Path = url ?? "", Error = check.Error, Status = Shell.Status.Text };
         }
 
-        var resumeAt = Resume.PositionOrZero(identity.Path, identity.Size);
-        if (resumeAt > 0)
+        var accepted = check.FullPath;
+        var containerPath = OpenUrlRules.ContainerPath(accepted);
+        if (containerPath is not null
+            && RejectUnsupportedContainer(containerPath, accepted) is { } rejected)
         {
-            Engine.Seek(resumeAt);
+            return rejected;
         }
 
-        Engine.Speed = Speed;
-        LoadSidecarSubtitles(identity.Path);
-        LoadSkipSegments(identity.Path);
-        Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
-        RefreshSidebar();
-        RefreshSeriesPanel();
-        SyncTransport();
-        SyncClipSheet();
-        Shell.IsPaused = false;
-        Persist();
-        return opened with
-        {
-            Success = true,
-            Path = identity.Path,
-            Size = identity.Size,
-            AddedToRecent = true,
-            Status = Shell.Status.Text,
-            HardwareActive = opened.HardwareActive
-        };
+        return PlayOpened(accepted, MediaIdentity.FromUrl(accepted), addToRecent: false, loadSidecars: false);
     }
 
     public IReadOnlyList<OpenMediaResult> Drop(IEnumerable<string> paths)
@@ -165,6 +127,102 @@ public sealed class PlaybackSession
         }
 
         return results;
+    }
+
+    private OpenMediaResult? RejectUnsupportedContainer(string pathForExtension, string identityPath)
+    {
+        if (SupportedFormats.IsOutOfScopeContainer(pathForExtension) || !SupportedFormats.IsSupportedContainer(pathForExtension))
+        {
+            var name = Path.GetExtension(pathForExtension).TrimStart('.').ToUpperInvariant();
+            LastUnsupportedCodec = string.IsNullOrEmpty(name) ? "알 수 없음" : name;
+            Shell.Status.Fail(StatusText.Unsupported(LastUnsupportedCodec));
+            return OpenMediaResult.Unsupported(identityPath, LastUnsupportedCodec);
+        }
+
+        return null;
+    }
+
+    private OpenMediaResult PlayOpened(string enginePath, MediaIdentity identity, bool addToRecent, bool loadSidecars)
+    {
+        Checkpoint("episode-change");
+
+        var opened = Engine.Open(enginePath, preferHardware: true);
+        if (!opened.Success)
+        {
+            LastUnsupportedCodec = opened.UnsupportedCodecName;
+            Shell.Status.Fail(opened.Status);
+            return opened with { AddedToRecent = false };
+        }
+
+        if (opened.VideoCodec is not null &&
+            (SupportedFormats.IsOutOfScopeCodec(opened.VideoCodec) || !SupportedFormats.IsSupportedVideoCodec(opened.VideoCodec)))
+        {
+            LastUnsupportedCodec = SupportedFormats.DisplayCodecName(opened.VideoCodec);
+            Engine.Close();
+            Current = null;
+            SyncFileOnlyFeatures();
+            Shell.Status.Fail(StatusText.Unsupported(opened.VideoCodec));
+            return OpenMediaResult.Unsupported(enginePath, opened.VideoCodec);
+        }
+
+        Current = identity;
+        _endedHandled = false;
+        AutoNextOffer.ResetForNewTitle();
+        ResetSkipForNewTitle();
+        Shell.Clip.ClearMarks();
+        Shell.Clip.Open = false;
+        Shell.ClipBanner.Clear();
+
+        if (!opened.HardwareActive)
+        {
+            Shell.Status.Fail(_hw.OnHardwareFailed(opened.VideoCodec, opened.AudioCodec).StatusText);
+        }
+        else
+        {
+            Shell.Status.Clear();
+        }
+
+        var resumeAt = Resume.PositionOrZero(identity);
+        if (resumeAt > 0)
+        {
+            Engine.Seek(resumeAt);
+        }
+
+        Engine.Speed = Speed;
+        if (loadSidecars && identity.Kind == MediaSourceKind.LocalFile)
+        {
+            LoadSidecarSubtitles(identity.Path);
+            LoadSkipSegments(identity.Path);
+        }
+        else
+        {
+            Cues = [];
+            SecondaryCues = [];
+            Shell.OverlaySubtitle = "";
+            Shell.OverlaySecondarySubtitle = "";
+        }
+
+        var added = false;
+        if (addToRecent)
+        {
+            added = Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
+        }
+
+        RefreshSidebar();
+        RefreshSeriesPanel();
+        SyncTransport();
+        SyncClipSheet();
+        Shell.IsPaused = false;
+        Persist();
+        return opened with
+        {
+            Success = true,
+            Path = identity.Path,
+            Size = identity.Size,
+            AddedToRecent = added,
+            Status = Shell.Status.Text,
+            HardwareActive = opened.HardwareActive
+        };
     }
 
     public void PlayPause()
@@ -459,7 +517,7 @@ public sealed class PlaybackSession
             {
                 _endedHandled = true;
                 Checkpoint("ended");
-                if (AutoNext && Current is { } current)
+                if (CanAutoNext && Current is { } current && current.Kind == MediaSourceKind.LocalFile)
                 {
                     var next = SeriesScanner.NextEpisode(_flatEpisodes, current.Path);
                     if (next is { } identity)
@@ -480,7 +538,7 @@ public sealed class PlaybackSession
     {
         Shell.EnterFullscreen();
         Shell.Fullscreen.Title = Current is { } cur
-            ? FileNameSanitizer.ForDisplay(Path.GetFileNameWithoutExtension(cur.Path))
+            ? TitleFor(cur)
             : UiCopy.AppTitle;
     }
 
@@ -490,7 +548,14 @@ public sealed class PlaybackSession
     {
         if (Resume.Continue is { } pointer)
         {
-            Open(pointer.Path);
+            if (OpenUrlRules.IsAcceptedHttpUrl(pointer.Path))
+            {
+                OpenUrl(pointer.Path);
+            }
+            else
+            {
+                Open(pointer.Path);
+            }
         }
     }
 
@@ -498,6 +563,11 @@ public sealed class PlaybackSession
 
     public void OpenCaptureSheet()
     {
+        if (IsUrlSource)
+        {
+            return;
+        }
+
         Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(
             string.IsNullOrWhiteSpace(Shell.Capture.FolderPath)
                 ? Settings.CaptureFolder
@@ -527,7 +597,7 @@ public sealed class PlaybackSession
 
     public CaptureRunResult RunStillCapture()
     {
-        if (Current is not { } current || !Engine.IsOpen)
+        if (!CanCapture || Current is not { } current || !Engine.IsOpen)
         {
             var missing = new CaptureRunResult(
                 StillFrameCapture.ClampCount(Shell.Capture.Count),
@@ -575,6 +645,11 @@ public sealed class PlaybackSession
 
     public void OpenClipSheet()
     {
+        if (IsUrlSource)
+        {
+            return;
+        }
+
         Shell.Clip.Open = true;
         Shell.ClipBanner.Clear();
         SyncClipSheet();
@@ -664,7 +739,7 @@ public sealed class PlaybackSession
     public ClipRunResult RunClipSave(IClipProcessRunner runner)
     {
         SyncClipSheet();
-        if (!Engine.IsOpen || Current is null)
+        if (IsUrlSource || !CanClipSave || !Engine.IsOpen || Current is null)
         {
             var missing = new ClipRunResult(false, null, ClipBannerKind.Failure, UiCopy.ClipNoMedia, true, []);
             ApplyClipResult(missing);
@@ -707,7 +782,7 @@ public sealed class PlaybackSession
     private void SyncClipSheet()
     {
         var clip = Shell.Clip;
-        clip.HasMedia = Engine.IsOpen && Current is not null;
+        clip.HasMedia = Engine.IsOpen && Current is { Kind: MediaSourceKind.LocalFile };
         clip.SourcePath = Current?.Path ?? "";
         clip.Stem = Current is { } current
             ? Path.GetFileNameWithoutExtension(current.Path)
@@ -729,6 +804,7 @@ public sealed class PlaybackSession
         var inCredits = InCreditsRegion();
         var creditsEnded = CreditsEnded();
         var inEndRegion = Engine.IsOpen
+                          && !IsUrlSource
                           && CompletionPolicy.IsInLastTenSeconds(Engine.Position, Engine.Duration)
                           && NextEpisodePath() is not null
                           && (!HasCreditsSegment() || creditsEnded);
@@ -742,7 +818,7 @@ public sealed class PlaybackSession
     private void PlayAdjacentEpisode(int offset)
     {
         AutoNextOffer.ResetForNewTitle();
-        if (_capturing || Current is not { } current)
+        if (_capturing || Current is not { } current || current.Kind != MediaSourceKind.LocalFile)
         {
             return;
         }
@@ -758,7 +834,7 @@ public sealed class PlaybackSession
 
     private string? NextEpisodePath()
     {
-        if (Current is not { } current)
+        if (Current is not { } current || current.Kind != MediaSourceKind.LocalFile)
         {
             return null;
         }
@@ -768,13 +844,18 @@ public sealed class PlaybackSession
 
     private string? PreviousEpisodePath()
     {
-        if (Current is not { } current)
+        if (Current is not { } current || current.Kind != MediaSourceKind.LocalFile)
         {
             return null;
         }
 
         return SeriesScanner.PreviousEpisode(_flatEpisodes, current.Path)?.Path;
     }
+
+    private static string TitleFor(MediaIdentity identity)
+        => identity.Kind == MediaSourceKind.HttpUrl
+            ? OpenUrlRules.DisplayName(identity.Path)
+            : FileNameSanitizer.ForDisplay(Path.GetFileNameWithoutExtension(identity.Path));
 
     private void LoadSidecarSubtitles(string mediaPath)
     {
@@ -855,7 +936,7 @@ public sealed class PlaybackSession
 
     private void RefreshSkipSegmentsIfNeeded()
     {
-        if (!Engine.IsOpen || Current is null)
+        if (!Engine.IsOpen || Current is not { Kind: MediaSourceKind.LocalFile })
         {
             return;
         }
@@ -938,7 +1019,12 @@ public sealed class PlaybackSession
     private void RefreshSidebar()
     {
         Shell.Sidebar.Resume = Resume.Continue is { } pointer
-            ? new SidebarResumeItem(FileNameSanitizer.ForDisplay(Path.GetFileName(pointer.Path)), pointer.Path, pointer.Size)
+            ? new SidebarResumeItem(
+                OpenUrlRules.IsAcceptedHttpUrl(pointer.Path)
+                    ? OpenUrlRules.DisplayName(pointer.Path)
+                    : FileNameSanitizer.ForDisplay(Path.GetFileName(pointer.Path)),
+                pointer.Path,
+                pointer.Size)
             : null;
         Shell.Sidebar.RecentSeries.Clear();
         foreach (var series in RecentSeries.Items)
@@ -952,10 +1038,15 @@ public sealed class PlaybackSession
 
     private void RefreshSeriesPanel()
     {
+        SyncFileOnlyFeatures();
+        Shell.Series.Enabled = CanUseSeriesTree;
         Shell.Series.Level = _drill.Level;
         Shell.Series.Heading = _drill.Heading();
-        Shell.Series.Items = [.. _drill.ListItems(Resume, Current?.Path)];
+        Shell.Series.Items = [.. _drill.ListItems(Resume, Current is { Kind: MediaSourceKind.LocalFile } cur ? cur.Path : null)];
     }
+
+    private void SyncFileOnlyFeatures()
+        => FileOnlyFeatures.Apply(Shell.FileOnly, SourceKind, Engine.IsOpen);
 
     private IEnumerable<SeriesShow> MergeShows(SeriesShow incoming)
     {

@@ -2,7 +2,9 @@ using VideoPlayer.Core.Safety;
 
 namespace VideoPlayer.Core.Playback;
 
-/// <summary>Confirmed resume identity: absolute path + file size.</summary>
+/// <summary>
+/// Resume identity: local files are path + size. http(s) sources use the exact URL string and no size.
+/// </summary>
 public static class ResumeKey
 {
     public static string From(string path, long size)
@@ -18,6 +20,17 @@ public static class ResumeKey
         }
 
         return $"{PathText.NormalizeForKey(path)}|{size}";
+    }
+
+    public static string FromUrl(string url)
+    {
+        var check = OpenUrlRules.Validate(url);
+        if (!check.Success || check.FullPath is null)
+        {
+            throw new ArgumentException(check.Error ?? "http(s) 주소가 필요합니다.", nameof(url));
+        }
+
+        return check.FullPath;
     }
 
     public static bool TryParse(string? key, out string path, out long size)
@@ -40,13 +53,23 @@ public static class ResumeKey
     }
 }
 
-public readonly record struct MediaIdentity(string Path, long Size)
+public readonly record struct MediaIdentity(string Path, long Size, MediaSourceKind Kind)
 {
-    public string Key => ResumeKey.From(Path, Size);
+    public MediaIdentity(string path, long size)
+        : this(path, size, MediaSourceKind.LocalFile)
+    {
+    }
+
+    public string Key => Kind == MediaSourceKind.HttpUrl
+        ? ResumeKey.FromUrl(Path)
+        : ResumeKey.From(Path, Size);
 
     public static MediaIdentity FromFile(string path)
     {
         var info = new FileInfo(path);
-        return new MediaIdentity(PathText.NormalizeForKey(info.FullName), info.Length);
+        return new MediaIdentity(PathText.NormalizeForKey(info.FullName), info.Length, MediaSourceKind.LocalFile);
     }
+
+    public static MediaIdentity FromUrl(string url)
+        => new(ResumeKey.FromUrl(url), 0, MediaSourceKind.HttpUrl);
 }

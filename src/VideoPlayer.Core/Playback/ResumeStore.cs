@@ -32,13 +32,22 @@ public sealed class ResumeStore
     }
 
     public ResumeEntry? Find(string path, long size)
-    {
-        _entries.TryGetValue(ResumeKey.From(path, size), out var entry);
-        return entry;
-    }
+        => FindKey(ResumeKey.From(path, size));
+
+    public ResumeEntry? Find(MediaIdentity identity)
+        => FindKey(identity.Key);
+
+    public ResumeEntry? FindUrl(string url)
+        => FindKey(ResumeKey.FromUrl(url));
 
     public double PositionOrZero(string path, long size)
         => Find(path, size) is { Completed: false } entry ? entry.PositionSeconds : 0;
+
+    public double PositionOrZero(MediaIdentity identity)
+        => Find(identity) is { Completed: false } entry ? entry.PositionSeconds : 0;
+
+    private ResumeEntry? FindKey(string key)
+        => _entries.TryGetValue(key, out var entry) ? entry : null;
 
     public string ToJson()
     {
@@ -75,7 +84,23 @@ public sealed class ResumeStore
 
         foreach (var entry in state.Entries)
         {
-            if (entry is null || string.IsNullOrWhiteSpace(entry.Key) || PathValidator.IsRemoteUri(entry.Path))
+            if (entry is null || string.IsNullOrWhiteSpace(entry.Key) || string.IsNullOrWhiteSpace(entry.Path))
+            {
+                continue;
+            }
+
+            if (OpenUrlRules.IsAcceptedHttpUrl(entry.Path))
+            {
+                if (!string.Equals(entry.Key, entry.Path, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                store._entries[entry.Key] = entry;
+                continue;
+            }
+
+            if (PathValidator.IsRemoteUri(entry.Path) || PathValidator.LooksLikeUnc(entry.Path))
             {
                 continue;
             }

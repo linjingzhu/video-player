@@ -23,6 +23,17 @@ public static class UiCopy
 
     public const string OpenFolder = "폴더 열기";
     public const string OpenFile = "열기...";
+    public const string OpenUrl = "URL 열기";
+    public const string OpenUrlPlaceholder = "https://";
+    public const string OpenUrlExample = "예: https://example.com/video.mp4";
+    public const string OpenUrlHttpOnly = "http(s)만";
+    public const string OpenUrlHttpOnlyReason = "http(s)만 열 수 있습니다.";
+    public const string OpenUrlEmpty = "주소를 입력하세요.";
+    public const string OpenUrlNoFileScheme = "file: 주소는 열 수 없습니다. http(s)만 지원합니다.";
+    public const string OpenUrlNoRtmp = "rtmp는 열 수 없습니다. http(s)만 지원합니다.";
+    public const string OpenUrlNoCookiesOrHeaders = "쿠키·헤더는 지원하지 않습니다. 주소만 입력하세요.";
+    public const string OpenUrlNoLogin = "로그인 정보는 지원하지 않습니다. http(s) 주소만 입력하세요.";
+    public const string OpenUrlAction = "열기";
     public const string Exit = "종료";
     public const string SeriesPanel = "시리즈";
     public const string ToggleSidebar = "사이드바";
@@ -94,6 +105,8 @@ public static class UiCopy
     public const string ClipFfmpegMissing = "ffmpeg를 찾을 수 없습니다.";
 
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
+
+    public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, Exit];
 }
 
 public enum ShellScreen

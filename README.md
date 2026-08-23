@@ -1,6 +1,6 @@
 # video-player
 
-Windows desktop **영상 플레이어**. Local files only. No store, DRM, accounts, or streaming.
+Windows desktop **영상 플레이어**. Local files, plus **파일 > URL 열기** for http(s) only. No store, DRM, accounts, cookies, or login.
 
 ## Confirmed P0
 
@@ -12,7 +12,8 @@ Windows desktop **영상 플레이어**. Local files only. No store, DRM, accoun
 - **GPU:** D3D11VA / DXVA when possible. Hardware failure falls back to software and keeps playing. Status bar shows **failures only** (unsupported codec name, HW fallback)
 - **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO
 - **Playback:** speed 0.5–2.0x (resets to 1.0 on restart), ±10초, seek, wheel volume
-- **Resume key:** path + size. Last 10 seconds marks the current title **complete only** and does not seek the next episode
+- **Resume key:** local files are path + size. http(s) sources use the exact URL string (no size). Last 10 seconds marks the current title **complete only** and does not seek the next episode
+- **Open URL:** File menu only. http and https. Unsupported URL/codec shows the dashed failure slot and is not added to Recent. Series tree, 다음 화 auto-next, capture, and clip-save stay file-only
 - **Window:** remember size. Next launch is windowed. Open and drag-drop
 - **jumpSeconds:** global AppData key reserved for v1.5 (integer 1–60, default 10). No settings UI in P0
 
