@@ -130,8 +130,11 @@ public class SkinATokenTests
         Assert.DoesNotContain("SkinAChromeBlur", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("KernelType=\"Gaussian\"", appXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"|\"", mainXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("#14FFFFFF", mainXaml, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"파일\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"보기\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TransportBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StatusBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SidebarRail\" Grid.Column=\"0\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle x:Name=\"InTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle x:Name=\"OutTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);

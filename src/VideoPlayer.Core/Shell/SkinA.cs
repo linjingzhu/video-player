@@ -6,9 +6,9 @@ namespace VideoPlayer.Core.Shell;
 /// Compact density: 40px transport, 28px rail, body 12. Spacing is 4 8 12 16.
 /// Video is full-bleed. Radii: control 2 / panel 4 / window 2. Accent is white.
 /// Only the play triangle is #E10600. Seek fill is white; thumb is square.
-/// Transport and menus are solid #050505 chrome — no blur, no 8% white overlay.
+/// Transport, status, and rail chrome are solid #050505 — no blur overlay.
 /// Dividers are the 1px #222222 @ 40% hairline. I/O marks are 2px squares.
-/// Icon and text buttons use Padding 4. A layout is unchanged.
+/// Icon and text buttons use Padding 4. File|View header is left to SeriesOn.
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA

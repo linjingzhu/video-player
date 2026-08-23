@@ -4,7 +4,7 @@
   <Application.Resources>
     <SolidColorBrush x:Key="BgBrush" Color="#FF050505"/>
     <SolidColorBrush x:Key="PanelBrush" Color="#FF0E0E0E"/>
-    <SolidColorBrush x:Key="ChromeBrush" Color="#FF050505"/>
+    <SolidColorBrush x:Key="ChromeBrush" Color="#FF0E0E0E"/>
     <SolidColorBrush x:Key="BorderBrush" Color="#66222222"/>
     <SolidColorBrush x:Key="TextBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="MutedBrush" Color="#FF8A8A8A"/>
@@ -68,11 +68,6 @@
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="BorderThickness" Value="0"/>
-    </Style>
-    <Style TargetType="Separator">
-      <Setter Property="Background" Value="{StaticResource BorderBrush}"/>
-      <Setter Property="Height" Value="1"/>
-      <Setter Property="Margin" Value="0"/>
     </Style>
     <SolidColorBrush x:Key="SkinABgBrush" Color="#FF050505"/>
     <SolidColorBrush x:Key="SkinAPanelBrush" Color="#FF0E0E0E"/>
