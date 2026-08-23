@@ -73,12 +73,7 @@ public partial class MainWindow : Window
         OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
-        SetMenuHeader(QuickMenuButton.ContextMenu, "speed", shell.Transport.SpeedText);
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "prev", shell.Transport.HasPrevious);
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "next", shell.Transport.HasNext);
-        CaptionsButton.Style = shell.Transport.CaptionsOn
-            ? (Style)FindResource("CcOnButton")
-            : (Style)FindResource("SkinATextButton");
+        ApplyChromeMenus(shell);
         SkipCapsule.Visibility = shell.Skip.Visible ? Visibility.Visible : Visibility.Collapsed;
         SkipCapsuleButton.Content = shell.Skip.Label;
         SkipCancelButton.Content = shell.Skip.CancelLabel;
@@ -99,13 +94,6 @@ public partial class MainWindow : Window
 
         BindSidebar();
         SeriesPage.IsEnabled = shell.Series.Enabled;
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "series", shell.Series.Enabled);
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "autoNext", !_session.IsUrlSource);
-        SetMenuChecked(QuickMenuButton.ContextMenu, "autoNext", _session.AutoNext);
-        SetMenuChecked(QuickMenuButton.ContextMenu, "skipAuto", _session.SkipAutoEnabled);
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "capture", !_session.IsUrlSource);
-        SetMenuEnabled(QuickMenuButton.ContextMenu, "clip", !_session.IsUrlSource);
-        SetMenuEnabled(HamburgerButton.ContextMenu, "saveAs", _session.CanSaveAs);
         SeriesPage.Bind(
             _session.Series,
             _session.Resume,
@@ -200,6 +188,23 @@ public partial class MainWindow : Window
             : new GridLength(0);
         SidebarRail.Visibility = Visibility.Visible;
         SidebarPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ApplyChromeMenus(PlayerShell shell)
+    {
+        foreach (var menu in new[] { QuickMenuButton.ContextMenu, HamburgerButton.ContextMenu })
+        {
+            SetMenuHeader(menu, "speed", shell.Transport.SpeedText);
+            SetMenuEnabled(menu, "prev", shell.Transport.HasPrevious);
+            SetMenuEnabled(menu, "next", shell.Transport.HasNext);
+            SetMenuEnabled(menu, "series", shell.Series.Enabled);
+            SetMenuEnabled(menu, "autoNext", !_session.IsUrlSource);
+            SetMenuChecked(menu, "autoNext", _session.AutoNext);
+            SetMenuChecked(menu, "skipAuto", _session.SkipAutoEnabled);
+            SetMenuEnabled(menu, "capture", !_session.IsUrlSource);
+            SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
+            SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
+        }
     }
 
     private void ApplyChromeVisibility()
@@ -947,7 +952,7 @@ public partial class MainWindow : Window
         PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
     }
 
-    private void PlaceTick(System.Windows.Shapes.Ellipse tick, bool show, double ratio)
+    private void PlaceTick(FrameworkElement tick, bool show, double ratio)
     {
         tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         if (!show || SeekHost.ActualWidth <= 0)

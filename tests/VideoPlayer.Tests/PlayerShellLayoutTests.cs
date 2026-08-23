@@ -42,7 +42,7 @@ public class PlayerShellLayoutTests
     }
 
     [Fact]
-    public void Transport_is_rewind_play_stop_ff_seek_volume_time_cc_fullscreen_hamburger()
+    public void Transport_is_rewind_play_stop_ff_seek_volume_time_hamburger()
     {
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(
@@ -55,13 +55,14 @@ public class PlayerShellLayoutTests
                 TransportControl.Seek,
                 TransportControl.Volume,
                 TransportControl.Time,
-                TransportControl.Captions,
-                TransportControl.Fullscreen,
                 TransportControl.Hamburger
             },
             order);
         Assert.Equal("1.0x", UiCopy.SpeedDefault);
         Assert.Equal("CC", UiCopy.Captions);
+        Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
+        Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
+        Assert.Contains("CC", UiCopy.ViewMenuItems);
         Assert.False(PlayerShell.Boot().Transport.HasRecordButton);
         Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Transport.NextEpisodeTextOnBar);

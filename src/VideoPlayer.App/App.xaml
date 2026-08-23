@@ -95,19 +95,92 @@
       <Setter Property="Margin" Value="8,0"/>
       <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
+    <Style x:Key="SeriesOnIconButton" TargetType="Button">
+      <Setter Property="Foreground" Value="{StaticResource SeriesOnTextBrush}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Margin" Value="4,0"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="2"
+                    Width="28" Height="28" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#14FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.35"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="SeriesOnSeekSlider" TargetType="Slider">
+      <Setter Property="Foreground" Value="{StaticResource SeriesOnAccentBrush}"/>
+      <Setter Property="Minimum" Value="0"/>
+      <Setter Property="IsMoveToPointEnabled" Value="True"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+            <Grid VerticalAlignment="Center">
+              <Border Height="4" Background="{StaticResource SeriesOnTrackRestBrush}" CornerRadius="2" Margin="6,0"/>
+              <Track x:Name="PART_Track">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Command="Slider.DecreaseLarge" IsHitTestVisible="False">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Height="4" Background="{StaticResource SeriesOnAccentBrush}" CornerRadius="2" Margin="6,0,0,0"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb Width="8" Height="8">
+                    <Thumb.Template>
+                      <ControlTemplate TargetType="Thumb">
+                        <Rectangle Width="8" Height="8" Fill="{StaticResource SeriesOnAccentBrush}"/>
+                      </ControlTemplate>
+                    </Thumb.Template>
+                  </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Command="Slider.IncreaseLarge">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent" Height="16"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <Style x:Key="CaptionButton" TargetType="Button">
       <Setter Property="Foreground" Value="{StaticResource SeriesOnTextBrush}"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Width" Value="36"/>
       <Setter Property="Height" Value="36"/>
-      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Padding" Value="4"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="bd" Background="{TemplateBinding Background}" Width="36" Height="36">
+            <Border x:Name="bd" Background="{TemplateBinding Background}" Width="36" Height="36"
+                    Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -139,7 +212,7 @@
       <Setter Property="Foreground" Value="{StaticResource SeriesOnTextBrush}"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Padding" Value="10,0"/>
+      <Setter Property="Padding" Value="4"/>
       <Setter Property="Height" Value="36"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>

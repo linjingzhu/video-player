@@ -181,11 +181,14 @@ public class DualSubtitleSheetTests
     }
 
     [Fact]
-    public void Transport_cc_control_is_unchanged_and_does_not_open_sheet()
+    public void Cc_toggle_does_not_open_sheet_and_is_off_the_bar()
     {
         var order = PlayerShell.Boot().Transport.Order;
-        Assert.Equal(TransportControl.Captions, order[7]);
-        Assert.Contains(TransportControl.Captions, order);
+        Assert.DoesNotContain(TransportControl.Captions, order);
+        Assert.DoesNotContain(TransportControl.Fullscreen, order);
+        Assert.Equal(TransportControl.Hamburger, order[^1]);
+        Assert.Contains("CC", UiCopy.ViewMenuItems);
+        Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
         Assert.DoesNotContain("SubtitleSheet", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Delay", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Subtitles.HasDelaySheet);

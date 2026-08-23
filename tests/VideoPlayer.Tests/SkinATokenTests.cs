@@ -208,8 +208,6 @@ public class SkinATokenTests
                 TransportControl.Seek,
                 TransportControl.Volume,
                 TransportControl.Time,
-                TransportControl.Captions,
-                TransportControl.Fullscreen,
                 TransportControl.Hamburger
             },
             shell.Transport.Order);

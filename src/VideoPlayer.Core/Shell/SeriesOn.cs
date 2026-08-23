@@ -45,6 +45,8 @@ public static class SeriesOn
     public const int TransportSeparatorPx = 1;
     public const int VolumeSliderWidthPx = 88;
     public const int SidebarRailWidthPx = SkinA.SidebarRailWidthPx;
+    public const int ButtonPadding = 4;
+    public const int IoMarkSizePx = 2;
 
     public const bool TitleIsAccent = true;
     public const bool VolumeFillIsAccent = true;
@@ -58,6 +60,11 @@ public static class SeriesOn
     public const bool HasFileViewMenuBar = false;
     public const bool QuickMenuIsView = true;
     public const bool FileCommandsInHamburger = true;
+    public const bool FileCommandsInQuickMenu = true;
+    public const bool HamburgerIsView = true;
+    public const bool CaptionsOnBar = false;
+    public const bool FullscreenOnBar = false;
+    public const bool IoMarksAreSquares = true;
     public const bool HasWindowControls = true;
     public const bool HasCastIcon = false;
     public const bool HasHdrIcon = false;

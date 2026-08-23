@@ -25,6 +25,13 @@ public class SeriesOnTokenTests
         Assert.False(SeriesOn.HasFileViewMenuBar);
         Assert.True(SeriesOn.QuickMenuIsView);
         Assert.True(SeriesOn.FileCommandsInHamburger);
+        Assert.True(SeriesOn.FileCommandsInQuickMenu);
+        Assert.True(SeriesOn.HamburgerIsView);
+        Assert.False(SeriesOn.CaptionsOnBar);
+        Assert.False(SeriesOn.FullscreenOnBar);
+        Assert.True(SeriesOn.IoMarksAreSquares);
+        Assert.Equal(4, SeriesOn.ButtonPadding);
+        Assert.Equal(2, SeriesOn.IoMarkSizePx);
         Assert.True(SeriesOn.HasWindowControls);
         Assert.False(SeriesOn.HasCastIcon);
         Assert.False(SeriesOn.HasHdrIcon);
@@ -64,6 +71,8 @@ public class SeriesOnTokenTests
         Assert.True(shell.Header.HasWindowControls);
         Assert.False(shell.Header.HasFileViewMenuBar);
         Assert.True(shell.Header.FileCommandsInHamburger);
+        Assert.True(shell.Header.FileCommandsInQuickMenu);
+        Assert.True(shell.Header.HamburgerIsView);
         Assert.False(shell.Header.HasMenuPipe);
         Assert.True(shell.Header.ChromeIsSolid);
         Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
@@ -78,6 +87,7 @@ public class SeriesOnTokenTests
             "자막",
             "여기까지 스킵",
             "건너뛰기 자동",
+            "CC",
             "전체화면",
             "다음 화 자동 재생",
             "1.0x",
@@ -88,7 +98,7 @@ public class SeriesOnTokenTests
     }
 
     [Fact]
-    public void Transport_is_rewind_play_stop_ff_seek_volume_time_cc_fullscreen_hamburger()
+    public void Transport_is_rewind_play_stop_ff_seek_volume_time_hamburger()
     {
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(
@@ -101,8 +111,6 @@ public class SeriesOnTokenTests
                 TransportControl.Seek,
                 TransportControl.Volume,
                 TransportControl.Time,
-                TransportControl.Captions,
-                TransportControl.Fullscreen,
                 TransportControl.Hamburger
             },
             order);
@@ -110,6 +118,8 @@ public class SeriesOnTokenTests
         Assert.Contains("Hamburger", Enum.GetNames<TransportControl>());
         Assert.True(PlayerShell.Boot().Transport.HasStop);
         Assert.True(PlayerShell.Boot().Transport.TimeOnBar);
+        Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
+        Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
         Assert.False(PlayerShell.Boot().Transport.SkipLabelsOnBar);
         Assert.False(PlayerShell.Boot().Transport.SpeedOnBar);
         Assert.False(PlayerShell.Boot().Transport.PreviousOnBar);
@@ -139,7 +149,19 @@ public class SeriesOnTokenTests
         Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Stop_Click", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnVolumeSlider", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("HamburgerButton", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnIconButton", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnSeekSlider", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"InTick\" Width=\"6\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Ellipse x:Name=\"InTick\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"CaptionsButton\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"FullscreenButton\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Ellipse", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("E10600", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("ToolTip=\"보기\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"열기...\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"MainMenu\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Header=\"파일\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Header=\"보기\"", mainXaml, StringComparison.Ordinal);

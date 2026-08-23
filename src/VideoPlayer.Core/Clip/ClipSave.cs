@@ -492,7 +492,7 @@ public sealed class ClipSheetState
     public int TickSizePx { get; } = ClipSave.TickSizePx;
     public string InLetter => "";
     public string OutLetter => "";
-    public string TickColor => SkinA.Thumb;
+    public string TickColor => SeriesOn.Accent;
     public bool ShowInTick => InMark is not null;
     public bool ShowOutTick => OutMark is not null;
     public IReadOnlyList<ClipFormat> Formats => ClipFormats.All;

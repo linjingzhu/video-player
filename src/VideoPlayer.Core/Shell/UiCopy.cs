@@ -1,6 +1,6 @@
 namespace VideoPlayer.Core.Shell;
 
-/// <summary>SeriesOn chrome copy. 퀵메뉴 is View; file commands live under the hamburger.</summary>
+/// <summary>SeriesOn chrome copy. 퀵메뉴 holds File and ±10; transport hamburger is View.</summary>
 public static class UiCopy
 {
     public const string AppTitle = "이어서";
@@ -132,6 +132,7 @@ public static class UiCopy
         Subtitles,
         SkipToHere,
         SkipAuto,
+        Captions,
         Fullscreen,
         AutoNext,
         SpeedDefault,

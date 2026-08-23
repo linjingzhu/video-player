@@ -80,8 +80,6 @@ public static class ShellLayout
         TransportControl.Seek,
         TransportControl.Volume,
         TransportControl.Time,
-        TransportControl.Captions,
-        TransportControl.Fullscreen,
         TransportControl.Hamburger
     ];
 }
@@ -113,6 +111,8 @@ public sealed class HeaderChrome
     public bool HasWindowControls { get; } = true;
     public bool HasFileViewMenuBar { get; } = false;
     public bool FileCommandsInHamburger { get; } = true;
+    public bool FileCommandsInQuickMenu { get; } = true;
+    public bool HamburgerIsView { get; } = true;
     public bool HasMenuPipe { get; } = false;
     public bool ChromeIsSolid { get; } = true;
     public int HeightPx { get; } = ShellLayout.HeaderHeightPx;
@@ -148,6 +148,8 @@ public sealed class TransportState
     public bool SkipLabelsOnBar { get; } = false;
     public bool SpeedOnBar { get; } = false;
     public bool TimeOnBar { get; } = true;
+    public bool CaptionsOnBar { get; } = false;
+    public bool FullscreenOnBar { get; } = false;
     public bool HasStop { get; } = true;
     public bool HasRecordButton { get; } = false;
     public bool HasCastIcon { get; } = false;

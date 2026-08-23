@@ -41,7 +41,8 @@ public class ClipSaveTests
         Assert.Equal("#FFFFFF", sheet.SaveColor);
         Assert.Equal(SkinA.Panel, sheet.PanelColor);
         Assert.Equal(SkinA.Accent, sheet.SaveColor);
-        Assert.Equal("#FFFFFF", sheet.TickColor);
+        Assert.Equal("#C6FF00", sheet.TickColor);
+        Assert.Equal(SeriesOn.Accent, sheet.TickColor);
         Assert.Equal(ClipTickKind.Square, sheet.TickKind);
         Assert.Equal(2, sheet.TickSizePx);
         Assert.Equal(SkinA.IoTickSizePx, sheet.TickSizePx);
@@ -68,7 +69,7 @@ public class ClipSaveTests
         Assert.False(shell.Transport.HasRecordButton);
         Assert.False(shell.Clip.HasRecordButton);
         Assert.False(ClipSave.HasRecordButton);
-        Assert.Equal(10, shell.Transport.Order.Count);
+        Assert.Equal(8, shell.Transport.Order.Count);
         Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
