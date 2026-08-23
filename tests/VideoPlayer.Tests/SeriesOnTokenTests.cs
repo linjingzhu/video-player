@@ -48,6 +48,9 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.StageDoubleClickTogglesFullscreen);
         Assert.False(SeriesOn.TransportDoubleClickTogglesFullscreen);
         Assert.False(SeriesOn.MenuDoubleClickTogglesFullscreen);
+        Assert.True(SeriesOn.StageRightClickOpensExistingMenu);
+        Assert.False(SeriesOn.TransportRightClickOpensStageMenu);
+        Assert.False(SeriesOn.MenuRightClickOpensStageMenu);
         Assert.True(SeriesOn.IoMarksAreSquares);
         Assert.Equal(4, SeriesOn.ButtonPadding);
         Assert.Equal(2, SeriesOn.IoMarkSizePx);
@@ -92,6 +95,7 @@ public class SeriesOnTokenTests
         Assert.True(shell.Header.FileCommandsInHamburger);
         Assert.True(shell.Header.FileCommandsInQuickMenu);
         Assert.True(shell.Header.HamburgerIsView);
+        Assert.True(shell.StageRightClickOpensExistingMenu);
         Assert.False(shell.Header.HasMenuPipe);
         Assert.True(shell.Header.ChromeIsSolid);
         Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
@@ -208,6 +212,12 @@ public class SeriesOnTokenTests
         Assert.Contains("IgnoreChromeDoubleClick", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Host.MouseDoubleClick", codeBehind, StringComparison.Ordinal);
         Assert.Contains("ShouldToggleFromDoubleClick", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Video_RightClick", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("OpenStageMenuAtCursor", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("PlacementMode.MousePoint", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("QuickMenuButton.ContextMenu", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ShouldOpenStageMenuFromRightClick", codeBehind, StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(mainXaml, "<ContextMenu "));
         Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"InTick\" Width=\"6\"", mainXaml, StringComparison.Ordinal);

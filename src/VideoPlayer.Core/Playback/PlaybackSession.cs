@@ -1417,4 +1417,11 @@ public static class FullscreenChromeController
            && !onTransportOrMenu
            && !SeriesOn.TransportDoubleClickTogglesFullscreen
            && !SeriesOn.MenuDoubleClickTogglesFullscreen;
+
+    public static bool ShouldOpenStageMenuFromRightClick(bool onVideoStage, bool onTransportOrMenu)
+        => SeriesOn.StageRightClickOpensExistingMenu
+           && onVideoStage
+           && !onTransportOrMenu
+           && !SeriesOn.TransportRightClickOpensStageMenu
+           && !SeriesOn.MenuRightClickOpensStageMenu;
 }

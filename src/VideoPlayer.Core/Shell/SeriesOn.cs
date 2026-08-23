@@ -82,6 +82,9 @@ public static class SeriesOn
     public const bool StageDoubleClickTogglesFullscreen = true;
     public const bool TransportDoubleClickTogglesFullscreen = false;
     public const bool MenuDoubleClickTogglesFullscreen = false;
+    public const bool StageRightClickOpensExistingMenu = true;
+    public const bool TransportRightClickOpensStageMenu = false;
+    public const bool MenuRightClickOpensStageMenu = false;
     public const bool IoMarksAreSquares = true;
     public const bool HasWindowControls = true;
     public const bool HasCastIcon = false;

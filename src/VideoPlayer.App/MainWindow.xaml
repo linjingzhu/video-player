@@ -141,7 +141,8 @@
       <Grid Grid.Column="2">
         <Grid x:Name="VideoPage">
           <Border x:Name="VideoHostBorder" Background="#FF000000" Margin="0" Padding="0" BorderThickness="0"
-                  MouseLeftButtonDown="Video_Click">
+                  MouseLeftButtonDown="Video_Click"
+                  MouseRightButtonUp="Video_RightClick">
             <Grid>
               <WindowsFormsHost x:Name="PlayerHost"/>
               <Border x:Name="EmptyStageCover" Background="#FF000000" IsHitTestVisible="False"/>

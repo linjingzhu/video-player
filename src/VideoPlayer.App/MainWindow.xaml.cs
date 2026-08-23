@@ -41,6 +41,7 @@ public partial class MainWindow : Window
         ApplyWindowMemory(_session.Window.Bounds);
         PlayerHost.Child = _engine.Host;
         _engine.Host.MouseDoubleClick += (_, _) => Dispatcher.BeginInvoke(new Action(ToggleFullscreen));
+        _engine.Host.MouseUp += OnVideoHostMouseUp;
         ApplySidebar();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => OnTick();
@@ -282,6 +283,51 @@ public partial class MainWindow : Window
         menu.PlacementTarget = button;
         menu.Placement = PlacementMode.Bottom;
         menu.IsOpen = true;
+    }
+
+    private void OpenStageMenuAtCursor()
+    {
+        if (QuickMenuButton.ContextMenu is not { } menu)
+        {
+            return;
+        }
+
+        ApplyChromeMenus(_session.Shell);
+        menu.PlacementTarget = VideoHostBorder;
+        menu.Placement = PlacementMode.MousePoint;
+        menu.IsOpen = true;
+    }
+
+    private void OnVideoHostMouseUp(object? sender, System.Windows.Forms.MouseEventArgs e)
+    {
+        if (e.Button != System.Windows.Forms.MouseButtons.Right)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (FullscreenChromeController.ShouldOpenStageMenuFromRightClick(
+                    onVideoStage: true,
+                    onTransportOrMenu: false))
+            {
+                OpenStageMenuAtCursor();
+            }
+        }));
+    }
+
+    private void Video_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        var onTransportOrMenu = OriginatesOnTransportOrMenu(e.OriginalSource as DependencyObject);
+        if (!FullscreenChromeController.ShouldOpenStageMenuFromRightClick(
+                onVideoStage: !onTransportOrMenu,
+                onTransportOrMenu: onTransportOrMenu))
+        {
+            return;
+        }
+
+        OpenStageMenuAtCursor();
+        e.Handled = true;
     }
 
     private void QuickMenuButton_Click(object sender, RoutedEventArgs e) => OpenContextMenu(QuickMenuButton);

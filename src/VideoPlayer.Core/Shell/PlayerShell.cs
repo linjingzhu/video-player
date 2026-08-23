@@ -36,6 +36,7 @@ public sealed class PlayerShell
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
     public bool StageEmpty { get; set; } = true;
+    public bool StageRightClickOpensExistingMenu { get; } = SeriesOn.StageRightClickOpensExistingMenu;
     public bool VideoFullWidth { get; } = true;
     public bool VideoFullBleed { get; } = true;
     public bool NoLetterboxChrome { get; } = true;
