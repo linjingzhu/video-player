@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace VideoPlayer.Core.Library;
 
@@ -6,15 +7,18 @@ namespace VideoPlayer.Core.Library;
 /// Global player settings (AppData). Not per-title.
 /// <see cref="JumpSeconds"/> is reserved for v1.5 skip interval; v1 keeps default 10
 /// and wireframe copy ±10초. No settings UI in P0.
+/// Capture and clip-save keep last-used folders on separate keys.
 /// </summary>
 public sealed class AppSettings
 {
     public const string FileName = "settings.json";
     public const string JumpSecondsKey = "jumpSeconds";
     public const string CaptureFolderKey = "captureFolder";
+    public const string ClipFolderKey = "clipFolder";
 
     public int JumpSeconds { get; private set; } = JumpInterval.DefaultSeconds;
     public string? CaptureFolder { get; private set; }
+    public string? ClipFolder { get; private set; }
 
     /// <summary>v1.5 live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
     public int SetJumpSeconds(int seconds)
@@ -29,8 +33,14 @@ public sealed class AppSettings
         return CaptureFolder;
     }
 
+    public string? SetClipFolder(string? path)
+    {
+        ClipFolder = string.IsNullOrWhiteSpace(path) ? null : path.Trim();
+        return ClipFolder;
+    }
+
     public string ToJson()
-        => JsonSerializer.Serialize(new AppSettingsDto(JumpSeconds, CaptureFolder), JsonOptions);
+        => JsonSerializer.Serialize(new AppSettingsDto(JumpSeconds, CaptureFolder, ClipFolder), JsonOptions);
 
     public static AppSettings FromJson(string? json)
     {
@@ -54,13 +64,23 @@ public sealed class AppSettings
                 settings.JumpSeconds = JumpInterval.Clamp(seconds);
             }
 
-            if (document.RootElement.TryGetProperty(CaptureFolderKey, out var folder)
-                && folder.ValueKind == JsonValueKind.String)
+            if (document.RootElement.TryGetProperty(CaptureFolderKey, out var captureFolder)
+                && captureFolder.ValueKind == JsonValueKind.String)
             {
-                var value = folder.GetString();
+                var value = captureFolder.GetString();
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     settings.CaptureFolder = value;
+                }
+            }
+
+            if (document.RootElement.TryGetProperty(ClipFolderKey, out var clipFolder)
+                && clipFolder.ValueKind == JsonValueKind.String)
+            {
+                var value = clipFolder.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    settings.ClipFolder = value;
                 }
             }
         }
@@ -72,11 +92,12 @@ public sealed class AppSettings
         return settings;
     }
 
-    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder);
+    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder, string? ClipFolder);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true
     };
 }

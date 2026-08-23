@@ -69,6 +69,30 @@ public static class UiCopy
     public const string SkipToHere = "여기까지 스킵";
     public const string SkipAuto = "건너뛰기 자동";
 
+    public const string ClipSave = "구간 저장";
+    public const string ClipStart = "시작";
+    public const string ClipEnd = "끝";
+    public const string ClipDuration = "길이";
+    public const string ClipFormat = "형식";
+    public const string ClipFormatStreamCopy = "원본복사";
+    public const string ClipFormatWebp = "webp";
+    public const string ClipFormatGif = "gif";
+    public const string ClipFps = "fps";
+    public const string ClipFpsSource = "원본";
+    public const string ClipPingPong = "핑퐁";
+    public const string ClipPalette = "팔레트";
+    public const string ClipPaletteValue = "256색";
+    public const string ClipEncodingOff = "원본복사에서는 꺼짐";
+    public const string ClipKeyframeNotice = "키프레임 단위로 저장됩니다.";
+    public const string ClipFolder = "폴더";
+    public const string ClipChangeFolder = "변경";
+    public const string ClipSaveAction = "저장";
+    public const string ClipCancel = "취소";
+    public const string ClipNoMedia = "재생 중인 영상이 없습니다.";
+    public const string ClipTooShort = "구간은 1초 이상이어야 합니다.";
+    public const string ClipSaveFailed = "저장할 수 없습니다.";
+    public const string ClipFfmpegMissing = "ffmpeg를 찾을 수 없습니다.";
+
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
 }
 

@@ -4,7 +4,7 @@ namespace VideoPlayer.Core.Shell;
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
 /// and to this pack's skip capsule and subtitle sheet only.
 /// Does not change A v2 shell structure, layout, or behavior.
-/// Capture sheet chrome also uses these values.
+/// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA
 {

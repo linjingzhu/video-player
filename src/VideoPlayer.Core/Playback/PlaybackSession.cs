@@ -1,4 +1,5 @@
 using VideoPlayer.Core.Capture;
+using VideoPlayer.Core.Clip;
 using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Media;
 using VideoPlayer.Core.Safety;
@@ -31,7 +32,9 @@ public sealed class PlaybackSession
         LoadPersisted();
         Speed = PlaybackSpeed.Default;
         AutoNext = true;
+        ApplyClipFolder();
         RefreshSeriesPanel();
+        SyncClipSheet();
     }
 
     public IMediaEngine Engine { get; }
@@ -105,6 +108,9 @@ public sealed class PlaybackSession
         _endedHandled = false;
         AutoNextOffer.ResetForNewTitle();
         ResetSkipForNewTitle();
+        Shell.Clip.ClearMarks();
+        Shell.Clip.Open = false;
+        Shell.ClipBanner.Clear();
 
         if (!opened.HardwareActive)
         {
@@ -128,6 +134,7 @@ public sealed class PlaybackSession
         RefreshSidebar();
         RefreshSeriesPanel();
         SyncTransport();
+        SyncClipSheet();
         Shell.IsPaused = false;
         Persist();
         return opened with
@@ -441,6 +448,10 @@ public sealed class PlaybackSession
         UpdateNextEpisodeChrome(now);
         UpdateSkipCapsule(now);
         ResolveExclusiveCornerCapsule();
+        if (Shell.Clip.Open)
+        {
+            SyncClipSheet();
+        }
 
         if (Engine.IsOpen && Engine.Duration > 0 && Engine.Position >= Engine.Duration - 0.25)
         {
@@ -561,6 +572,152 @@ public sealed class PlaybackSession
     }
 
     public void DismissCaptureBanner() => Shell.CaptureBanner.Clear();
+
+    public void OpenClipSheet()
+    {
+        Shell.Clip.Open = true;
+        Shell.ClipBanner.Clear();
+        SyncClipSheet();
+    }
+
+    public void CloseClipSheet()
+    {
+        Shell.Clip.Open = false;
+        SyncClipSheet();
+    }
+
+    public void SetInMark()
+    {
+        if (!Engine.IsOpen)
+        {
+            return;
+        }
+
+        Shell.Clip.InMark = Math.Max(0, Engine.Position);
+        SyncClipSheet();
+    }
+
+    public void SetOutMark()
+    {
+        if (!Engine.IsOpen)
+        {
+            return;
+        }
+
+        Shell.Clip.OutMark = Math.Max(0, Engine.Position);
+        SyncClipSheet();
+    }
+
+    public void SetClipFormat(ClipFormat format)
+    {
+        Shell.Clip.Format = format;
+        SyncClipSheet();
+    }
+
+    public void NudgeClipFps(int delta)
+    {
+        if (!Shell.Clip.FpsEnabled)
+        {
+            return;
+        }
+
+        Shell.Clip.NudgeFps(delta);
+        SyncClipSheet();
+    }
+
+    public void SetClipPingPong(bool enabled)
+    {
+        if (!Shell.Clip.PingPongEnabled && enabled)
+        {
+            return;
+        }
+
+        Shell.Clip.PingPong = enabled;
+        SyncClipSheet();
+    }
+
+    public bool SetClipFolder(string? path)
+    {
+        if (!ClipSave.TryAcceptFolder(path, out var full))
+        {
+            ApplyClipFolder();
+            return false;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(full);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ApplyClipFolder();
+            return false;
+        }
+
+        Settings.SetClipFolder(full);
+        Shell.Clip.FolderPath = full;
+        Persist();
+        SyncClipSheet();
+        return true;
+    }
+
+    public ClipRunResult RunClipSave(IClipProcessRunner runner)
+    {
+        SyncClipSheet();
+        if (!Engine.IsOpen || Current is null)
+        {
+            var missing = new ClipRunResult(false, null, ClipBannerKind.Failure, UiCopy.ClipNoMedia, true, []);
+            ApplyClipResult(missing);
+            return missing;
+        }
+
+        var job = new ClipJob(
+            Current.Value.Path,
+            Shell.Clip.Stem,
+            Shell.Clip.FolderPath,
+            Shell.Clip.StartSeconds,
+            Shell.Clip.EndSeconds,
+            Shell.Clip.Format,
+            ClipSave.EffectiveFps(Shell.Clip.Format, Shell.Clip.Fps),
+            ClipSave.EffectivePingPong(Shell.Clip.Format, Shell.Clip.PingPong));
+        var result = ClipSave.Run(job, runner);
+        ApplyClipResult(result);
+        return result;
+    }
+
+    private void ApplyClipResult(ClipRunResult result)
+    {
+        if (result.Saved)
+        {
+            Shell.Clip.Open = false;
+            Shell.ClipBanner.Clear();
+            return;
+        }
+
+        Shell.ClipBanner.Show(result.BannerKind, result.Banner);
+        if (!result.SheetStaysOpen)
+        {
+            Shell.Clip.Open = false;
+        }
+    }
+
+    private void ApplyClipFolder()
+        => Shell.Clip.FolderPath = ClipSave.ResolveFolder(Settings.ClipFolder);
+
+    private void SyncClipSheet()
+    {
+        var clip = Shell.Clip;
+        clip.HasMedia = Engine.IsOpen && Current is not null;
+        clip.SourcePath = Current?.Path ?? "";
+        clip.Stem = Current is { } current
+            ? Path.GetFileNameWithoutExtension(current.Path)
+            : "";
+        var range = ClipSave.ResolveRange(clip.InMark, clip.OutMark, Engine.Position, Engine.Duration);
+        clip.StartSeconds = range.Start;
+        clip.EndSeconds = range.End;
+        clip.ClipDurationSeconds = Math.Max(0, range.End - range.Start);
+        clip.CanSave = clip.HasMedia && ClipSave.IsLongEnough(clip.ClipDurationSeconds);
+    }
 
     public void UpdateChromeVisibility(DateTimeOffset now)
         => Shell.ChromeVisible = FullscreenChromeController.ShouldShow(Shell.Screen == ShellScreen.Fullscreen, Shell.IsPaused, now, _lastActivity);
