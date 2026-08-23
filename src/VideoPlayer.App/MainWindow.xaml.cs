@@ -511,7 +511,9 @@ public partial class MainWindow : Window
         {
             if (ReferenceEquals(source, TransportBar)
                 || ReferenceEquals(source, QuickMenuButton)
-                || source is ContextMenu or MenuItem or System.Windows.Controls.Menu)
+                || source is ContextMenu
+                || source is MenuItem
+                || source is System.Windows.Controls.Menu)
             {
                 return true;
             }
