@@ -36,6 +36,7 @@ public static class UiCopy
     public const string OpenUrlAction = "열기";
     public const string SaveAs = "다른 이름으로 저장";
     public const string SaveFailed = "저장 실패";
+    public const string SaveAsNeedsSecrets = "쿠키·키·헤더는 지원하지 않습니다.";
     public const string Exit = "종료";
     public const string SeriesPanel = "시리즈";
     public const string ToggleSidebar = "사이드바";

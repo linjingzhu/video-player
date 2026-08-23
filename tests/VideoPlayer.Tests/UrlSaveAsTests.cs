@@ -90,7 +90,7 @@ public class UrlSaveAsTests
         var dest = Path.Combine(workspace.Root, "denied.mp4");
         var client = new RecordingGetClient
         {
-            Result = new UrlGetResult(false, status, true, UiCopy.OpenUrlNoCookiesOrHeaders)
+            Result = new UrlGetResult(false, status, true, UiCopy.SaveAsNeedsSecrets)
         };
         var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
         session.OpenUrl("https://example.com/paywall.mp4");
@@ -130,6 +130,54 @@ public class UrlSaveAsTests
         Assert.Contains("연결할 수 없습니다.", session.Shell.Status.Text);
         Assert.False(session.CanCapture);
         Assert.False(session.CanClipSave);
+    }
+
+    [Fact]
+    public void Keyed_hls_playlist_fails_banner_without_unwrapping_or_prompt()
+    {
+        using var workspace = new TempWorkspace();
+        var dest = Path.Combine(workspace.Root, "master.m3u8");
+        var playlist = """
+            #EXTM3U
+            #EXT-X-KEY:METHOD=AES-128,URI="https://pay.example/key"
+            #EXTINF:4,
+            seg.ts
+            """;
+        Assert.True(UrlSaveAs.LooksLikeKeyedHls(System.Text.Encoding.UTF8.GetBytes(playlist)));
+        Assert.False(UrlSaveAs.LooksLikeKeyedHls("#EXTM3U\n#EXTINF:4,\nseg.ts"u8));
+        Assert.False(UrlSaveAs.LooksLikeKeyedHls("ftypisom"u8));
+
+        var client = new RecordingGetClient
+        {
+            Result = new UrlGetResult(false, 200, true, UiCopy.SaveAsNeedsSecrets)
+        };
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        Assert.True(session.OpenUrl("https://example.com/video.mp4").Success);
+
+        var saved = session.SaveAs(dest, client);
+        Assert.False(saved.Success);
+        Assert.False(File.Exists(dest));
+        Assert.True(StatusText.IsConfirmedFailureLine(session.Shell.Status.Text));
+        Assert.Contains("키", session.Shell.Status.Text);
+        Assert.False(UrlSaveAs.PromptsForKeys);
+        Assert.False(session.Shell.HasCookieAuthUi);
+        Assert.False(session.Shell.HasSaveAsSheet);
+        Assert.False(session.CanCapture);
+        Assert.False(session.CanClipSave);
+        Assert.True(UrlSaveAs.UsesOsDialog);
+        Assert.False(UrlSaveAs.HasInAppSheet);
+    }
+
+    [Fact]
+    public void Designer_lock_never_adds_a_save_as_sheet()
+    {
+        Assert.False(UrlSaveAs.HasInAppSheet);
+        Assert.True(UrlSaveAs.UsesOsDialog);
+        Assert.False(PlayerShell.Boot().HasSaveAsSheet);
+        Assert.True(PlayerShell.Boot().SaveAsUsesOsDialog);
+        Assert.DoesNotContain(
+            Enum.GetNames<TransportControl>(),
+            name => name.Contains("SaveAs", StringComparison.OrdinalIgnoreCase));
     }
 
     private sealed class RecordingGetClient : IUrlGetClient

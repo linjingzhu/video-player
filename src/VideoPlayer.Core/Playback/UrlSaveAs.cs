@@ -24,6 +24,18 @@ public static class UrlSaveAs
         return string.IsNullOrWhiteSpace(name) || name == "(이름 없음)" ? "video.mp4" : name;
     }
 
+    public static bool LooksLikeKeyedHls(ReadOnlySpan<byte> prefix)
+    {
+        var text = System.Text.Encoding.UTF8.GetString(prefix);
+        if (!text.Contains("#EXTM3U", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return text.Contains("#EXT-X-KEY", StringComparison.OrdinalIgnoreCase)
+               || text.Contains("#EXT-X-SESSION-KEY", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static ValidationResult ValidateDestination(string? path)
     {
         var check = PathValidator.ValidateLocalFilePath(path);
@@ -80,26 +92,74 @@ public sealed class PlainHttpGetClient : IUrlGetClient
                 Timeout = TimeSpan.FromMinutes(2)
             };
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
             using var response = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
             var code = (int)response.StatusCode;
-            if (code is 401 or 403 or 407)
+            var wantsSecrets = code is 401 or 403 or 407
+                               || response.Headers.WwwAuthenticate.Count > 0;
+            if (wantsSecrets)
             {
-                return new UrlGetResult(false, code, true, UiCopy.OpenUrlNoCookiesOrHeaders);
+                TryDelete(destinationPath);
+                return new UrlGetResult(false, code, true, UiCopy.SaveAsNeedsSecrets);
             }
 
             if (!response.IsSuccessStatusCode)
             {
+                TryDelete(destinationPath);
                 return new UrlGetResult(false, code, false, UiCopy.NetworkFailed);
             }
 
-            using var input = response.Content.ReadAsStream();
-            using var output = File.Create(destinationPath);
-            input.CopyTo(output);
+            using (var input = response.Content.ReadAsStream())
+            using (var output = File.Create(destinationPath))
+            {
+                input.CopyTo(output);
+            }
+
+            if (FileLooksLikeKeyedHls(destinationPath))
+            {
+                TryDelete(destinationPath);
+                return new UrlGetResult(false, code, true, UiCopy.SaveAsNeedsSecrets);
+            }
+
             return new UrlGetResult(true, code, false, null);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException or UnauthorizedAccessException or NotSupportedException)
         {
+            TryDelete(destinationPath);
             return new UrlGetResult(false, null, false, UiCopy.NetworkFailed);
+        }
+    }
+
+    private static bool FileLooksLikeKeyedHls(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            if (!info.Exists || info.Length == 0 || info.Length > 512 * 1024)
+            {
+                return false;
+            }
+
+            var prefix = File.ReadAllBytes(path);
+            return UrlSaveAs.LooksLikeKeyedHls(prefix);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
         }
     }
 }

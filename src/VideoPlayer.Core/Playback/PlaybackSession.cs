@@ -141,7 +141,7 @@ public sealed class PlaybackSession
         if (!got.Success)
         {
             var reason = got.NeedsCredentials
-                ? UiCopy.OpenUrlNoCookiesOrHeaders
+                ? got.Error ?? UiCopy.SaveAsNeedsSecrets
                 : got.Error ?? UiCopy.NetworkFailed;
             Shell.Status.Fail(StatusText.SaveFailed(reason));
             return new UrlSaveResult(false, dest.FullPath, Shell.Status.Text);
