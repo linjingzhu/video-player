@@ -32,20 +32,26 @@ public class HdrPassThroughTests
     }
 
     [Fact]
-    public void View_menu_is_auto_or_off_with_no_transport_badge_or_cast()
+    public void View_menu_is_hdr_auto_and_hdr_off_with_no_badge_panel_or_cast()
     {
         var shell = PlayerShell.Boot();
         Assert.Equal("HDR", UiCopy.Hdr);
-        Assert.Equal("자동", UiCopy.HdrAuto);
-        Assert.Equal("끄기", UiCopy.HdrOff);
-        Assert.Equal(new[] { "자동", "끄기" }, UiCopy.HdrChoices);
-        Assert.Equal(UiCopy.HdrChoices, shell.Hdr.Choices);
-        Assert.Equal("HDR", shell.Hdr.Menu);
+        Assert.Equal("HDR 자동", UiCopy.HdrAuto);
+        Assert.Equal("HDR 끄기", UiCopy.HdrOff);
+        Assert.Equal(new[] { "HDR 자동", "HDR 끄기" }, UiCopy.HdrChoices);
+        Assert.Equal(UiCopy.HdrChoices, shell.Hdr.ViewItems);
         Assert.True(shell.Hdr.OpensFromViewMenuOnly);
+        Assert.True(shell.Hdr.AddedToExistingViewMenu);
+        Assert.False(shell.Hdr.HasSubmenu);
+        Assert.False(shell.Hdr.HasTwoColumnSettingsPanel);
+        Assert.False(shell.Hdr.HasSettingsLeftRail);
+        Assert.False(shell.Hdr.HasQuickMenu);
         Assert.Equal(HdrMode.Auto, shell.Hdr.Mode);
         Assert.True(shell.Hdr.PassThroughWhenDisplaySupports);
         Assert.False(shell.Hdr.HasBadgeOnTransport);
         Assert.False(shell.Transport.HasHdrBadge);
+        Assert.Equal("-10초", shell.Transport.SkipBackLabel);
+        Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
         Assert.False(shell.HasCast);
         Assert.False(shell.HasMiracast);
         Assert.False(shell.Hdr.HasCast);
@@ -53,6 +59,7 @@ public class HdrPassThroughTests
         Assert.DoesNotContain("Hdr", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Cast", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Miracast", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("QuickMenu", Enum.GetNames<TransportControl>());
         Assert.Equal(
             new[]
             {
@@ -77,11 +84,13 @@ public class HdrPassThroughTests
     [InlineData("auto", HdrMode.Auto)]
     [InlineData("AUTO", HdrMode.Auto)]
     [InlineData("자동", HdrMode.Auto)]
+    [InlineData("HDR 자동", HdrMode.Auto)]
     [InlineData("yes", HdrMode.Auto)]
     [InlineData("force", HdrMode.Auto)]
     [InlineData("off", HdrMode.Off)]
     [InlineData("OFF", HdrMode.Off)]
     [InlineData("끄기", HdrMode.Off)]
+    [InlineData("HDR 끄기", HdrMode.Off)]
     [InlineData("no", HdrMode.Off)]
     public void Parse_unknown_or_empty_falls_back_to_auto(string? value, HdrMode expected)
         => Assert.Equal(expected, HdrPassThrough.Parse(value));
@@ -98,6 +107,7 @@ public class HdrPassThroughTests
         Assert.Equal(HdrMode.Auto, AppSettings.FromJson("""{"hdr":"force"}""").Hdr);
         Assert.Equal(HdrMode.Off, AppSettings.FromJson("""{"hdr":"off"}""").Hdr);
         Assert.Equal(HdrMode.Off, AppSettings.FromJson("""{"hdr":"끄기"}""").Hdr);
+        Assert.Equal(HdrMode.Off, AppSettings.FromJson("""{"hdr":"HDR 끄기"}""").Hdr);
 
         var settings = new AppSettings();
         Assert.Equal(HdrMode.Off, settings.SetHdr(HdrMode.Off));

@@ -9,7 +9,7 @@ namespace VideoPlayer.Core.Library;
 /// <see cref="JumpSeconds"/> is reserved for v1.5 skip interval; v1 keeps default 10
 /// and wireframe copy ±10초. No settings UI in P0.
 /// Capture and clip-save keep last-used folders on separate keys.
-/// HDR is a global 자동 / 끄기 key (default 자동).
+/// HDR is a global HDR 자동 / HDR 끄기 key (default 자동).
 /// </summary>
 public sealed class AppSettings
 {

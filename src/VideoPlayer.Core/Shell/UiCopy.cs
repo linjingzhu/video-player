@@ -119,8 +119,8 @@ public static class UiCopy
     public const string ClipFfmpegMissing = "ffmpeg를 찾을 수 없습니다.";
 
     public const string Hdr = "HDR";
-    public const string HdrAuto = "자동";
-    public const string HdrOff = "끄기";
+    public const string HdrAuto = "HDR 자동";
+    public const string HdrOff = "HDR 끄기";
 
     public static IReadOnlyList<string> MainMenus { get; } = [QuickMenu];
     public static IReadOnlyList<string> HdrChoices { get; } = [HdrAuto, HdrOff];

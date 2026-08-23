@@ -4,7 +4,7 @@ namespace VideoPlayer.Core.Playback;
 
 /// <summary>
 /// HDR pack: automatic pass-through when the display supports it (libmpv / D3D11).
-/// View menu is 자동 / 끄기. Default 자동. No transport badge. No Cast/Miracast.
+/// View items: HDR 자동 / HDR 끄기. Default 자동. No transport badge. No Cast.
 /// </summary>
 public enum HdrMode
 {
@@ -43,6 +43,7 @@ public static class HdrPassThrough
         var trimmed = value.Trim();
         if (string.Equals(trimmed, SettingOff, StringComparison.OrdinalIgnoreCase)
             || string.Equals(trimmed, UiCopy.HdrOff, StringComparison.Ordinal)
+            || string.Equals(trimmed, "끄기", StringComparison.Ordinal)
             || string.Equals(trimmed, "no", StringComparison.OrdinalIgnoreCase))
         {
             return HdrMode.Off;

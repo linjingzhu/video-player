@@ -10,7 +10,7 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 - **Subtitles:** SRT, SMI, embedded in MKV/MOV. Primary autoload prefers `stem.ko.srt`, then `stem.srt` / `stem.smi`. `.en.srt` is suggested for secondary and never auto-on. **퀵메뉴 > 자막** opens the sheet. **CC** click toggles primary only.
 - **Decoder:** libmpv (FFmpeg). Media Foundation alone is not used
 - **GPU:** D3D11VA / DXVA when possible. Hardware failure falls back to software and keeps playing. Status bar shows **failures only** (unsupported codec name, HW fallback)
-- **HDR:** automatic pass-through when the display supports it (libmpv / D3D11). **보기 > HDR** is **자동** / **끄기**. Default 자동. No HDR badge on the transport bar. No Cast/Miracast
+- **HDR:** automatic pass-through when the display supports it (libmpv / D3D11). **보기** items **HDR 자동** / **HDR 끄기**. Default 자동. No HDR badge on the transport bar. No Cast. No two-column settings panel
 - **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO
 - **Playback:** speed 0.5–2.0x (resets to 1.0 on restart), ±10초, seek, wheel volume
 - **Resume key:** local files are path + size. http(s) sources use the exact URL string (no size). Last 10 seconds marks the current title **complete only** and does not seek the next episode
