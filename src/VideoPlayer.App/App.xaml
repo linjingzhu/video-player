@@ -371,7 +371,7 @@
         </Setter.Value>
       </Setter>
     </Style>
-    <Style x:Key="CcOnButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Style x:Key="CcOnButton" TargetType="Button" BasedOn="{StaticResource SkinATextButton}">
       <Setter Property="Foreground" Value="{StaticResource PackAccentBrush}"/>
       <Setter Property="BorderBrush" Value="{StaticResource PackAccentBrush}"/>
     </Style>

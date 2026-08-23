@@ -72,7 +72,7 @@ public partial class MainWindow : Window
         NextButton.IsEnabled = shell.Transport.HasNext;
         CaptionsButton.Style = shell.Transport.CaptionsOn
             ? (Style)FindResource("CcOnButton")
-            : (Style)FindResource(typeof(Button));
+            : (Style)FindResource("SkinATextButton");
         SkipCapsule.Visibility = shell.Skip.Visible ? Visibility.Visible : Visibility.Collapsed;
         SkipCapsuleButton.Content = shell.Skip.Label;
         SkipCancelButton.Content = shell.Skip.CancelLabel;
