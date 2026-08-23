@@ -82,9 +82,9 @@ internal static class SingleInstance
                 await server.WaitForConnectionAsync().ConfigureAwait(false);
                 using var reader = new StreamReader(server);
                 var lines = new List<string>();
-                while (!reader.EndOfStream)
+                string? line;
+                while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) is not null)
                 {
-                    var line = await reader.ReadLineAsync().ConfigureAwait(false);
                     if (!string.IsNullOrWhiteSpace(line))
                     {
                         lines.Add(line);

@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.IO;
 using VideoPlayer.Core.Clip;
+using Path = System.IO.Path;
 
 namespace VideoPlayer.App.Clip;
 
