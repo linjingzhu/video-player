@@ -18,6 +18,18 @@ public static class SkinA
 
     public const string FontFamily = "Segoe UI Variable";
     public const string FontFallback = "Segoe UI";
+    public const int TitleSize = 20;
+    public const int TitleWeight = 600;
+    public const int BodySize = 13;
+    public const int BodyWeight = 400;
+    public const int MetaSize = 11;
+    public const int MetaWeight = 400;
+
+    public const string ChromeFill = "#14FFFFFF";
+    public const int ChromeBlurRadius = 20;
+    public const bool ChromeIsBlurPlusWhite = true;
+    public const bool NoWireframeWindowTitle = true;
+    public const bool NoMockCaptionSentences = true;
 
     public const int RadiusPill = 999;
     public const int RadiusPanel = 12;

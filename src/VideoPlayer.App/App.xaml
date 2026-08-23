@@ -61,7 +61,27 @@
     <SolidColorBrush x:Key="SkinAAccentBrush" Color="#FF0A84FF"/>
     <SolidColorBrush x:Key="SkinAThumbBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="SkinAHoverBrush" Color="#14FFFFFF"/>
+    <SolidColorBrush x:Key="SkinAChromeFillBrush" Color="#14FFFFFF"/>
     <SolidColorBrush x:Key="SkinATrackRestBrush" Color="#FF3A3A3E"/>
+    <BlurEffect x:Key="SkinAChromeBlur" Radius="20" KernelType="Gaussian"/>
+    <Style x:Key="SkinATitleText" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
+      <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+      <Setter Property="FontSize" Value="20"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="SkinABodyText" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
+      <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
+    </Style>
+    <Style x:Key="SkinAMetaText" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource SkinASecondaryBrush}"/>
+      <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Regular"/>
+    </Style>
     <Style x:Key="IconButton" TargetType="Button">
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="Background" Value="Transparent"/>
@@ -97,6 +117,8 @@
       <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="4,0"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
@@ -161,7 +183,8 @@
       <Setter Property="BorderBrush" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Padding" Value="16,8"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">

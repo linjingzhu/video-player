@@ -19,6 +19,32 @@ public class SkinATokenTests
     }
 
     [Fact]
+    public void Type_scale_is_title_20_600_body_13_400_meta_11_400()
+    {
+        Assert.Equal("Segoe UI Variable", SkinA.FontFamily);
+        Assert.Equal("Segoe UI", SkinA.FontFallback);
+        Assert.Equal(20, SkinA.TitleSize);
+        Assert.Equal(600, SkinA.TitleWeight);
+        Assert.Equal(13, SkinA.BodySize);
+        Assert.Equal(400, SkinA.BodyWeight);
+        Assert.Equal(11, SkinA.MetaSize);
+        Assert.Equal(400, SkinA.MetaWeight);
+    }
+
+    [Fact]
+    public void Chrome_material_is_blur_plus_eight_percent_white()
+    {
+        Assert.Equal("#14FFFFFF", SkinA.ChromeFill);
+        Assert.Equal("#14FFFFFF", SkinA.HoverWhite);
+        Assert.Equal(20, SkinA.ChromeBlurRadius);
+        Assert.True(SkinA.ChromeIsBlurPlusWhite);
+        Assert.True(SkinA.NoWireframeWindowTitle);
+        Assert.True(SkinA.NoMockCaptionSentences);
+        Assert.Equal("영상 플레이어", UiCopy.AppTitle);
+        Assert.DoesNotContain("caption", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Type_radii_spacing_and_chrome_sizes_match_confirmed_skin_a()
     {
         Assert.Equal("Segoe UI Variable", SkinA.FontFamily);
