@@ -30,7 +30,14 @@ public class SeriesOnTokenTests
         Assert.False(SeriesOn.HasHdrIcon);
         Assert.False(SeriesOn.HasEjectIcon);
         Assert.False(SeriesOn.HasBrandWordmark);
-        Assert.Equal(36, SeriesOn.HeaderHeightPx);
+        Assert.False(SeriesOn.HasMenuPipe);
+        Assert.True(SeriesOn.ChromeIsSolid);
+        Assert.False(SeriesOn.ChromeHasBlur);
+        Assert.False(SeriesOn.ChromeHasWhiteOverlay);
+        Assert.Equal("#050505", SeriesOn.ChromeFill);
+        Assert.Equal("#222222", SeriesOn.Divider);
+        Assert.Equal(0.40, SeriesOn.DividerOpacity);
+        Assert.Equal(1, SeriesOn.TransportSeparatorPx);
         Assert.Equal(40, SeriesOn.TransportHeightPx);
         Assert.Equal(1, SeriesOn.TransportSeparatorPx);
         Assert.Equal(88, SeriesOn.VolumeSliderWidthPx);
@@ -57,6 +64,8 @@ public class SeriesOnTokenTests
         Assert.True(shell.Header.HasWindowControls);
         Assert.False(shell.Header.HasFileViewMenuBar);
         Assert.True(shell.Header.FileCommandsInHamburger);
+        Assert.False(shell.Header.HasMenuPipe);
+        Assert.True(shell.Header.ChromeIsSolid);
         Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
         Assert.Equal(UiCopy.ViewMenuItems, new[]
         {
@@ -123,6 +132,9 @@ public class SeriesOnTokenTests
         Assert.Contains("이어서", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("영상 플레이어", mainXaml, StringComparison.Ordinal);
         Assert.Contains("퀵메뉴", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("QuickMenuDivider", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnChromeBrush", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnDividerBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnAccentBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Stop_Click", mainXaml, StringComparison.Ordinal);
@@ -131,10 +143,16 @@ public class SeriesOnTokenTests
         Assert.DoesNotContain("x:Name=\"MainMenu\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Header=\"파일\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Header=\"보기\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Text=\"|\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Fill=\"#33FFFFFF\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"-10초\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"-10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"+10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"SeriesOnChromeBrush\" Color=\"#FF050505\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"SeriesOnDividerBrush\" Color=\"#66222222\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"CaptionBar\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TransportBar\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("VolumePopover", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("VerticalChromeSlider", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Orientation=\"Vertical\"", mainXaml, StringComparison.Ordinal);

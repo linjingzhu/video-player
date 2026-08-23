@@ -113,6 +113,8 @@ public sealed class HeaderChrome
     public bool HasWindowControls { get; } = true;
     public bool HasFileViewMenuBar { get; } = false;
     public bool FileCommandsInHamburger { get; } = true;
+    public bool HasMenuPipe { get; } = false;
+    public bool ChromeIsSolid { get; } = true;
     public int HeightPx { get; } = ShellLayout.HeaderHeightPx;
 }
 

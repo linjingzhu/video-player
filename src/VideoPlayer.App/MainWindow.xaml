@@ -22,8 +22,8 @@
     <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0"/>
   </shell:WindowChrome.WindowChrome>
   <DockPanel>
-    <Border x:Name="CaptionBar" DockPanel.Dock="Top" Background="#FF0E0E0E" Height="36"
-            BorderBrush="#66222222" BorderThickness="0,0,0,1">
+    <Border x:Name="CaptionBar" DockPanel.Dock="Top" Background="{StaticResource SeriesOnChromeBrush}" Height="36"
+            BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,0,0,1">
       <Grid>
         <TextBlock x:Name="CaptionTitle" Text="이어서"
                    Foreground="{StaticResource SeriesOnAccentBrush}"
@@ -70,7 +70,7 @@
                          FontFamily="Segoe UI Variable, Segoe UI" FontSize="12"/>
             </StackPanel>
           </Button>
-          <Rectangle Width="1" Height="16" Fill="#33FFFFFF" Margin="4,0" VerticalAlignment="Center"/>
+          <Rectangle x:Name="QuickMenuDivider" Style="{StaticResource SeriesOnDivider}" Margin="4,0"/>
           <Button Click="Minimize_Click" ToolTip="최소화" Style="{StaticResource CaptionButton}"
                   shell:WindowChrome.IsHitTestVisibleInChrome="True">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.4" Data="M 10,18 H 26" Stretch="Uniform" Width="12" Height="12"/>
@@ -96,8 +96,8 @@
       </Grid>
     </Border>
 
-    <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="#FF0E0E0E"
-            BorderBrush="#66222222" BorderThickness="0,1,0,0" Height="40" Padding="0"
+    <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="{StaticResource SeriesOnChromeBrush}"
+            BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,1,0,0" Height="40" Padding="0"
             ClipToBounds="True">
       <Grid>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,4,4,0">
@@ -119,7 +119,7 @@
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                   StrokeLineJoin="Round" Data="M 5,6 L 12,12 L 5,18 M 13,6 L 20,12 L 13,18"/>
           </Button>
-          <Rectangle Width="1" Height="16" Fill="#33FFFFFF" Margin="8,0" VerticalAlignment="Center"/>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
           <Grid x:Name="VolumeHost" VerticalAlignment="Center" PreviewMouseWheel="Volume_MouseWheel">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
@@ -147,14 +147,14 @@
                        FontFamily="Segoe UI Variable, Segoe UI"
                        FontSize="12" FontWeight="Regular"/>
           </Grid>
-          <Rectangle Width="1" Height="16" Fill="#33FFFFFF" Margin="8,0" VerticalAlignment="Center"/>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
           <TextBlock x:Name="OverlayTime" Text="00:00:00 / 00:00:00"
                      VerticalAlignment="Center" Margin="8,0"
                      Foreground="{StaticResource SeriesOnAccentBrush}"
                      FontFamily="Segoe UI Variable, Segoe UI"
                      FontSize="12" FontWeight="Regular"
                      IsHitTestVisible="False"/>
-          <Rectangle Width="1" Height="16" Fill="#33FFFFFF" Margin="8,0" VerticalAlignment="Center"/>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
           <Button x:Name="CaptionsButton" Content="CC" Click="Captions_Click" Style="{StaticResource SkinATextButton}"/>
           <Button Click="Fullscreen_Click" ToolTip="전체화면" Style="{StaticResource IconButton}">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"

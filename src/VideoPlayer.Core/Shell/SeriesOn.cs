@@ -18,6 +18,12 @@ public static class SeriesOn
     public const string OnAccent = "#050505";
     public const string Thumb = Accent;
     public const string HoverWhite = "#14FFFFFF";
+    public const string ChromeFill = Background;
+    public const bool ChromeIsSolid = true;
+    public const bool ChromeHasBlur = false;
+    public const bool ChromeHasWhiteOverlay = false;
+    public const string Divider = "#222222";
+    public const double DividerOpacity = 0.40;
 
     public const string FontFamily = SkinA.FontFamily;
     public const string FontFallback = SkinA.FontFallback;
@@ -57,4 +63,5 @@ public static class SeriesOn
     public const bool HasHdrIcon = false;
     public const bool HasEjectIcon = false;
     public const bool HasBrandWordmark = false;
+    public const bool HasMenuPipe = false;
 }

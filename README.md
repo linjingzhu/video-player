@@ -19,10 +19,10 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 
 ## Confirmed P0 shell
 
-- Caption: left title **이어서** in lime `#C6FF00`. Right: **퀵메뉴** (this is View) and window min/max/close. No visible **파일 | 보기** bar. File commands live under the transport hamburger
+- Caption: left title **이어서** on solid `#050505` (no blur/white overlay). Right: **퀵메뉴**, a 1px `#222` 40% divider, and window min/max/close. No visible **파일 | 보기** bar and no `|` TextBlock. File commands live under the transport hamburger
 - Sidebar **closed by default** as a **28px** toggle rail. When open: one resume item + recent series
 - Video uses remaining width. No large centered play icon. Click the video surface to toggle play/pause
-- Transport groups (1px separators): rewind · play · **stop** · fast-forward | speaker + **horizontal** volume slider + numeric | lime timecode | **CC** · fullscreen · hamburger. No ±10 on the bar — ±10 lives in **퀵메뉴**. No Cast / HDR / Eject
+- Transport groups (1px `#222` 40% separators) on solid `#050505`: rewind · play · **stop** · fast-forward | speaker + **horizontal** volume slider + numeric | lime timecode | **CC** · fullscreen · hamburger. No ±10 on the bar — ±10 lives in **퀵메뉴**. No Cast / HDR / Eject
 - **다음 화** is an end-region video overlay, not a transport label
 - Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only and share the next-episode corner — one capsule when ranges do not overlap. Sources: locked chapter aliases and **퀵메뉴 > 여기까지 스킵** (season-folder key, shared). No marker hides the button. Default On is button only; **건너뛰기 자동** is a 3s cancel. Recap wins overlap. Credits CTA while in credits; next-episode CTA after credits end in the last 10s. No IntroDB
 - Status bar is a dashed slot and **hidden when idle**. Failure line only: **미지원** / **SW 폴백**
