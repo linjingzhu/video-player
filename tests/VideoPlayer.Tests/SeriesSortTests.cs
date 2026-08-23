@@ -135,8 +135,12 @@ public class SeriesSortTests
 
             var items = drill.ListItems(resume, null);
             Assert.Equal(8, items.Count);
+            Assert.Equal(items.Select(i => i.Path).Distinct().Count(), items.Count);
             Assert.Equal(Enumerable.Range(1, 8).Select(i => $"E{i:00}"), items.Select(i => i.Episode));
             Assert.Equal(Enumerable.Range(1, 8).Select(i => $"S02E{i:00}"), items.Select(i => i.Title));
+            Assert.Equal("E03", items[2].Episode);
+            Assert.NotEqual("S02E01", items[2].Episode);
+            Assert.Equal("S02E03", items[2].Title);
             Assert.All(items, i => Assert.False(i.Title.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase)));
             Assert.Equal("✓", items[0].Progress);
             Assert.Equal("-", items[1].Progress);
@@ -212,6 +216,33 @@ public class SeriesSortTests
             Assert.NotEqual(
                 EpisodeParser.TitleFromFileName("Show.S02E01.Better.Name.mkv"),
                 items[0].Title);
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
+
+    [Fact]
+    public void Designer_skin_c_episode_is_e03_title_is_stem()
+    {
+        var root = Directory.CreateTempSubdirectory("드라마-");
+        try
+        {
+            WriteSeason(root.FullName, "S02", 8);
+            var show = SeriesScanner.Scan(root.FullName);
+            var drill = new SeriesDrillDown();
+            drill.ReplaceShows([show]);
+
+            var items = drill.ListItems(new ResumeStore(), null);
+            Assert.Equal(8, items.Count);
+            Assert.Equal(items.Select(i => i.Episode).Distinct().Count(), items.Count);
+            Assert.Equal("E03", items[2].Episode);
+            Assert.NotEqual("S02E01", items[0].Episode);
+            Assert.NotEqual("S02E01", items[2].Episode);
+            Assert.Equal("S02E03", items[2].Title);
+            Assert.Equal(Path.GetFileNameWithoutExtension(show.Seasons[0].Episodes[2].FileName), items[2].Title);
+            Assert.Equal(UiCopy.Back, "뒤로");
         }
         finally
         {
