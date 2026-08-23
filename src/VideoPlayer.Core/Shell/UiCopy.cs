@@ -97,6 +97,8 @@ public static class UiCopy
     public const string ClipSave = "구간 저장";
     public const string ClipStart = "시작";
     public const string ClipEnd = "끝";
+    public const string ClipSetStartFromNow = "현재를 시작";
+    public const string ClipSetEndFromNow = "현재를 끝";
     public const string ClipDuration = "길이";
     public const string ClipFormat = "형식";
     public const string ClipFormatStreamCopy = "원본복사";

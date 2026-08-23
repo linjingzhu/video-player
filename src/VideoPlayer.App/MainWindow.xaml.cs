@@ -542,6 +542,18 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
+    private void ClipMarkStart_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetInMark();
+        RefreshShell();
+    }
+
+    private void ClipMarkEnd_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetOutMark();
+        RefreshShell();
+    }
+
     private void ClipSave_Click(object sender, RoutedEventArgs e)
     {
         _session.RunClipSave(_clipRunner);
@@ -1043,6 +1055,8 @@ public partial class MainWindow : Window
         ClipFolderText.Text = clip.FolderLabel;
         ClipPreviewName.Text = clip.PreviewFileName;
         ClipSaveButton.IsEnabled = clip.CanSave;
+        ClipMarkStartButton.IsEnabled = clip.CanMarkCurrent;
+        ClipMarkEndButton.IsEnabled = clip.CanMarkCurrent;
         ClipFpsMinus.IsEnabled = clip.FpsEnabled;
         ClipFpsPlus.IsEnabled = clip.FpsEnabled;
         ClipFpsRow.Opacity = clip.FpsEnabled ? 1 : 0.45;

@@ -342,12 +342,18 @@
                                FontFamily="{StaticResource ClipFont}"/>
                     <TextBlock x:Name="ClipStartText" Text="00:00:00" FontSize="12"
                                Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                    <Button x:Name="ClipMarkStartButton" Content="현재를 시작" Click="ClipMarkStart_Click"
+                            Style="{StaticResource ClipSheetButton}" Padding="8,4" Margin="0,8,8,0"
+                            HorizontalAlignment="Left" FontSize="11"/>
                   </StackPanel>
                   <StackPanel Grid.Column="1">
                     <TextBlock Text="끝" FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
                                FontFamily="{StaticResource ClipFont}"/>
                     <TextBlock x:Name="ClipEndText" Text="00:00:00" FontSize="12"
                                Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                    <Button x:Name="ClipMarkEndButton" Content="현재를 끝" Click="ClipMarkEnd_Click"
+                            Style="{StaticResource ClipSheetButton}" Padding="8,4" Margin="0,8,8,0"
+                            HorizontalAlignment="Left" FontSize="11"/>
                   </StackPanel>
                   <StackPanel Grid.Column="2">
                     <TextBlock Text="길이" FontSize="11" Foreground="{StaticResource ClipMutedBrush}"

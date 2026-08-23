@@ -19,6 +19,14 @@ public class ClipSaveTests
         Assert.Equal("구간 저장", sheet.Title);
         Assert.Equal("시작", sheet.StartLabel);
         Assert.Equal("끝", sheet.EndLabel);
+        Assert.Equal("현재를 시작", sheet.SetStartFromNowLabel);
+        Assert.Equal("현재를 끝", sheet.SetEndFromNowLabel);
+        Assert.True(sheet.HasSheetCurrentMarks);
+        Assert.True(sheet.HasKeyboardIoMarks);
+        Assert.False(sheet.HasVideoDragSelect);
+        Assert.False(ClipSave.HasVideoDragSelect);
+        Assert.True(ClipSave.HasSheetCurrentMarks);
+        Assert.True(ClipSave.HasKeyboardIoMarks);
         Assert.Equal("길이", sheet.DurationLabel);
         Assert.Equal("형식", sheet.FormatLabel);
         Assert.Equal("원본복사", ClipFormats.Label(ClipFormat.StreamCopy));
@@ -73,6 +81,107 @@ public class ClipSaveTests
         Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("MarkIn", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("MarkOut", Enum.GetNames<TransportControl>());
+        Assert.True(shell.Clip.HasSheetCurrentMarks);
+        Assert.False(shell.Clip.HasVideoDragSelect);
+    }
+
+    [Fact]
+    public void Sheet_current_actions_set_in_and_out_to_playback_time()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("show.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 80 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.OpenClipSheet();
+        Assert.True(session.Shell.Clip.Open);
+        Assert.True(session.Shell.Clip.CanMarkCurrent);
+        Assert.True(session.Shell.Clip.HasSheetCurrentMarks);
+
+        session.SeekAbsolute(12);
+        session.SetInMark();
+        Assert.Equal(12, session.Shell.Clip.InMark);
+        Assert.Equal(12, session.Shell.Clip.StartSeconds);
+        Assert.True(session.Shell.Clip.ShowInTick);
+
+        session.SeekAbsolute(28);
+        session.SetOutMark();
+        Assert.Equal(28, session.Shell.Clip.OutMark);
+        Assert.Equal(28, session.Shell.Clip.EndSeconds);
+        Assert.True(session.Shell.Clip.ShowOutTick);
+        Assert.Equal("00:00:16", session.Shell.Clip.DurationText);
+        Assert.True(session.Shell.Clip.CanSave);
+        Assert.Equal(ClipTickKind.Square, session.Shell.Clip.TickKind);
+        Assert.False(session.Shell.Clip.HasVideoDragSelect);
+    }
+
+    [Fact]
+    public void Keyboard_io_marks_still_work_without_opening_the_sheet()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("marks.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 50 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        Assert.False(session.Shell.Clip.Open);
+        session.SeekAbsolute(8);
+        session.SetInMark();
+        session.SeekAbsolute(19);
+        session.SetOutMark();
+        Assert.Equal(8, session.Shell.Clip.InMark);
+        Assert.Equal(19, session.Shell.Clip.OutMark);
+        Assert.True(session.Shell.Clip.ShowInTick);
+        Assert.True(session.Shell.Clip.ShowOutTick);
+        Assert.True(session.Shell.Clip.HasKeyboardIoMarks);
+
+        session.OpenClipSheet();
+        session.SeekAbsolute(22);
+        session.SetInMark();
+        Assert.Equal(22, session.Shell.Clip.InMark);
+        Assert.Equal(19, session.Shell.Clip.OutMark);
+        Assert.True(session.Shell.Clip.Open);
+    }
+
+    [Fact]
+    public void Url_source_does_not_open_clip_save()
+    {
+        using var workspace = new TempWorkspace();
+        var engine = new FakeMediaEngine { Duration = 40 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        Assert.True(session.OpenUrl("https://example.com/video.mp4").Success);
+        Assert.False(session.CanClipSave);
+        session.OpenClipSheet();
+        Assert.False(session.Shell.Clip.Open);
+        Assert.False(session.Shell.Clip.HasMedia);
+        Assert.False(session.Shell.Clip.CanMarkCurrent);
+        Assert.False(session.Shell.FileOnly.ClipSave);
+    }
+
+    [Fact]
+    public void Sheet_extra_controls_are_current_marks_not_video_drag()
+    {
+        var mainXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml"));
+        var codeBehind = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml.cs"));
+        Assert.Contains("Content=\"현재를 시작\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"현재를 끝\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ClipMarkStartButton\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ClipMarkEndButton\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("case Key.I:", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("case Key.O:", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("_session.SetInMark();", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("_session.SetOutMark();", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"InTick\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OutTick\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("DragSelect", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("DragSelect", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("VideoDrag", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("MouseLeftButtonDown=\"Video_Click\"", mainXaml, StringComparison.Ordinal);
+        var videoClick = SliceBetween(codeBehind, "private void Video_Click", "private void SeekSlider_Committed");
+        Assert.Contains("_session.PlayPause();", videoClick, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetInMark", videoClick, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetOutMark", videoClick, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -401,6 +510,32 @@ public class ClipSaveTests
         Assert.False(result.Saved);
         Assert.Equal(UiCopy.ClipFfmpegMissing, result.Banner);
         Assert.True(session.Shell.Clip.Open);
+    }
+
+    private static string ReadRepoFile(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, relative);
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new FileNotFoundException(relative);
+    }
+
+    private static string SliceBetween(string text, string start, string end)
+    {
+        var from = text.IndexOf(start, StringComparison.Ordinal);
+        Assert.True(from >= 0, start);
+        var until = text.IndexOf(end, from, StringComparison.Ordinal);
+        Assert.True(until > from, end);
+        return text[from..until];
     }
 }
 

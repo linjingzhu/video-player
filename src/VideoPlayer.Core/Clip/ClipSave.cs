@@ -128,6 +128,9 @@ public static class ClipSave
     public const bool RenderIoLetters = false;
     public const bool HasPaletteControl = false;
     public const bool HasRecordButton = false;
+    public const bool HasVideoDragSelect = false;
+    public const bool HasSheetCurrentMarks = true;
+    public const bool HasKeyboardIoMarks = true;
 
     public static bool IsLongEnough(double durationSeconds)
         => durationSeconds >= MinDurationSeconds - 1e-9;
@@ -487,6 +490,10 @@ public sealed class ClipSheetState
     public bool EncodingLockHintVisible => !ClipSave.EncodingEnabled(Format);
     public bool HasPaletteControl { get; } = ClipSave.HasPaletteControl;
     public bool HasRecordButton { get; } = ClipSave.HasRecordButton;
+    public bool HasVideoDragSelect { get; } = ClipSave.HasVideoDragSelect;
+    public bool HasSheetCurrentMarks { get; } = ClipSave.HasSheetCurrentMarks;
+    public bool HasKeyboardIoMarks { get; } = ClipSave.HasKeyboardIoMarks;
+    public bool CanMarkCurrent => HasMedia;
     public bool RenderIoLetters { get; } = ClipSave.RenderIoLetters;
     public ClipTickKind TickKind { get; } = ClipSave.TickKind;
     public int TickSizePx { get; } = ClipSave.TickSizePx;
@@ -500,6 +507,8 @@ public sealed class ClipSheetState
     public string Title => UiCopy.ClipSave;
     public string StartLabel => UiCopy.ClipStart;
     public string EndLabel => UiCopy.ClipEnd;
+    public string SetStartFromNowLabel => UiCopy.ClipSetStartFromNow;
+    public string SetEndFromNowLabel => UiCopy.ClipSetEndFromNow;
     public string DurationLabel => UiCopy.ClipDuration;
     public string FormatLabel => UiCopy.ClipFormat;
     public string FpsLabel => UiCopy.ClipFps;
