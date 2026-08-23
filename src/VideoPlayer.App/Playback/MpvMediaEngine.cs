@@ -260,31 +260,6 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         }
     }
 
-    private IReadOnlyList<MediaChapter> ReadChapters()
-    {
-        if (!_available || !IsOpen)
-        {
-            return [];
-        }
-
-        var countText = MpvNative.ReadString(_mpv, "chapter-list/count");
-        if (!int.TryParse(countText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count <= 0)
-        {
-            return [];
-        }
-
-        var chapters = new List<MediaChapter>(count);
-        for (var i = 0; i < count; i++)
-        {
-            var title = MpvNative.ReadString(_mpv, $"chapter-list/{i}/title") ?? "";
-            var start = ReadDouble($"chapter-list/{i}/time");
-            var end = i + 1 < count ? ReadDouble($"chapter-list/{i + 1}/time") : Duration;
-            chapters.Add(new MediaChapter(title, start, end > start ? end : start));
-        }
-
-        return chapters;
-    }
-
     private IReadOnlyList<MediaSubtitleTrack> ReadSubtitleTracks()
     {
         if (!_available || !IsOpen)

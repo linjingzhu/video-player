@@ -260,6 +260,11 @@ public sealed class PlaybackSession
         {
             LoadSkipSegments(identity.Path);
         }
+        else
+        {
+            _skipSegments = SkipDetector.Detect(Engine.Chapters, [], Engine.Duration);
+            _skipBoundDuration = Engine.Duration;
+        }
 
         var added = false;
         if (addToRecent)
@@ -1012,7 +1017,7 @@ public sealed class PlaybackSession
 
     private void RefreshSkipSegmentsIfNeeded()
     {
-        if (!Engine.IsOpen || Current is not { Kind: MediaSourceKind.LocalFile })
+        if (!Engine.IsOpen || Current is not { } current)
         {
             return;
         }
@@ -1024,7 +1029,19 @@ public sealed class PlaybackSession
             return;
         }
 
-        LoadSkipSegments(Current.Value.Path);
+        if (current.Kind == MediaSourceKind.HttpUrl)
+        {
+            _skipSegments = SkipDetector.Detect(Engine.Chapters, [], Engine.Duration);
+            _skipBoundDuration = Engine.Duration;
+            return;
+        }
+
+        if (current.Kind != MediaSourceKind.LocalFile)
+        {
+            return;
+        }
+
+        LoadSkipSegments(current.Path);
     }
 
     private void UpdateSkipCapsule(DateTimeOffset now)

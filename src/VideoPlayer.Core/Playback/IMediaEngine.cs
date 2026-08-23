@@ -44,9 +44,8 @@ public sealed class FakeMediaEngine : IMediaEngine
     public string? LastError { get; private set; }
     public int OpenCallCount { get; private set; }
     public List<MediaChapter> Chapters { get; set; } = [];
-    public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; set; } = [];
-
     IReadOnlyList<MediaChapter> IMediaEngine.Chapters => Chapters;
+    public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; set; } = [];
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
