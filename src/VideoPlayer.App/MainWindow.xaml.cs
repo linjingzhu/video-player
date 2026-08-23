@@ -542,6 +542,18 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
+    private void ClipMarkStart_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetInMark();
+        RefreshShell();
+    }
+
+    private void ClipMarkEnd_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetOutMark();
+        RefreshShell();
+    }
+
     private void ClipSave_Click(object sender, RoutedEventArgs e)
     {
         _session.RunClipSave(_clipRunner);
@@ -601,7 +613,10 @@ public partial class MainWindow : Window
         => e.Handled = true;
 
     private void SeekHost_SizeChanged(object sender, SizeChangedEventArgs e)
-        => PlaceClipTicks();
+    {
+        PlaceClipTicks();
+        PlaceClipHandles();
+    }
 
     private void ShowSeries_Click(object sender, RoutedEventArgs e)
     {
@@ -1043,6 +1058,8 @@ public partial class MainWindow : Window
         ClipFolderText.Text = clip.FolderLabel;
         ClipPreviewName.Text = clip.PreviewFileName;
         ClipSaveButton.IsEnabled = clip.CanSave;
+        ClipMarkStartButton.IsEnabled = clip.CanMarkCurrent;
+        ClipMarkEndButton.IsEnabled = clip.CanMarkCurrent;
         ClipFpsMinus.IsEnabled = clip.FpsEnabled;
         ClipFpsPlus.IsEnabled = clip.FpsEnabled;
         ClipFpsRow.Opacity = clip.FpsEnabled ? 1 : 0.45;
@@ -1062,6 +1079,7 @@ public partial class MainWindow : Window
         ClipBanner.Visibility = banner.Visible ? Visibility.Visible : Visibility.Collapsed;
         ClipBannerText.Text = banner.Text;
         PlaceClipTicks();
+        PlaceClipHandles();
     }
 
     private static void ApplyFormatButton(Button button, bool selected)
@@ -1080,6 +1098,33 @@ public partial class MainWindow : Window
         PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
     }
 
+    private void PlaceClipHandles()
+    {
+        var clip = _session.Shell.Clip;
+        var duration = _session.Shell.Transport.Duration;
+        PlaceHandle(StartHandle, clip.ShowStartHandle, ClipSave.TickRatio(clip.InMark, duration));
+        PlaceHandle(EndHandle, clip.ShowEndHandle, ClipSave.TickRatio(clip.OutMark, duration));
+    }
+
+    private void ClipHandle_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        _ = e;
+        if (sender is not Thumb thumb)
+        {
+            return;
+        }
+
+        var handle = ReferenceEquals(thumb, StartHandle) ? ClipHandle.Start : ClipHandle.End;
+        var duration = _session.Shell.Transport.Duration;
+        var seconds = ClipSave.TimeFromSeekX(
+            Mouse.GetPosition(SeekHost).X,
+            SeekHost.ActualWidth,
+            thumb.Width,
+            duration);
+        _session.MoveClipHandle(handle, seconds);
+        RefreshClipChrome();
+    }
+
     private void PlaceTick(FrameworkElement tick, bool show, double ratio)
     {
         tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
@@ -1088,9 +1133,19 @@ public partial class MainWindow : Window
             return;
         }
 
-        const double pad = 7;
-        var span = Math.Max(0, SeekHost.ActualWidth - (pad * 2) - tick.Width);
-        System.Windows.Controls.Canvas.SetLeft(tick, pad + (span * ratio));
+        System.Windows.Controls.Canvas.SetLeft(tick, ClipSave.HandleLeft(ratio, SeekHost.ActualWidth, tick.Width));
         System.Windows.Controls.Canvas.SetTop(tick, Math.Max(0, (MarkCanvas.ActualHeight - tick.Height) / 2));
+    }
+
+    private void PlaceHandle(Thumb handle, bool show, double ratio)
+    {
+        handle.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show || SeekHost.ActualWidth <= 0)
+        {
+            return;
+        }
+
+        System.Windows.Controls.Canvas.SetLeft(handle, ClipSave.HandleLeft(ratio, SeekHost.ActualWidth, handle.Width));
+        System.Windows.Controls.Canvas.SetTop(handle, Math.Max(0, (HandleCanvas.ActualHeight - handle.Height) / 2));
     }
 }

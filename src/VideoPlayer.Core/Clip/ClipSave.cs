@@ -22,6 +22,12 @@ public enum ClipTickKind
     Square
 }
 
+public enum ClipHandle
+{
+    Start,
+    End
+}
+
 public static class ClipFormats
 {
     public static IReadOnlyList<ClipFormat> All { get; } =
@@ -110,6 +116,9 @@ public interface IClipProcessRunner
 /// <summary>
 /// Confirmed v4 구간 저장. Stream-copy, animated webp, or 256-color gif.
 /// Folder is clip-only (default Videos\구간), never the capture folder.
+/// CPO: while the sheet is open, start/end handles sit on the seek bar (no I/O letters).
+/// Default range is playhead at sheet-open → media end. Export that range only.
+/// Handle drag is allowed; dragging empty seek to create a range is not.
 /// </summary>
 public static class ClipSave
 {
@@ -128,6 +137,13 @@ public static class ClipSave
     public const bool RenderIoLetters = false;
     public const bool HasPaletteControl = false;
     public const bool HasRecordButton = false;
+    public const bool HasVideoDragSelect = false;
+    public const bool HasSheetCurrentMarks = true;
+    public const bool HasKeyboardIoMarks = true;
+    public const bool HasSheetRangeHandles = true;
+    public const bool HasEmptySeekRangeDrag = false;
+    public const int HandleSizePx = 8;
+    public const double SeekMarkPadPx = 7;
 
     public static bool IsLongEnough(double durationSeconds)
         => durationSeconds >= MinDurationSeconds - 1e-9;
@@ -218,6 +234,52 @@ public static class ClipSave
         }
 
         return (start, end);
+    }
+
+    public static (double Start, double End) SheetOpenRange(
+        double? inMark,
+        double? outMark,
+        double position,
+        double mediaDuration)
+    {
+        var playhead = ClampMark(position, mediaDuration);
+        var mediaEnd = mediaDuration > 0 ? mediaDuration : playhead;
+        var start = inMark is { } inn ? ClampMark(inn, mediaDuration) : playhead;
+        var end = outMark is { } outt ? ClampMark(outt, mediaDuration) : mediaEnd;
+        return (start, end);
+    }
+
+    public static double ClampMark(double seconds, double mediaDuration)
+    {
+        if (double.IsNaN(seconds) || seconds < 0)
+        {
+            seconds = 0;
+        }
+
+        if (mediaDuration > 0)
+        {
+            return Math.Clamp(seconds, 0, mediaDuration);
+        }
+
+        return seconds;
+    }
+
+    public static double HandleLeft(double ratio, double hostWidth, double handleWidth)
+    {
+        var span = Math.Max(0, hostWidth - (SeekMarkPadPx * 2) - handleWidth);
+        return SeekMarkPadPx + (span * Math.Clamp(ratio, 0, 1));
+    }
+
+    public static double TimeFromSeekX(double x, double hostWidth, double handleWidth, double mediaDuration)
+    {
+        var span = Math.Max(0, hostWidth - (SeekMarkPadPx * 2) - handleWidth);
+        if (span <= 0 || mediaDuration <= 0)
+        {
+            return 0;
+        }
+
+        var ratio = Math.Clamp((x - SeekMarkPadPx - (handleWidth / 2)) / span, 0, 1);
+        return ratio * mediaDuration;
     }
 
     public static double TickRatio(double? mark, double mediaDuration)
@@ -487,6 +549,17 @@ public sealed class ClipSheetState
     public bool EncodingLockHintVisible => !ClipSave.EncodingEnabled(Format);
     public bool HasPaletteControl { get; } = ClipSave.HasPaletteControl;
     public bool HasRecordButton { get; } = ClipSave.HasRecordButton;
+    public bool HasVideoDragSelect { get; } = ClipSave.HasVideoDragSelect;
+    public bool HasSheetCurrentMarks { get; } = ClipSave.HasSheetCurrentMarks;
+    public bool HasKeyboardIoMarks { get; } = ClipSave.HasKeyboardIoMarks;
+    public bool CanMarkCurrent => HasMedia;
+    public bool HasSheetRangeHandles { get; } = ClipSave.HasSheetRangeHandles;
+    public bool HasEmptySeekRangeDrag { get; } = ClipSave.HasEmptySeekRangeDrag;
+    public int HandleSizePx { get; } = ClipSave.HandleSizePx;
+    public bool ShowStartHandle => Open && HasMedia && InMark is not null;
+    public bool ShowEndHandle => Open && HasMedia && OutMark is not null;
+    public string StartHandleLetter => "";
+    public string EndHandleLetter => "";
     public bool RenderIoLetters { get; } = ClipSave.RenderIoLetters;
     public ClipTickKind TickKind { get; } = ClipSave.TickKind;
     public int TickSizePx { get; } = ClipSave.TickSizePx;
@@ -500,6 +573,8 @@ public sealed class ClipSheetState
     public string Title => UiCopy.ClipSave;
     public string StartLabel => UiCopy.ClipStart;
     public string EndLabel => UiCopy.ClipEnd;
+    public string SetStartFromNowLabel => UiCopy.ClipSetStartFromNow;
+    public string SetEndFromNowLabel => UiCopy.ClipSetEndFromNow;
     public string DurationLabel => UiCopy.ClipDuration;
     public string FormatLabel => UiCopy.ClipFormat;
     public string FpsLabel => UiCopy.ClipFps;
