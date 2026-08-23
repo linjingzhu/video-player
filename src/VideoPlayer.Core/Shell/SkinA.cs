@@ -8,6 +8,7 @@ namespace VideoPlayer.Core.Shell;
 /// Only the play triangle is #E10600. Seek fill is white; thumb is square.
 /// Transport and menus are solid #050505 chrome — no blur, no 8% white overlay.
 /// Dividers are the 1px #222222 @ 40% hairline. I/O marks are 2px squares.
+/// Icon and text buttons use Padding 4. A layout is unchanged.
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA
