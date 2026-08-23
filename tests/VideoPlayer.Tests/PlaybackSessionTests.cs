@@ -7,17 +7,19 @@ namespace VideoPlayer.Tests;
 public class PlaybackSessionTests
 {
     [Fact]
-    public void Shell_boots_with_wireframe_menus_and_transport()
+    public void Shell_boots_to_confirmed_p0_chrome()
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(UiCopy.AppTitle, shell.Title);
-        Assert.Equal(new[] { "파일", "재생", "시리즈", "보기", "도움" }, shell.Menus);
-        Assert.Equal("최근 / 시리즈", shell.Sidebar.Title);
-        Assert.Contains(UiCopy.ContinueWatching, shell.Sidebar.Items);
+        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
+        Assert.False(shell.Sidebar.Open);
+        Assert.False(shell.CenterPlayIcon);
+        Assert.False(shell.Fullscreen.AlwaysOnTopPin);
+        Assert.False(shell.Series.PlaylistButton);
+        Assert.False(shell.Status.Visible);
         Assert.Equal("-10초", shell.Transport.SkipBackLabel);
         Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
-        Assert.Equal("다음 화 >", shell.Fullscreen.NextEpisodeLabel);
-        Assert.Equal("폴더 열기", shell.Series.OpenFolderLabel);
+        Assert.Equal("다음 화", shell.Fullscreen.NextEpisodeLabel);
         Assert.Equal(ShellScreen.Main, shell.Screen);
     }
 
@@ -32,8 +34,8 @@ public class PlaybackSessionTests
         var opened = session.Open(video);
         Assert.True(opened.Success);
         Assert.True(opened.AddedToRecent);
-        Assert.Contains("H.264", opened.Status);
-        Assert.Contains("AAC", opened.Status);
+        Assert.True(opened.HardwareActive);
+        Assert.False(session.Shell.Status.Visible);
 
         session.SeekRelative(10);
         Assert.Equal(10, engine.Position);
@@ -58,8 +60,8 @@ public class PlaybackSessionTests
 
         Assert.True(opened.Success);
         Assert.False(engine.HardwareActive);
+        Assert.True(session.Shell.Status.Visible);
         Assert.Contains("소프트웨어", session.Shell.Status.Text);
-        Assert.DoesNotContain("실패하여 중지", session.Shell.Status.Text);
         var outcome = new HardwareDecodePolicy().OnHardwareFailed("h264", "aac");
         Assert.True(outcome.ContinuePlayback);
         Assert.Equal(DecodePath.Software, outcome.Path);
@@ -78,6 +80,7 @@ public class PlaybackSessionTests
         Assert.False(opened.AddedToRecent);
         Assert.Equal("PRORES", opened.UnsupportedCodecName);
         Assert.Contains("PRORES", opened.Status);
+        Assert.True(session.Shell.Status.Visible);
         Assert.Empty(session.Recent.Items);
     }
 
@@ -152,6 +155,75 @@ public class PlaybackSessionTests
         Assert.NotEmpty(session.Cues);
         session.Tick(DateTimeOffset.UtcNow);
         Assert.Equal("자막 예시", session.Shell.OverlaySubtitle);
+    }
+
+    [Fact]
+    public void Last_ten_seconds_does_not_auto_open_next_episode()
+    {
+        using var workspace = new TempWorkspace();
+        var season = Path.Combine(workspace.Root, "S01");
+        Directory.CreateDirectory(season);
+        var first = Path.Combine(season, "S01E01.mkv");
+        var second = Path.Combine(season, "S01E02.mkv");
+        File.WriteAllBytes(first, [1]);
+        File.WriteAllBytes(second, [2]);
+        var engine = new FakeMediaEngine { Duration = 100 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenSeriesFolder(workspace.Root);
+        session.Open(first);
+        engine.Seek(95);
+        session.PlayPause();
+        Assert.Equal(first, session.Current!.Value.Path);
+        Assert.True(session.Resume.Find(first, new FileInfo(first).Length)!.Completed);
+        Assert.Null(session.Resume.Continue);
+    }
+
+    [Fact]
+    public void Natural_end_starts_three_second_cancel_then_advances()
+    {
+        using var workspace = new TempWorkspace();
+        var season = Path.Combine(workspace.Root, "S01");
+        Directory.CreateDirectory(season);
+        var first = Path.Combine(season, "S01E01.mkv");
+        var second = Path.Combine(season, "S01E02.mkv");
+        File.WriteAllBytes(first, [1]);
+        File.WriteAllBytes(second, [2]);
+        var engine = new FakeMediaEngine { Duration = 50 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenSeriesFolder(workspace.Root);
+        session.Open(first);
+        engine.Seek(50);
+        var t0 = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
+        session.Tick(t0);
+        Assert.True(session.AutoNextOffer.Pending);
+        Assert.True(session.Shell.NextEpisode.ShowCta);
+        Assert.Equal(first, session.Current!.Value.Path);
+
+        session.Tick(t0.AddSeconds(2));
+        Assert.Equal(first, session.Current.Value.Path);
+
+        session.Tick(t0.AddSeconds(3));
+        Assert.Equal(second, session.Current.Value.Path);
+    }
+
+    [Fact]
+    public void Auto_next_can_be_cancelled()
+    {
+        using var workspace = new TempWorkspace();
+        var season = Path.Combine(workspace.Root, "S01");
+        Directory.CreateDirectory(season);
+        File.WriteAllBytes(Path.Combine(season, "S01E01.mkv"), [1]);
+        File.WriteAllBytes(Path.Combine(season, "S01E02.mkv"), [2]);
+        var engine = new FakeMediaEngine { Duration = 50 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenSeriesFolder(workspace.Root);
+        session.Open(Path.Combine(season, "S01E01.mkv"));
+        engine.Seek(50);
+        var t0 = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
+        session.Tick(t0);
+        session.CancelAutoNext();
+        session.Tick(t0.AddSeconds(4));
+        Assert.EndsWith("S01E01.mkv", session.Current!.Value.Path);
     }
 }
 

@@ -26,6 +26,24 @@ public class SubtitleAndPathSafetyTests
     }
 
     [Fact]
+    public void Same_stem_ko_srt_is_found()
+    {
+        var dir = Directory.CreateTempSubdirectory("subs-ko-");
+        try
+        {
+            var video = Path.Combine(dir.FullName, "S01E01.mkv");
+            File.WriteAllBytes(video, [1, 2, 3]);
+            File.WriteAllText(Path.Combine(dir.FullName, "S01E01.ko.srt"), "1\n00:00:00,000 --> 00:00:01,000\n한글\n");
+            var found = SubtitleLocator.FindSidecars(video);
+            Assert.Contains(found, p => p.EndsWith("S01E01.ko.srt", StringComparison.Ordinal));
+        }
+        finally
+        {
+            dir.Delete(true);
+        }
+    }
+
+    [Fact]
     public void Subtitle_lookup_does_not_follow_traversal_names()
     {
         var dir = Directory.CreateTempSubdirectory("subs-trav-");

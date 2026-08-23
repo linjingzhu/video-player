@@ -15,13 +15,6 @@ public sealed class ResumeStore
     public void Apply(CheckpointResult result)
     {
         _entries[result.Current.Key] = result.Current;
-        if (result.NextEpisodeAtZero is { } next)
-        {
-            _entries[next.Key] = next;
-            _continue = new ContinueWatching(next.Path, next.Size, 0, next.Key);
-            return;
-        }
-
         if (!result.CurrentCompleted)
         {
             _continue = new ContinueWatching(
@@ -29,8 +22,10 @@ public sealed class ResumeStore
                 result.Current.Size,
                 result.Current.PositionSeconds,
                 result.Current.Key);
+            return;
         }
-        else if (_continue?.Key == result.Current.Key)
+
+        if (_continue?.Key == result.Current.Key)
         {
             _continue = null;
         }

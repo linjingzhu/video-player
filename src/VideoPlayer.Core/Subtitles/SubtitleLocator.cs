@@ -21,9 +21,14 @@ public static class SubtitleLocator
         }
 
         var found = new List<string>();
-        foreach (var ext in SupportedFormats.SubtitleExtensions)
+        foreach (var name in SidecarFileNames(stem))
         {
-            var candidate = Path.Combine(directory, stem + ext);
+            if (FileNameSanitizer.LooksMalicious(name))
+            {
+                continue;
+            }
+
+            var candidate = Path.Combine(directory, name);
             var resolved = PathValidator.ValidateLocalFilePath(candidate);
             if (!resolved.Success || resolved.FullPath is null)
             {
@@ -43,6 +48,14 @@ public static class SubtitleLocator
 
         return found;
     }
+
+    public static IReadOnlyList<string> SidecarFileNames(string stem)
+        =>
+        [
+            stem + ".srt",
+            stem + ".smi",
+            stem + ".ko.srt"
+        ];
 
     public static ValidationResult AcceptExternalSubtitle(string mediaPath, string subtitlePath)
     {

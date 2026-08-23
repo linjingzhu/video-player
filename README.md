@@ -1,68 +1,44 @@
 # video-player
 
-Windows desktop **영상 플레이어** (SeriesOn-inspired). Local files only. No store, DRM, accounts, or streaming.
+Windows desktop **영상 플레이어**. Local files only. No store, DRM, accounts, or streaming.
 
-## Product (v1)
+## Confirmed P0
 
 - **Containers:** MP4, MKV, AVI, WMV, MOV
 - **Video:** H.264, HEVC, VP9, AV1, MPEG-4 ASP
 - **Audio:** AAC, AC-3, E-AC-3, MP3, FLAC, Opus, PCM
-- **Subtitles:** SRT, SMI, plus embedded in MKV/MOV. Same-folder same-name sidecars auto-load
+- **Subtitles:** SRT, SMI, embedded in MKV/MOV. Same-folder same-stem: `stem.srt`, `stem.smi`, `stem.ko.srt`
 - **Decoder:** libmpv (FFmpeg). Media Foundation alone is not used
-- **GPU:** DXVA / D3D11VA when possible. Hardware failure falls back to software and **keeps playing**. Status bar always shows HW|SW and codec names
-- **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO, seek thumbnails
+- **GPU:** D3D11VA / DXVA when possible. Hardware failure falls back to software and keeps playing. Status bar shows **failures only** (unsupported codec name, HW fallback)
+- **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO
+- **Playback:** speed 0.5–2.0x (resets to 1.0 on restart), ±10초, seek, wheel volume
+- **Resume key:** path + size. Last 10 seconds marks the current title **complete only** and does not seek the next episode
+- **Window:** remember size. Next launch is windowed. Open and drag-drop
+- **jumpSeconds:** global AppData key reserved for v1.5 (integer 1–60, default 10). No settings UI in P0
 
-Unsupported files show the codec/container name and are **not** added to Recent.
+## Confirmed P0 shell
 
-## Playback and series
+- Sidebar **closed by default**. When open: one resume item + recent series
+- Menus: **파일 / 보기** only. Series panel is under 보기
+- No large centered play icon. Click the video surface to toggle play/pause
+- No always-on-top pin
 
-- Speed 0.5–2.0x (global; resets to 1.0 on restart)
-- ±10s (v1 default and button copy ±10초). Global AppData key `jumpSeconds` (1–60, same back/forward) is reserved for v1.5; no settings UI in P0
-- Frame step, wheel volume, contain/cover
-- Folder = season; episode sort by `SxxExx` or numeric filename; auto next
-- Resume key = **path + size**. Saved on exit, pause, and episode change
-- Last 10 seconds of an episode records the **next episode at 0s** (confirmed)
-- 95% watched also marks complete (estimate)
+## P1 series
 
-## Shell
-
-Matches the attached wireframes:
-
-- **A Main:** title 영상 플레이어 · 파일/재생/시리즈/보기/도움 · 최근/시리즈 · video · transport · status
-- **B Fullscreen:** chrome hides after 3s idle, stays when paused, Esc back, 다음 화. Opens on the window's current monitor. Next launch is windowed
-- **C Series:** two-level folder tree + table (회차 / 파일명 / 길이 / 진행)
-
-Also: playlist save/load, drag-and-drop, Explorer context-open (`--register-explorer`), taskbar ±10/play, media keys, window size memory, always-on-top, single instance (hand-off to the existing window).
-
-## Why WPF + libmpv
-
-WinUI 3 cannot run on the Linux CI/cloud VM used to develop this repo. The portable rules live in `VideoPlayer.Core` (net8.0) and are tested here. The Windows UI is **WPF** hosting **libmpv**, which is FFmpeg-based and does not rely on Media Foundation as the decoder.
+- Drill-down: show → season → episode (folder = season)
+- Columns: 회차 / 제목 / 진행. Sort by episode only. No explorer file table
+- Auto next **ON** by default. Natural end waits 3 seconds (cancel) and shows an end-region **다음 화** CTA
+- No playlist button
 
 ## Build
 
 ```bash
-# Portable tests (Linux or Windows)
 dotnet test tests/VideoPlayer.Tests/VideoPlayer.Tests.csproj
-
-# Windows app (requires Windows + libmpv-2.dll next to VideoPlayer.exe)
+# Windows:
 dotnet build src/VideoPlayer.App/VideoPlayer.App.csproj -c Release
 ```
 
-Place a Windows `libmpv-2.dll` (from an mpv/libmpv build) beside the executable. The shell still opens if the DLL is missing; playback then reports that libmpv was not found.
-
-### Explorer verb
-
-```text
-VideoPlayer.exe --register-explorer
-```
-
-Registers *영상 플레이어로 재생* for the supported extensions under the current user.
-
-## Layout
-
-- `src/VideoPlayer.Core` — resume, series, subtitles, path safety, shell model
-- `src/VideoPlayer.App` — WPF windows A/B/C and libmpv host
-- `tests/VideoPlayer.Tests` — defensive unit tests only
+Place `libmpv-2.dll` beside `VideoPlayer.exe`. The shell still opens if it is missing.
 
 ## License
 

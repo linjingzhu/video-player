@@ -23,68 +23,44 @@ public class ResumeTests
     }
 
     [Fact]
-    public void Last_ten_seconds_records_next_episode_at_zero()
+    public void Last_ten_seconds_marks_complete_and_does_not_seek_next()
     {
         var current = new MediaIdentity("/library/S01E01.mkv", 1000);
-        var next = new MediaIdentity("/library/S01E02.mkv", 2000);
-        var result = CompletionPolicy.Checkpoint(current, positionSeconds: 91, durationSeconds: 100, next);
+        var result = CompletionPolicy.Checkpoint(current, positionSeconds: 91, durationSeconds: 100);
 
         Assert.True(result.CurrentCompleted);
-        Assert.True(result.RecordedNextFromLastTenSeconds);
-        Assert.NotNull(result.NextEpisodeAtZero);
-        Assert.Equal(0, result.NextEpisodeAtZero!.PositionSeconds);
-        Assert.Equal(next.Key, result.NextEpisodeAtZero.Key);
-        Assert.Equal(0, result.Current.PositionSeconds);
         Assert.True(result.Current.Completed);
+        Assert.Equal(0, result.Current.PositionSeconds);
+        Assert.Equal(current.Key, result.Current.Key);
     }
 
     [Fact]
-    public void Mid_episode_does_not_advance_to_next()
+    public void Mid_episode_keeps_position_and_is_not_complete()
     {
         var current = new MediaIdentity("/library/S01E01.mkv", 1000);
-        var next = new MediaIdentity("/library/S01E02.mkv", 2000);
-        var result = CompletionPolicy.Checkpoint(current, 40, 100, next);
+        var result = CompletionPolicy.Checkpoint(current, 40, 100);
 
         Assert.False(result.CurrentCompleted);
-        Assert.Null(result.NextEpisodeAtZero);
         Assert.Equal(40, result.Current.PositionSeconds);
     }
 
     [Fact]
-    public void Ninety_five_percent_marks_complete_without_forcing_next_unless_last_ten()
-    {
-        var current = new MediaIdentity("/library/long.mkv", 5000);
-        var next = new MediaIdentity("/library/next.mkv", 6000);
-        var result = CompletionPolicy.Checkpoint(current, positionSeconds: 960, durationSeconds: 1000, next);
-
-        Assert.True(CompletionPolicy.IsAtLeastNinetyFivePercent(960, 1000));
-        Assert.False(CompletionPolicy.IsInLastTenSeconds(960, 1000));
-        Assert.True(result.CurrentCompleted);
-        Assert.False(result.RecordedNextFromLastTenSeconds);
-        Assert.Null(result.NextEpisodeAtZero);
-    }
-
-    [Fact]
-    public void Resume_store_continue_points_at_next_after_last_ten()
+    public void Resume_store_does_not_point_continue_at_next_after_last_ten()
     {
         var store = new ResumeStore();
-        var result = CompletionPolicy.Checkpoint(
-            new MediaIdentity("/a/S01E01.mkv", 1),
-            99,
-            100,
-            new MediaIdentity("/a/S01E02.mkv", 2));
-        store.Apply(result);
+        store.Apply(CompletionPolicy.Checkpoint(new MediaIdentity("/a/S01E01.mkv", 1), 50, 100));
+        Assert.Equal("/a/S01E01.mkv", store.Continue!.Path);
 
-        Assert.NotNull(store.Continue);
-        Assert.Equal("/a/S01E02.mkv", store.Continue!.Path);
-        Assert.Equal(0, store.Continue.PositionSeconds);
+        store.Apply(CompletionPolicy.Checkpoint(new MediaIdentity("/a/S01E01.mkv", 1), 99, 100));
+        Assert.Null(store.Continue);
+        Assert.True(store.Find("/a/S01E01.mkv", 1)!.Completed);
     }
 
     [Fact]
     public void Resume_store_round_trips_json_and_rejects_remote_entries()
     {
         var store = new ResumeStore();
-        store.Apply(CompletionPolicy.Checkpoint(new MediaIdentity("/local/ok.mkv", 9), 12, 80, null));
+        store.Apply(CompletionPolicy.Checkpoint(new MediaIdentity("/local/ok.mkv", 9), 12, 80));
         var json = store.ToJson();
         json = json.Replace("\"path\": \"/local/ok.mkv\"", "\"path\": \"http://evil.example/ok.mkv\"", StringComparison.Ordinal);
 

@@ -1,4 +1,6 @@
+using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Series;
+using VideoPlayer.Core.Shell;
 
 namespace VideoPlayer.Tests;
 
@@ -62,6 +64,36 @@ public class SeriesSortTests
             var show = SeriesScanner.Scan(root.FullName);
             Assert.Single(show.Seasons);
             Assert.Equal(new[] { 2, 10 }, show.Seasons[0].Episodes.Select(e => e.SortKey.Episode));
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
+
+    [Fact]
+    public void Drill_down_is_show_then_season_then_episode_sorted_by_episode()
+    {
+        var root = Directory.CreateTempSubdirectory("series-drill-");
+        try
+        {
+            var s01 = Path.Combine(root.FullName, "S01");
+            Directory.CreateDirectory(s01);
+            File.WriteAllBytes(Path.Combine(s01, "Show.S01E10.Title.Ten.mkv"), [1]);
+            File.WriteAllBytes(Path.Combine(s01, "Show.S01E02.Title.Two.mkv"), [1]);
+            var show = SeriesScanner.Scan(root.FullName);
+            var drill = new SeriesDrillDown();
+            drill.ReplaceShows([show]);
+            Assert.Equal(SeriesDrillLevel.Shows, drill.Level);
+            drill.OpenShow(show);
+            Assert.Equal(SeriesDrillLevel.Seasons, drill.Level);
+            drill.OpenSeason(show.Seasons[0]);
+            var items = drill.ListItems(new ResumeStore(), null);
+            Assert.Equal(new[] { "E02", "E10" }, items.Select(i => i.Episode));
+            Assert.Equal("회차", UiCopy.ColumnEpisode);
+            Assert.Equal("제목", UiCopy.ColumnTitle);
+            Assert.Equal("진행", UiCopy.ColumnProgress);
+            Assert.DoesNotContain(items, i => i.Title.Contains("S01E", StringComparison.Ordinal));
         }
         finally
         {

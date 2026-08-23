@@ -13,59 +13,25 @@
         PreviewKeyDown="OnPreviewKeyDown"
         PreviewMouseMove="OnPreviewMouseMove"
         PreviewMouseWheel="OnPreviewMouseWheel"
-        Closing="OnClosing"
-        SourceInitialized="OnSourceInitialized">
+        Closing="OnClosing">
   <DockPanel>
     <Menu x:Name="MainMenu" DockPanel.Dock="Top" Background="#FF1A1A1A" Foreground="#FFF2F2F2">
       <MenuItem Header="파일">
         <MenuItem Header="열기..." Click="OpenFile_Click"/>
         <MenuItem Header="폴더 열기" Click="OpenFolder_Click"/>
         <Separator/>
-        <MenuItem Header="재생목록 불러오기..." Click="LoadPlaylist_Click"/>
-        <MenuItem Header="재생목록 저장..." Click="SavePlaylist_Click"/>
-        <Separator/>
         <MenuItem Header="종료" Click="Exit_Click"/>
       </MenuItem>
-      <MenuItem Header="재생">
-        <MenuItem Header="재생/일시정지" Click="PlayPause_Click"/>
-        <MenuItem Header="이전" Click="Prev_Click"/>
-        <MenuItem Header="다음" Click="Next_Click"/>
-        <MenuItem Header="-10초" Click="SkipBack_Click"/>
-        <MenuItem Header="+10초" Click="SkipForward_Click"/>
-        <MenuItem Header="한 프레임 앞" Click="FrameForward_Click"/>
-        <MenuItem Header="한 프레임 뒤" Click="FrameBack_Click"/>
-        <MenuItem Header="배속">
-          <MenuItem Header="0.5x" Tag="0.5" Click="Speed_Click"/>
-          <MenuItem Header="0.75x" Tag="0.75" Click="Speed_Click"/>
-          <MenuItem Header="1.0x" Tag="1.0" Click="Speed_Click"/>
-          <MenuItem Header="1.25x" Tag="1.25" Click="Speed_Click"/>
-          <MenuItem Header="1.5x" Tag="1.5" Click="Speed_Click"/>
-          <MenuItem Header="2.0x" Tag="2.0" Click="Speed_Click"/>
-        </MenuItem>
-        <MenuItem Header="자막" Click="Captions_Click"/>
-      </MenuItem>
-      <MenuItem Header="시리즈">
-        <MenuItem Header="시리즈 패널" Click="ShowSeries_Click"/>
-        <MenuItem Header="폴더 열기" Click="OpenFolder_Click"/>
-        <MenuItem Header="재생목록에 담기" Click="AddPlaylist_Click"/>
-        <MenuItem Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True" Click="AutoNext_Click"/>
-      </MenuItem>
       <MenuItem Header="보기">
+        <MenuItem Header="시리즈" Click="ShowSeries_Click"/>
+        <MenuItem Header="사이드바" Click="ToggleSidebar_Click"/>
         <MenuItem Header="전체화면" Click="Fullscreen_Click"/>
-        <MenuItem x:Name="AlwaysOnTopItem" Header="항상 위" IsCheckable="True" Click="AlwaysOnTop_Click"/>
-        <MenuItem Header="맞춤" Click="Contain_Click"/>
-        <MenuItem Header="채우기" Click="Cover_Click"/>
-        <MenuItem Header="최근 / 시리즈" Click="ToggleSidebar_Click"/>
-      </MenuItem>
-      <MenuItem Header="도움">
-        <MenuItem Header="정보" Click="About_Click"/>
+        <MenuItem x:Name="AutoNextItem" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True" Click="AutoNext_Click"/>
       </MenuItem>
     </Menu>
 
-    <StatusBar x:Name="StatusBar" DockPanel.Dock="Bottom" Background="#FF111111" Foreground="#FF9A9A9A">
-      <TextBlock x:Name="StatusText" Text="소프트웨어 · 대기"/>
-      <Separator/>
-      <TextBlock x:Name="SeriesStatusText"/>
+    <StatusBar x:Name="StatusBar" DockPanel.Dock="Bottom" Background="#FF111111" Foreground="#FF9A9A9A" Visibility="Collapsed">
+      <TextBlock x:Name="StatusText"/>
     </StatusBar>
 
     <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="#FF1A1A1A" BorderBrush="#FF3A3A3A" BorderThickness="0,1,0,0" Padding="10,8">
@@ -76,11 +42,9 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Button Content="⏮" Click="Prev_Click" ToolTip="이전" Padding="8,4"/>
           <Button Content="-10초" Click="SkipBack_Click"/>
           <Button x:Name="PlayButton" Content="▶" Click="PlayPause_Click" FontSize="16" Padding="14,4"/>
           <Button Content="+10초" Click="SkipForward_Click"/>
-          <Button Content="⏭" Click="Next_Click" ToolTip="다음" Padding="8,4"/>
         </StackPanel>
         <DockPanel Grid.Column="1" Margin="16,0">
           <TextBlock x:Name="PositionText" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#FF9A9A9A"/>
@@ -101,16 +65,14 @@
 
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition x:Name="SidebarColumn" Width="240"/>
+        <ColumnDefinition x:Name="SidebarColumn" Width="0"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <Border Grid.Column="0" Background="#FF1C1C1C" BorderBrush="#FF3A3A3A" BorderThickness="0,0,1,0">
+      <Border x:Name="SidebarPanel" Grid.Column="0" Background="#FF1C1C1C" BorderBrush="#FF3A3A3A" BorderThickness="0,0,1,0" Visibility="Collapsed">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="최근 / 시리즈" FontWeight="SemiBold" Margin="12,10,12,6"/>
-          <ListBox x:Name="SidebarList" MouseDoubleClick="Sidebar_Activate">
-            <ListBoxItem Content="이어보기"/>
-          </ListBox>
+          <ListBox x:Name="SidebarList" MouseDoubleClick="Sidebar_Activate"/>
         </DockPanel>
       </Border>
 
@@ -119,10 +81,14 @@
           <Border x:Name="VideoHostBorder" Background="#FF000000" MouseLeftButtonDown="Video_Click">
             <Grid>
               <WindowsFormsHost x:Name="PlayerHost"/>
-              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                <TextBlock x:Name="CenterPlay" Text="▶" FontSize="56" HorizontalAlignment="Center" Opacity="0.35"/>
-                <TextBlock x:Name="OverlayTime" Text="00:00:00 / 00:00:00" HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                <TextBlock x:Name="OverlaySubtitle" Text="자막 예시" HorizontalAlignment="Center" Margin="0,8,0,0" FontSize="20"/>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,48" IsHitTestVisible="False">
+                <TextBlock x:Name="OverlayTime" Text="" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="OverlaySubtitle" Text="" HorizontalAlignment="Center" Margin="0,8,0,0" FontSize="20"/>
+              </StackPanel>
+              <StackPanel x:Name="NextCtaPanel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,72"
+                          Visibility="Collapsed">
+                <Button Content="다음 화" Click="Next_Click"/>
+                <Button x:Name="CancelAutoNextButton" Content="취소" Click="CancelAutoNext_Click" Margin="0,6,0,0" Visibility="Collapsed"/>
               </StackPanel>
             </Grid>
           </Border>
@@ -131,44 +97,27 @@
         <Grid x:Name="SeriesPage" Visibility="Collapsed" Background="#FF141414">
           <DockPanel Margin="12">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+              <Button Content="뒤로" Click="SeriesBack_Click"/>
               <Button Content="폴더 열기" Click="OpenFolder_Click"/>
-              <Button Content="재생목록에 담기" Click="AddPlaylist_Click"/>
-              <ComboBox x:Name="SortCombo" Width="140" Margin="8,0,0,0" SelectionChanged="Sort_Changed">
-                <ComboBoxItem Content="정렬: 회차" IsSelected="True"/>
-                <ComboBoxItem Content="정렬: 파일명"/>
-                <ComboBoxItem Content="정렬: 길이"/>
-                <ComboBoxItem Content="정렬: 진행"/>
-              </ComboBox>
               <Button Content="메인으로" Click="ShowMain_Click" Margin="12,0,0,0"/>
+              <TextBlock x:Name="SeriesHeading" VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold"/>
             </StackPanel>
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <TreeView x:Name="SeasonTree" SelectedItemChanged="SeasonTree_Selected"/>
-              <DataGrid x:Name="EpisodeGrid" Grid.Column="1" AutoGenerateColumns="False" IsReadOnly="True"
-                        Background="#FF1C1C1C" Foreground="#FFF2F2F2" HeadersVisibility="Column"
-                        MouseDoubleClick="EpisodeGrid_Activate">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="회차" Binding="{Binding Episode}" Width="70"/>
-                  <DataGridTextColumn Header="파일명" Binding="{Binding FileName}" Width="*"/>
-                  <DataGridTextColumn Header="길이" Binding="{Binding Duration}" Width="100"/>
-                  <DataGridTextColumn Header="진행" Binding="{Binding Progress}" Width="90"/>
-                </DataGrid.Columns>
-              </DataGrid>
-            </Grid>
+            <DataGrid x:Name="SeriesGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                      Background="#FF1C1C1C" Foreground="#FFF2F2F2" HeadersVisibility="Column"
+                      MouseDoubleClick="SeriesGrid_Activate">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="회차" Binding="{Binding Episode}" Width="80"/>
+                <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="*"/>
+                <DataGridTextColumn Header="진행" Binding="{Binding Progress}" Width="90"/>
+              </DataGrid.Columns>
+            </DataGrid>
           </DockPanel>
         </Grid>
 
         <Grid x:Name="FullscreenChrome" Visibility="Collapsed" IsHitTestVisible="False">
           <DockPanel>
             <Grid DockPanel.Dock="Top" Margin="16,10">
-              <TextBlock x:Name="FsTitle" Text="드라마 S01E03" FontSize="16"/>
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Text="📌" Margin="0,0,12,0"/>
-                <TextBlock Text="✕"/>
-              </StackPanel>
+              <TextBlock x:Name="FsTitle" FontSize="16"/>
             </Grid>
             <Border DockPanel.Dock="Bottom" Margin="24,16" BorderBrush="#FF3A3A3A" BorderThickness="1" Background="#CC111111" Padding="12,10">
               <Grid>
@@ -188,11 +137,9 @@
                   <Slider x:Name="FsSeek" Minimum="0" Maximum="1" VerticalAlignment="Center"/>
                 </DockPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                  <TextBlock Text="🔊" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                  <Slider Width="80" Minimum="0" Maximum="1" Value="1" VerticalAlignment="Center"/>
                   <Button x:Name="FsSpeed" Content="1.0x" Click="CycleSpeed_Click"/>
                   <Button Content="CC" Click="Captions_Click"/>
-                  <Button Content="다음 화 >" Click="Next_Click"/>
+                  <Button Content="다음 화" Click="Next_Click"/>
                 </StackPanel>
               </Grid>
             </Border>

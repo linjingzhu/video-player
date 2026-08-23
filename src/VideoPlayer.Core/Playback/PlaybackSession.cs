@@ -10,8 +10,10 @@ namespace VideoPlayer.Core.Playback;
 public sealed class PlaybackSession
 {
     private readonly HardwareDecodePolicy _hw = new();
-    private SeriesShow? _series;
+    private readonly SeriesDrillDown _drill = new();
     private IReadOnlyList<SeriesEpisode> _flatEpisodes = [];
+    private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
+    private bool _endedHandled;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null)
     {
@@ -20,6 +22,8 @@ public sealed class PlaybackSession
         Directory.CreateDirectory(DataDirectory);
         LoadPersisted();
         Speed = PlaybackSpeed.Default;
+        AutoNext = true;
+        RefreshSeriesPanel();
     }
 
     public IMediaEngine Engine { get; }
@@ -27,23 +31,24 @@ public sealed class PlaybackSession
     public PlayerShell Shell { get; } = PlayerShell.Boot();
     public ResumeStore Resume { get; private set; } = new();
     public RecentStore Recent { get; private set; } = new();
-    public PlaylistStore Playlist { get; } = new();
+    public RecentSeriesStore RecentSeries { get; private set; } = new();
     public WindowMemory Window { get; private set; } = new();
     public AppSettings Settings { get; private set; } = new();
+    public AutoNextOffer AutoNextOffer { get; } = new();
     public int JumpSeconds => Settings.JumpSeconds;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
     public double Speed { get; private set; }
-    public string FitMode { get; private set; } = "contain";
     public bool AutoNext { get; set; } = true;
     public string? LastUnsupportedCodec { get; private set; }
+    public SeriesDrillDown Series => _drill;
 
     public OpenMediaResult Open(string path)
     {
         var check = PathValidator.ValidateLocalFilePath(path);
         if (!check.Success || check.FullPath is null)
         {
-            Shell.Status.Text = check.Error ?? "열 수 없습니다.";
+            Shell.Status.Fail(check.Error ?? "열 수 없습니다.");
             return new OpenMediaResult { Success = false, Path = path ?? "", Error = check.Error, Status = Shell.Status.Text };
         }
 
@@ -51,7 +56,7 @@ public sealed class PlaybackSession
         {
             var name = Path.GetExtension(check.FullPath).TrimStart('.').ToUpperInvariant();
             LastUnsupportedCodec = string.IsNullOrEmpty(name) ? "알 수 없음" : name;
-            Shell.Status.Text = StatusText.Unsupported(LastUnsupportedCodec);
+            Shell.Status.Fail(StatusText.Unsupported(LastUnsupportedCodec));
             return OpenMediaResult.Unsupported(check.FullPath, LastUnsupportedCodec);
         }
 
@@ -61,7 +66,7 @@ public sealed class PlaybackSession
         if (!opened.Success)
         {
             LastUnsupportedCodec = opened.UnsupportedCodecName;
-            Shell.Status.Text = opened.Status;
+            Shell.Status.Fail(opened.Status);
             return opened with { AddedToRecent = false };
         }
 
@@ -71,7 +76,7 @@ public sealed class PlaybackSession
             LastUnsupportedCodec = SupportedFormats.DisplayCodecName(opened.VideoCodec);
             Engine.Close();
             Current = null;
-            Shell.Status.Text = StatusText.Unsupported(opened.VideoCodec);
+            Shell.Status.Fail(StatusText.Unsupported(opened.VideoCodec));
             return OpenMediaResult.Unsupported(check.FullPath, opened.VideoCodec);
         }
 
@@ -79,15 +84,16 @@ public sealed class PlaybackSession
             ? MediaIdentity.FromFile(check.FullPath)
             : new MediaIdentity(check.FullPath, 0);
         Current = identity;
+        _endedHandled = false;
+        AutoNextOffer.ResetForNewTitle();
 
         if (!opened.HardwareActive)
         {
-            var fallback = _hw.OnHardwareFailed(opened.VideoCodec, opened.AudioCodec);
-            Shell.Status.Text = fallback.StatusText;
+            Shell.Status.Fail(_hw.OnHardwareFailed(opened.VideoCodec, opened.AudioCodec).StatusText);
         }
         else
         {
-            Shell.Status.Text = StatusText.Format(DecodePath.Hardware, opened.VideoCodec, opened.AudioCodec);
+            Shell.Status.Clear();
         }
 
         var resumeAt = Resume.PositionOrZero(identity.Path, identity.Size);
@@ -100,6 +106,7 @@ public sealed class PlaybackSession
         LoadSidecarSubtitles(identity.Path);
         Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
         RefreshSidebar();
+        RefreshSeriesPanel();
         Shell.IsPaused = false;
         Persist();
         return opened with
@@ -162,14 +169,15 @@ public sealed class PlaybackSession
         }
 
         Engine.Seek(SeekCommands.ApplyRelative(Engine.Position, Engine.Duration, seconds));
+        _endedHandled = false;
         SyncTransport();
+        UpdateNextEpisodeChrome(DateTimeOffset.UtcNow);
     }
 
     public void SkipBack() => SeekRelative(-JumpSeconds);
 
     public void SkipForward() => SeekRelative(JumpSeconds);
 
-    /// <summary>v1.5 live apply. Persists globally; next skip uses the new value.</summary>
     public int SetJumpSeconds(int seconds)
     {
         var applied = Settings.SetJumpSeconds(seconds);
@@ -185,7 +193,9 @@ public sealed class PlaybackSession
         }
 
         Engine.Seek(Math.Max(0, seconds));
+        _endedHandled = false;
         SyncTransport();
+        UpdateNextEpisodeChrome(DateTimeOffset.UtcNow);
     }
 
     public void SetSpeed(double speed)
@@ -210,20 +220,6 @@ public sealed class PlaybackSession
         }
     }
 
-    public void SetFitMode(string mode)
-    {
-        FitMode = mode is "cover" ? "cover" : "contain";
-        Window.FitMode = FitMode;
-        Engine.SetFitMode(FitMode);
-    }
-
-    public void FrameStep(int direction)
-    {
-        Engine.FrameStep(direction);
-        Shell.IsPaused = true;
-        SyncTransport();
-    }
-
     public void Checkpoint(string reason)
     {
         if (Current is not { } current || !Engine.IsOpen)
@@ -231,15 +227,12 @@ public sealed class PlaybackSession
             return;
         }
 
-        var next = _flatEpisodes.Count > 0 ? SeriesScanner.NextEpisode(_flatEpisodes, current.Path) : null;
-        var result = CompletionPolicy.Checkpoint(current, Engine.Position, Engine.Duration, next);
+        var result = CompletionPolicy.Checkpoint(current, Engine.Position, Engine.Duration);
         Resume.Apply(result);
         Persist();
-
-        if (reason is "ended" or "exit" && result.RecordedNextFromLastTenSeconds && AutoNext && next is { } nextId)
-        {
-            Open(nextId.Path);
-        }
+        RefreshSidebar();
+        RefreshSeriesPanel();
+        _ = reason;
     }
 
     public void RememberWindow(WindowBounds bounds)
@@ -250,24 +243,54 @@ public sealed class PlaybackSession
 
     public SeriesShow OpenSeriesFolder(string folder)
     {
-        _series = SeriesScanner.Scan(folder);
-        _flatEpisodes = _series.Seasons.SelectMany(s => s.Episodes).ToList();
-        Shell.Series.Tree = [.. _series.Seasons.Select(s => s.Name)];
-        Shell.Series.Rows = [.. BuildRows(_series.Seasons.FirstOrDefault())];
-        Shell.Status.SeriesSummary = Shell.Series.Rows.Count > 0
-            ? $"{_series.Seasons.First().Name} {Shell.Series.Rows.Count}개 파일"
-            : "";
+        var show = SeriesScanner.Scan(folder);
+        _flatEpisodes = show.Seasons.SelectMany(s => s.Episodes).ToList();
+        _drill.AddOrUpdate(show);
+        _drill.ReplaceShows(MergeShows(show));
+        RecentSeries.Add(show.RootPath, show.Name);
         RefreshSidebar();
-        if (_flatEpisodes.Count > 0 && Current is null)
+        RefreshSeriesPanel();
+        Persist();
+        return show;
+    }
+
+    public void DrillInto(SeriesListItem item)
+    {
+        if (item.Kind == "show")
         {
-            Open(_flatEpisodes[0].Path);
+            var show = _drill.Shows.FirstOrDefault(s => string.Equals(s.RootPath, item.Path, PathValidator.PathComparison));
+            if (show is not null)
+            {
+                _flatEpisodes = show.Seasons.SelectMany(s => s.Episodes).ToList();
+                _drill.OpenShow(show);
+            }
+        }
+        else if (item.Kind == "season" && _drill.Show is { } currentShow)
+        {
+            var season = currentShow.Seasons.FirstOrDefault(s => string.Equals(s.FolderPath, item.Path, PathValidator.PathComparison));
+            if (season is not null)
+            {
+                _drill.OpenSeason(season);
+            }
+        }
+        else if (item.Kind.StartsWith("episode", StringComparison.Ordinal) && item.Path is not null)
+        {
+            Open(item.Path);
+            Shell.Screen = ShellScreen.Main;
         }
 
-        return _series;
+        RefreshSeriesPanel();
+    }
+
+    public void SeriesBack()
+    {
+        _drill.Back();
+        RefreshSeriesPanel();
     }
 
     public void PlayNextEpisode()
     {
+        AutoNextOffer.ResetForNewTitle();
         if (Current is not { } current)
         {
             return;
@@ -280,22 +303,7 @@ public sealed class PlaybackSession
         }
     }
 
-    public void PlayPreviousEpisode()
-    {
-        if (Current is not { } current)
-        {
-            return;
-        }
-
-        for (var i = 0; i < _flatEpisodes.Count; i++)
-        {
-            if (string.Equals(_flatEpisodes[i].Path, current.Path, PathValidator.PathComparison) && i > 0)
-            {
-                Open(_flatEpisodes[i - 1].Path);
-                return;
-            }
-        }
-    }
+    public void CancelAutoNext() => AutoNextOffer.Cancel();
 
     public void Tick(DateTimeOffset now)
     {
@@ -307,9 +315,28 @@ public sealed class PlaybackSession
         }
 
         UpdateChromeVisibility(now);
+        UpdateNextEpisodeChrome(now);
+
         if (Engine.IsOpen && Engine.Duration > 0 && Engine.Position >= Engine.Duration - 0.25)
         {
-            Checkpoint("ended");
+            if (!_endedHandled)
+            {
+                _endedHandled = true;
+                Checkpoint("ended");
+                if (AutoNext && Current is { } current)
+                {
+                    var next = SeriesScanner.NextEpisode(_flatEpisodes, current.Path);
+                    if (next is { } identity)
+                    {
+                        AutoNextOffer.Begin(identity.Path, now);
+                    }
+                }
+            }
+
+            if (AutoNextOffer.ShouldAdvance(now) && AutoNextOffer.NextPath is { } nextPath)
+            {
+                Open(nextPath);
+            }
         }
     }
 
@@ -319,7 +346,6 @@ public sealed class PlaybackSession
         Shell.Fullscreen.Title = Current is { } cur
             ? FileNameSanitizer.ForDisplay(Path.GetFileNameWithoutExtension(cur.Path))
             : UiCopy.AppTitle;
-        Shell.Fullscreen.AlwaysOnTop = Window.AlwaysOnTop;
     }
 
     public void ExitFullscreen() => Shell.ExitFullscreen();
@@ -332,12 +358,34 @@ public sealed class PlaybackSession
         }
     }
 
+    public void ToggleSidebar() => Shell.Sidebar.Open = !Shell.Sidebar.Open;
+
     public void UpdateChromeVisibility(DateTimeOffset now)
         => Shell.ChromeVisible = FullscreenChromeController.ShouldShow(Shell.Screen == ShellScreen.Fullscreen, Shell.IsPaused, now, _lastActivity);
 
     public void NoteActivity(DateTimeOffset now) => _lastActivity = now;
 
-    private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
+    private void UpdateNextEpisodeChrome(DateTimeOffset now)
+    {
+        var inEndRegion = Engine.IsOpen
+                          && CompletionPolicy.IsInLastTenSeconds(Engine.Position, Engine.Duration)
+                          && NextEpisodePath() is not null;
+        Shell.NextEpisode.ShowCta = inEndRegion || AutoNextOffer.Pending;
+        Shell.NextEpisode.AutoNextPending = AutoNextOffer.Pending;
+        Shell.NextEpisode.Label = AutoNextOffer.Pending
+            ? $"{UiCopy.NextEpisode} ({Math.Ceiling(AutoNextOffer.Remaining(now).TotalSeconds):0})"
+            : UiCopy.NextEpisode;
+    }
+
+    private string? NextEpisodePath()
+    {
+        if (Current is not { } current)
+        {
+            return null;
+        }
+
+        return SeriesScanner.NextEpisode(_flatEpisodes, current.Path)?.Path;
+    }
 
     private void LoadSidecarSubtitles(string mediaPath)
     {
@@ -363,44 +411,39 @@ public sealed class PlaybackSession
         Shell.IsPaused = Engine.IsPaused;
     }
 
-    private IEnumerable<SeriesRow> BuildRows(SeriesSeason? season)
+    private void RefreshSidebar()
     {
-        if (season is null)
+        Shell.Sidebar.Resume = Resume.Continue is { } pointer
+            ? new SidebarResumeItem(FileNameSanitizer.ForDisplay(Path.GetFileName(pointer.Path)), pointer.Path, pointer.Size)
+            : null;
+        Shell.Sidebar.RecentSeries.Clear();
+        foreach (var series in RecentSeries.Items)
         {
-            yield break;
-        }
-
-        foreach (var episode in season.Episodes)
-        {
-            var saved = Resume.Find(episode.Path, episode.Size);
-            var progress = saved switch
-            {
-                { Completed: true } => "✓",
-                { DurationSeconds: > 0 } e => $"{Math.Clamp(e.PositionSeconds / e.DurationSeconds * 100, 0, 100):0}%",
-                _ => "-"
-            };
-            var current = Current is { } cur && string.Equals(cur.Path, episode.Path, PathValidator.PathComparison);
-            yield return new SeriesRow(EpisodeParser.EpisodeLabel(episode.SortKey), episode.FileName, "--:--:--", progress, current);
+            Shell.Sidebar.RecentSeries.Add(new SidebarSeriesItem(series.Title, series.FolderPath));
         }
     }
 
-    private void RefreshSidebar()
+    private void RefreshSeriesPanel()
     {
-        Shell.Sidebar.Items.Clear();
-        Shell.Sidebar.Items.Add(UiCopy.ContinueWatching);
-        foreach (var recent in Recent.Items.Take(8))
-        {
-            Shell.Sidebar.Items.Add(recent.Title);
-        }
+        Shell.Series.Level = _drill.Level;
+        Shell.Series.Heading = _drill.Heading();
+        Shell.Series.Items = [.. _drill.ListItems(Resume, Current?.Path)];
+    }
+
+    private IEnumerable<SeriesShow> MergeShows(SeriesShow incoming)
+    {
+        var map = _drill.Shows.ToDictionary(s => s.RootPath, StringComparer.OrdinalIgnoreCase);
+        map[incoming.RootPath] = incoming;
+        return map.Values;
     }
 
     private void LoadPersisted()
     {
         Resume = ResumeStore.FromJson(ReadOptional("resume.json"));
         Recent = RecentStore.FromJson(ReadOptional("recent.json"));
+        RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
         Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
-        FitMode = Window.FitMode;
         RefreshSidebar();
     }
 
@@ -408,6 +451,7 @@ public sealed class PlaybackSession
     {
         WriteOptional("resume.json", Resume.ToJson());
         WriteOptional("recent.json", Recent.ToJson());
+        WriteOptional("recent-series.json", RecentSeries.ToJson());
         WriteOptional("window.json", Window.ToJson());
         WriteOptional(AppSettings.FileName, Settings.ToJson());
     }

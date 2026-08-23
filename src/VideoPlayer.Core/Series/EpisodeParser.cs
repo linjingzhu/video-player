@@ -88,4 +88,15 @@ public static partial class EpisodeParser
 
     public static string EpisodeLabel(EpisodeSortKey key)
         => key.Episode == int.MaxValue ? "-" : $"E{key.Episode:00}";
+
+    public static string TitleFromFileName(string fileName)
+    {
+        var stem = Path.GetFileNameWithoutExtension(fileName);
+        var withoutCodes = SeasonEpisodeRegex().Replace(stem, " ");
+        var cleaned = withoutCodes.Replace('.', ' ').Replace('_', ' ');
+        cleaned = Regex.Replace(cleaned, @"\s+", " ").Trim(' ', '-', '.');
+        return string.IsNullOrWhiteSpace(cleaned)
+            ? FileNameSanitizer.ForDisplay(stem)
+            : FileNameSanitizer.ForDisplay(cleaned);
+    }
 }
