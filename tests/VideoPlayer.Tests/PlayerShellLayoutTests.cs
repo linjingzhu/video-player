@@ -7,12 +7,12 @@ namespace VideoPlayer.Tests;
 public class PlayerShellLayoutTests
 {
     [Fact]
-    public void Av2_sidebar_is_a_closed_36px_rail()
+    public void Av2_sidebar_is_a_closed_28px_rail()
     {
         var shell = PlayerShell.Boot();
         Assert.False(shell.Sidebar.Open);
-        Assert.Equal(36, shell.Sidebar.RailWidthPx);
-        Assert.Equal(36, ShellLayout.SidebarRailWidthPx);
+        Assert.Equal(28, shell.Sidebar.RailWidthPx);
+        Assert.Equal(28, ShellLayout.SidebarRailWidthPx);
         Assert.Equal(0, shell.Sidebar.ContentWidthPx);
         Assert.True(shell.VideoFullWidth);
         Assert.False(shell.CenterPlayIcon);

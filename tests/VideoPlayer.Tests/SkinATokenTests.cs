@@ -19,13 +19,13 @@ public class SkinATokenTests
     }
 
     [Fact]
-    public void Type_scale_is_title_20_600_body_13_400_meta_11_400()
+    public void Type_scale_is_title_20_600_body_12_400_meta_11_400()
     {
         Assert.Equal("Segoe UI Variable", SkinA.FontFamily);
         Assert.Equal("Segoe UI", SkinA.FontFallback);
         Assert.Equal(20, SkinA.TitleSize);
         Assert.Equal(600, SkinA.TitleWeight);
-        Assert.Equal(13, SkinA.BodySize);
+        Assert.Equal(12, SkinA.BodySize);
         Assert.Equal(400, SkinA.BodyWeight);
         Assert.Equal(11, SkinA.MetaSize);
         Assert.Equal(400, SkinA.MetaWeight);
@@ -52,10 +52,13 @@ public class SkinATokenTests
         Assert.Equal(999, SkinA.RadiusPill);
         Assert.Equal(12, SkinA.RadiusPanel);
         Assert.Equal(10, SkinA.RadiusControl);
+        Assert.Equal(new[] { 4, 8, 12, 16, 20 }, SkinA.SpacingScale);
+        Assert.DoesNotContain(24, SkinA.SpacingScale);
         Assert.Equal(4, SkinA.SpacingMin);
-        Assert.Equal(24, SkinA.SpacingMax);
-        Assert.Equal(56, SkinA.TransportHeightPx);
-        Assert.Equal(36, SkinA.SidebarRailWidthPx);
+        Assert.Equal(20, SkinA.SpacingMax);
+        Assert.NotEqual(24, SkinA.SpacingMax);
+        Assert.Equal(40, SkinA.TransportHeightPx);
+        Assert.Equal(28, SkinA.SidebarRailWidthPx);
         Assert.Equal(ShellLayout.SidebarRailWidthPx, SkinA.SidebarRailWidthPx);
     }
 
@@ -80,7 +83,7 @@ public class SkinATokenTests
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
-        Assert.Equal(36, shell.Sidebar.RailWidthPx);
+        Assert.Equal(28, shell.Sidebar.RailWidthPx);
         Assert.False(shell.CenterPlayIcon);
         Assert.True(shell.NextEpisode.EndRegionOnly);
         Assert.False(shell.NextEpisode.OnTransport);

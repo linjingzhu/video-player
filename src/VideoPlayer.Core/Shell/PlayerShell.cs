@@ -53,7 +53,7 @@ public sealed class PlayerShell
 
 public static class ShellLayout
 {
-    public const int SidebarRailWidthPx = 36;
+    public const int SidebarRailWidthPx = 28;
     public const int SidebarOpenPanelWidthPx = 240;
 
     public static IReadOnlyList<TransportControl> TransportOrder { get; } =

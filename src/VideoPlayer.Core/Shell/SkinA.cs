@@ -3,7 +3,8 @@ namespace VideoPlayer.Core.Shell;
 /// <summary>
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
 /// and to this pack's skip capsule and subtitle sheet only.
-/// Does not change A v2 shell structure, layout, or behavior.
+/// Compact density: 40px transport, 28px rail, body 12. Spacing scale drops 24.
+/// Does not change A v2 / C structure (File|View, overlay CTA, no center play).
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA
@@ -22,7 +23,7 @@ public static class SkinA
     public const string FontFallback = "Segoe UI";
     public const int TitleSize = 20;
     public const int TitleWeight = 600;
-    public const int BodySize = 13;
+    public const int BodySize = 12;
     public const int BodyWeight = 400;
     public const int MetaSize = 11;
     public const int MetaWeight = 400;
@@ -36,9 +37,10 @@ public static class SkinA
     public const int RadiusPill = 999;
     public const int RadiusPanel = 12;
     public const int RadiusControl = 10;
+    public static readonly int[] SpacingScale = [4, 8, 12, 16, 20];
     public const int SpacingMin = 4;
-    public const int SpacingMax = 24;
-    public const int TransportHeightPx = 56;
+    public const int SpacingMax = 20;
+    public const int TransportHeightPx = 40;
     public const int SidebarRailWidthPx = ShellLayout.SidebarRailWidthPx;
 
     public const bool AccentOnTracksOnly = true;
