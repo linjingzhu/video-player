@@ -13,6 +13,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Product>영상 플레이어</Product>
     <Description>Windows local series video player (libmpv / FFmpeg).</Description>
+    <!-- WPF-first hybrid: PerMonitorV2 is declared in app.manifest so WPF
+         picks it up at process start. WinForms is only used for OS dialogs.
+         Calling Application.SetHighDpiMode would conflict (WFAC010) and is
+         too late to change WPF chrome. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\VideoPlayer.Core\VideoPlayer.Core.csproj" />

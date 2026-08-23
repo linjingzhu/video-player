@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.Win32;
 using VideoPlayer.App.Clip;
 using VideoPlayer.App.Playback;
 using VideoPlayer.Core.Capture;
@@ -14,6 +13,7 @@ using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
 using VideoPlayer.Core.Subtitles;
+using Path = System.IO.Path;
 
 namespace VideoPlayer.App;
 
@@ -239,13 +239,13 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dialog = new SaveFileDialog
+        using var dialog = new SaveFileDialog
         {
             Title = UiCopy.SaveAs,
             FileName = UrlSaveAs.SuggestedFileName(current.Path),
             Filter = "Videos|*.mp4;*.mkv;*.avi;*.wmv;*.mov|All files|*.*"
         };
-        if (dialog.ShowDialog(this) != true)
+        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
         {
             return;
         }
@@ -696,7 +696,7 @@ public partial class MainWindow : Window
             {
                 Text = row.Selected ? "✓" : "",
                 Foreground = (System.Windows.Media.Brush)FindResource("PackAccentBrush"),
-                HorizontalAlignment = HorizontalAlignment.Right,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Center
             };
             var grid = new Grid();
@@ -725,11 +725,12 @@ public partial class MainWindow : Window
 
     private void SubtitleRow_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: (bool secondary, string? path) })
+        if (sender is not Button button || button.Tag is not ValueTuple<bool, string?> tagged)
         {
             return;
         }
 
+        var (secondary, path) = tagged;
         if (secondary)
         {
             _session.SelectSecondarySubtitle(path);

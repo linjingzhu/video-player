@@ -7,6 +7,7 @@ using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Safety;
 using VideoPlayer.Core.Series;
 using VideoPlayer.Core.Shell;
+using Path = System.Windows.Shapes.Path;
 
 namespace VideoPlayer.App;
 
