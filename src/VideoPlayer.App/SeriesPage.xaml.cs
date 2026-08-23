@@ -13,6 +13,7 @@ public partial class SeriesPage : UserControl
     private SeriesDrillDown? _drill;
     private ResumeStore? _resume;
     private string? _currentPath;
+    private string? _treeKey;
     private bool _binding;
 
     public SeriesPage()
@@ -36,13 +37,22 @@ public partial class SeriesPage : UserControl
             FooterLeftText.Text = drill.FooterLeft();
             FooterRightText.Text = drill.FooterRight();
             SeriesGrid.ItemsSource = drill.ListItems(resume, currentPath);
-            RebuildTree(drill);
+            var key = TreeKey(drill);
+            if (key != _treeKey)
+            {
+                _treeKey = key;
+                RebuildTree(drill);
+            }
         }
         finally
         {
             _binding = false;
         }
     }
+
+    private static string TreeKey(SeriesDrillDown drill)
+        => string.Join('\n', drill.Tree().SelectMany(show =>
+            show.Children.Select(season => $"{show.Path}\t{season.Path}\t{season.Selected}").DefaultIfEmpty($"{show.Path}\t\t{show.Selected}")));
 
     private void RebuildTree(SeriesDrillDown drill)
     {
