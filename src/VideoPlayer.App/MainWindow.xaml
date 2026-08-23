@@ -4,6 +4,7 @@
         xmlns:local="clr-namespace:VideoPlayer.App"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="이어서"
+        Icon="Assets/Ieseo.ico"
         Width="1280" Height="800"
         MinWidth="960" MinHeight="600"
         Background="#FF050505"
