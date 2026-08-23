@@ -1,7 +1,6 @@
 using System.IO;
 using System.IO.Pipes;
 using System.Windows;
-using VideoPlayer.App.Hosting;
 using VideoPlayer.Core.Shell;
 
 namespace VideoPlayer.App;
@@ -19,13 +18,6 @@ public partial class App : System.Windows.Application
         var createdNew = false;
         _mutex = new Mutex(true, MutexName, out createdNew);
         var args = Environment.GetCommandLineArgs().Skip(1).ToArray();
-
-        if (args.Any(a => string.Equals(a, "--register-explorer", StringComparison.OrdinalIgnoreCase)))
-        {
-            ExplorerRegistration.Register();
-            Shutdown();
-            return;
-        }
 
         if (!createdNew)
         {

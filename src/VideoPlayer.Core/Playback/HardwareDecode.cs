@@ -1,4 +1,5 @@
 using VideoPlayer.Core.Media;
+using VideoPlayer.Core.Shell;
 
 namespace VideoPlayer.Core.Playback;
 
@@ -41,15 +42,18 @@ public readonly record struct DecodeOutcome(
 public static class StatusText
 {
     public static string Format(DecodePath path, string? videoCodec, string? audioCodec)
-    {
-        var accel = path == DecodePath.Hardware ? "하드웨어 가속" : "소프트웨어";
-        var video = SupportedFormats.DisplayCodecName(videoCodec);
-        var audio = SupportedFormats.DisplayCodecName(audioCodec);
-        return $"{accel} · {video} · {audio}";
-    }
+        => path == DecodePath.Hardware ? "" : SoftwareFallback(videoCodec, audioCodec);
+
+    public static string SoftwareFallback(string? videoCodec, string? audioCodec)
+        => $"{UiCopy.SoftwareFallback} · {SupportedFormats.DisplayCodecName(videoCodec)} · {SupportedFormats.DisplayCodecName(audioCodec)}";
 
     public static string Unsupported(string? codecName)
-        => $"지원하지 않는 코덱 · {SupportedFormats.DisplayCodecName(codecName)}";
+        => $"{UiCopy.Unsupported} · {SupportedFormats.DisplayCodecName(codecName)}";
+
+    public static bool IsConfirmedFailureLine(string? text)
+        => !string.IsNullOrWhiteSpace(text)
+           && (text.StartsWith(UiCopy.Unsupported, StringComparison.Ordinal)
+               || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal));
 }
 
 public sealed record OpenMediaResult

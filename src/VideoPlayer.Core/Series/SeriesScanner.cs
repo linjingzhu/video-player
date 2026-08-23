@@ -71,15 +71,28 @@ public static class SeriesScanner
     }
 
     public static MediaIdentity? NextEpisode(IReadOnlyList<SeriesEpisode> ordered, string currentPath)
+        => AdjacentEpisode(ordered, currentPath, +1);
+
+    public static MediaIdentity? PreviousEpisode(IReadOnlyList<SeriesEpisode> ordered, string currentPath)
+        => AdjacentEpisode(ordered, currentPath, -1);
+
+    private static MediaIdentity? AdjacentEpisode(IReadOnlyList<SeriesEpisode> ordered, string currentPath, int offset)
     {
         for (var i = 0; i < ordered.Count; i++)
         {
-            if (string.Equals(ordered[i].Path, currentPath, PathValidator.PathComparison)
-                && i + 1 < ordered.Count)
+            if (!string.Equals(ordered[i].Path, currentPath, PathValidator.PathComparison))
             {
-                var next = ordered[i + 1];
-                return new MediaIdentity(next.Path, next.Size);
+                continue;
             }
+
+            var target = i + offset;
+            if (target < 0 || target >= ordered.Count)
+            {
+                return null;
+            }
+
+            var episode = ordered[target];
+            return new MediaIdentity(episode.Path, episode.Size);
         }
 
         return null;

@@ -107,6 +107,7 @@ public sealed class PlaybackSession
         Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
         RefreshSidebar();
         RefreshSeriesPanel();
+        SyncTransport();
         Shell.IsPaused = false;
         Persist();
         return opened with
@@ -288,20 +289,9 @@ public sealed class PlaybackSession
         RefreshSeriesPanel();
     }
 
-    public void PlayNextEpisode()
-    {
-        AutoNextOffer.ResetForNewTitle();
-        if (Current is not { } current)
-        {
-            return;
-        }
+    public void PlayNextEpisode() => PlayAdjacentEpisode(+1);
 
-        var next = SeriesScanner.NextEpisode(_flatEpisodes, current.Path);
-        if (next is { } identity)
-        {
-            Open(identity.Path);
-        }
-    }
+    public void PlayPreviousEpisode() => PlayAdjacentEpisode(-1);
 
     public void CancelAutoNext() => AutoNextOffer.Cancel();
 
@@ -374,7 +364,24 @@ public sealed class PlaybackSession
         Shell.NextEpisode.AutoNextPending = AutoNextOffer.Pending;
         Shell.NextEpisode.Label = AutoNextOffer.Pending
             ? $"{UiCopy.NextEpisode} ({Math.Ceiling(AutoNextOffer.Remaining(now).TotalSeconds):0})"
-            : UiCopy.NextEpisode;
+            : UiCopy.NextEpisodeCta;
+    }
+
+    private void PlayAdjacentEpisode(int offset)
+    {
+        AutoNextOffer.ResetForNewTitle();
+        if (Current is not { } current)
+        {
+            return;
+        }
+
+        var identity = offset < 0
+            ? SeriesScanner.PreviousEpisode(_flatEpisodes, current.Path)
+            : SeriesScanner.NextEpisode(_flatEpisodes, current.Path);
+        if (identity is { } next)
+        {
+            Open(next.Path);
+        }
     }
 
     private string? NextEpisodePath()
@@ -385,6 +392,16 @@ public sealed class PlaybackSession
         }
 
         return SeriesScanner.NextEpisode(_flatEpisodes, current.Path)?.Path;
+    }
+
+    private string? PreviousEpisodePath()
+    {
+        if (Current is not { } current)
+        {
+            return null;
+        }
+
+        return SeriesScanner.PreviousEpisode(_flatEpisodes, current.Path)?.Path;
     }
 
     private void LoadSidecarSubtitles(string mediaPath)
@@ -407,6 +424,8 @@ public sealed class PlaybackSession
         Shell.Transport.Duration = Engine.Duration;
         Shell.Transport.Volume = Engine.Volume;
         Shell.Transport.Speed = Speed;
+        Shell.Transport.HasPrevious = PreviousEpisodePath() is not null;
+        Shell.Transport.HasNext = NextEpisodePath() is not null;
         Shell.OverlayTime = $"{Shell.Transport.PositionText} / {Shell.Transport.DurationText}";
         Shell.IsPaused = Engine.IsPaused;
     }

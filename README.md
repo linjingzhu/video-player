@@ -18,9 +18,12 @@ Windows desktop **영상 플레이어**. Local files only. No store, DRM, accoun
 
 ## Confirmed P0 shell
 
-- Sidebar **closed by default**. When open: one resume item + recent series
-- Menus: **파일 / 보기** only. Series panel is under 보기
-- No large centered play icon. Click the video surface to toggle play/pause
+- Sidebar **closed by default** as a **36px** toggle rail. When open: one resume item + recent series
+- Menus: **파일 | 보기** only. Series panel is under 보기
+- Video uses remaining width. No large centered play icon. Click the video surface to toggle play/pause
+- Transport: prev | **-10초** | play | **+10초** | next (icon only) | seek | volume | **1.0x** | **CC** | fullscreen
+- Time overlay sits above the transport. **다음 화** is an end-region video overlay, not a transport label
+- Status bar is a dashed slot and **hidden when idle**. Failure line only: **미지원** / **SW 폴백**
 - No always-on-top pin
 
 ## P1 series

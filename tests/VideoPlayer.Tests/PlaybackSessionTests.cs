@@ -17,9 +17,18 @@ public class PlaybackSessionTests
         Assert.False(shell.Fullscreen.AlwaysOnTopPin);
         Assert.False(shell.Series.PlaylistButton);
         Assert.False(shell.Status.Visible);
+        Assert.True(shell.Status.FailureOnly);
+        Assert.True(shell.Status.HideWhenIdle);
+        Assert.True(shell.Status.DashedSlot);
         Assert.Equal("-10초", shell.Transport.SkipBackLabel);
         Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
+        Assert.True(shell.Transport.NextEpisodeIconOnly);
+        Assert.False(shell.Transport.NextEpisodeTextOnBar);
+        Assert.False(shell.Transport.TimeOnBar);
         Assert.Equal("다음 화", shell.Fullscreen.NextEpisodeLabel);
+        Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
+        Assert.True(shell.Fullscreen.EndCtaIsOverlay);
+        Assert.False(shell.Fullscreen.CenterPlayIcon);
         Assert.Equal(ShellScreen.Main, shell.Screen);
     }
 
@@ -61,7 +70,7 @@ public class PlaybackSessionTests
         Assert.True(opened.Success);
         Assert.False(engine.HardwareActive);
         Assert.True(session.Shell.Status.Visible);
-        Assert.Contains("소프트웨어", session.Shell.Status.Text);
+        Assert.Contains("SW 폴백", session.Shell.Status.Text);
         var outcome = new HardwareDecodePolicy().OnHardwareFailed("h264", "aac");
         Assert.True(outcome.ContinuePlayback);
         Assert.Equal(DecodePath.Software, outcome.Path);
@@ -80,6 +89,7 @@ public class PlaybackSessionTests
         Assert.False(opened.AddedToRecent);
         Assert.Equal("PRORES", opened.UnsupportedCodecName);
         Assert.Contains("PRORES", opened.Status);
+        Assert.Contains("미지원", opened.Status);
         Assert.True(session.Shell.Status.Visible);
         Assert.Empty(session.Recent.Items);
     }
