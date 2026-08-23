@@ -3,7 +3,7 @@ namespace VideoPlayer.Core.Shell;
 /// <summary>Confirmed A v2 P0 chrome copy. Old wireframe A discarded.</summary>
 public static class UiCopy
 {
-    public const string AppTitle = "영상 플레이어";
+    public const string AppTitle = "이어서";
     public const string FileMenu = "파일";
     public const string ViewMenu = "보기";
     public const string MenuSeparator = "|";

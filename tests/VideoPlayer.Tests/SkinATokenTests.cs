@@ -45,8 +45,33 @@ public class SkinATokenTests
         Assert.True(SkinA.ChromeIsBlurPlusWhite);
         Assert.True(SkinA.NoWireframeWindowTitle);
         Assert.True(SkinA.NoMockCaptionSentences);
-        Assert.Equal("영상 플레이어", UiCopy.AppTitle);
+        Assert.Equal("이어서", UiCopy.AppTitle);
         Assert.DoesNotContain("caption", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("영상 플레이어", UiCopy.AppTitle, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Display_name_is_ieseo()
+    {
+        var mainXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml"));
+        var csproj = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "VideoPlayer.App.csproj"));
+        var appCs = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml.cs"));
+        Assert.Equal("이어서", UiCopy.AppTitle);
+        Assert.Contains("Title=\"이어서\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("영상 플레이어", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("<AssemblyName>Ieseo</AssemblyName>", csproj, StringComparison.Ordinal);
+        Assert.Contains("<AssemblyTitle>이어서</AssemblyTitle>", csproj, StringComparison.Ordinal);
+        Assert.Contains("<Product>이어서</Product>", csproj, StringComparison.Ordinal);
+        Assert.DoesNotContain("영상 플레이어", csproj, StringComparison.Ordinal);
+        Assert.Contains(@"Local\Ieseo.SingleInstance", appCs, StringComparison.Ordinal);
+        Assert.Contains("Ieseo.HandOff", appCs, StringComparison.Ordinal);
+        Assert.DoesNotContain("SeriesOn", appCs, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SERIESON", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SeriesOn", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SeriesOn", csproj, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SpaceX", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xAI", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Grok", UiCopy.AppTitle, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

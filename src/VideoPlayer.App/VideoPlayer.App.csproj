@@ -5,13 +5,14 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>VideoPlayer.App</RootNamespace>
-    <AssemblyName>VideoPlayer</AssemblyName>
+    <AssemblyName>Ieseo</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon />
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Product>영상 플레이어</Product>
+    <AssemblyTitle>이어서</AssemblyTitle>
+    <Product>이어서</Product>
     <Description>Windows local series video player (libmpv / FFmpeg).</Description>
     <!-- WPF-first hybrid: PerMonitorV2 is declared in app.manifest so WPF
          picks it up at process start. WinForms is only used for OS dialogs.

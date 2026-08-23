@@ -1,6 +1,6 @@
 # video-player
 
-Windows desktop **영상 플레이어**. Local files, plus **파일 > URL 열기** for http(s) only. No store, DRM, accounts, cookies, or login.
+Windows desktop **이어서**. Local files, plus **파일 > URL 열기** for http(s) only. No store, DRM, accounts, cookies, or login.
 
 ## Confirmed P0
 
@@ -43,7 +43,7 @@ dotnet test tests/VideoPlayer.Tests/VideoPlayer.Tests.csproj
 dotnet build src/VideoPlayer.App/VideoPlayer.App.csproj -c Release
 ```
 
-Place `libmpv-2.dll` beside `VideoPlayer.exe`. The shell still opens if it is missing.
+Place `libmpv-2.dll` beside `Ieseo.exe`. The shell still opens if it is missing.
 
 ## License
 
