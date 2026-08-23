@@ -635,7 +635,6 @@ public sealed class PlaybackSession
         var markers = SeasonSkipMarkers.Load(mediaPath);
         _skipSegments = SkipDetector.Detect(Engine.Chapters, markers, Engine.Duration);
         _skipBoundDuration = Engine.Duration;
-        UpdateSkipCapsule(DateTimeOffset.UtcNow);
     }
 
     private void RefreshSkipSegmentsIfNeeded()
