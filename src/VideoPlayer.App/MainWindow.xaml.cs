@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using VideoPlayer.App.Playback;
+using VideoPlayer.Core.Capture;
 using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
@@ -80,6 +81,39 @@ public partial class MainWindow : Window
         SeriesPage.Bind(_session.Series, _session.Resume, _session.Current?.Path);
         ApplySidebar();
         ApplyChromeVisibility();
+        ApplyCaptureChrome();
+    }
+
+    private void ApplyCaptureChrome()
+    {
+        var sheet = _session.Shell.Capture;
+        CaptureSheet.Visibility = sheet.Open ? Visibility.Visible : Visibility.Collapsed;
+        CaptureCountText.Text = sheet.Count.ToString();
+        CaptureIntervalText.Text = sheet.IntervalText;
+        CaptureFolderText.Text = sheet.FolderLabel;
+        ApplyFormatSelection(sheet.Format);
+
+        var banner = _session.Shell.CaptureBanner;
+        CaptureBanner.Visibility = banner.Visible ? Visibility.Visible : Visibility.Collapsed;
+        CaptureBannerText.Text = banner.Text;
+        CaptureBanner.Background = banner.Kind == CaptureBannerKind.Failure
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xE6, 0x3A, 0x14, 0x18))
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xE6, 0x14, 0x14, 0x18));
+    }
+
+    private void ApplyFormatSelection(CaptureFormat format)
+    {
+        StyleFormat(FormatPng, format == CaptureFormat.Png);
+        StyleFormat(FormatJpg, format == CaptureFormat.Jpg);
+        StyleFormat(FormatWebp, format == CaptureFormat.Webp);
+    }
+
+    private static void StyleFormat(System.Windows.Controls.Button button, bool selected)
+    {
+        button.Background = selected
+            ? (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("CaptureAccentBrush")
+            : System.Windows.Media.Brushes.Transparent;
+        button.BorderThickness = selected ? new Thickness(0) : new Thickness(1);
     }
 
     private void BindSidebar()
@@ -201,6 +235,90 @@ public partial class MainWindow : Window
         if (sender is MenuItem item)
         {
             _session.AutoNext = item.IsChecked;
+        }
+    }
+
+    private void CaptureMenu_Click(object sender, RoutedEventArgs e) => OpenCaptureSheet();
+
+    private void OpenCaptureSheet()
+    {
+        ShowMainPage();
+        _session.OpenCaptureSheet();
+        RefreshShell();
+    }
+
+    private void CaptureCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _session.CloseCaptureSheet();
+        RefreshShell();
+    }
+
+    private void CaptureStart_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session.Shell.Capture.NeedsConfirm)
+        {
+            var answer = MessageBox.Show(
+                this,
+                UiCopy.CaptureConfirm,
+                UiCopy.Capture,
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.None);
+            if (answer != MessageBoxResult.OK)
+            {
+                return;
+            }
+        }
+
+        _session.RunStillCapture();
+        RefreshShell();
+    }
+
+    private void CaptureCountMinus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeCaptureCount(-1);
+        RefreshShell();
+    }
+
+    private void CaptureCountPlus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeCaptureCount(1);
+        RefreshShell();
+    }
+
+    private void CaptureIntervalMinus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeCaptureInterval(-1);
+        RefreshShell();
+    }
+
+    private void CaptureIntervalPlus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeCaptureInterval(1);
+        RefreshShell();
+    }
+
+    private void CaptureFormat_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button button && button.Tag is string tag)
+        {
+            _session.SetCaptureFormat(CaptureFormats.Parse(tag));
+            RefreshShell();
+        }
+    }
+
+    private void CaptureChangeFolder_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = UiCopy.CaptureFolder,
+            SelectedPath = Directory.Exists(_session.Shell.Capture.FolderPath)
+                ? _session.Shell.Capture.FolderPath
+                : StillFrameCapture.DefaultFolderPath()
+        };
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            _session.SetCaptureFolder(dialog.SelectedPath);
+            RefreshShell();
         }
     }
 
@@ -329,6 +447,15 @@ public partial class MainWindow : Window
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         _session.NoteActivity(DateTimeOffset.UtcNow);
+        if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control
+            && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift
+            && e.Key == Key.C)
+        {
+            OpenCaptureSheet();
+            e.Handled = true;
+            return;
+        }
+
         switch (e.Key)
         {
             case Key.Space:
@@ -343,6 +470,11 @@ public partial class MainWindow : Window
                 _session.SkipForward();
                 e.Handled = true;
                 break;
+            case Key.Escape when _session.Shell.Capture.Open:
+                _session.CloseCaptureSheet();
+                RefreshShell();
+                e.Handled = true;
+                break;
             case Key.Escape when _fullscreen:
                 ExitFullscreen();
                 e.Handled = true;
@@ -351,7 +483,7 @@ public partial class MainWindow : Window
                 ToggleFullscreen();
                 e.Handled = true;
                 break;
-            case Key.C:
+            case Key.C when Keyboard.Modifiers == ModifierKeys.None:
                 _session.ToggleCaptions();
                 e.Handled = true;
                 break;

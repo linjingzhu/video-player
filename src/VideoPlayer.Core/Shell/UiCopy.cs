@@ -37,6 +37,24 @@ public static class UiCopy
     public const string Unsupported = "미지원";
     public const string SoftwareFallback = "SW 폴백";
 
+    public const string Capture = "캡처";
+    public const string CaptureSheetTitle = "캡처 (still frames, not video)";
+    public const string CaptureCount = "장수";
+    public const string CaptureInterval = "간격";
+    public const string CaptureFormatLabel = "포맷";
+    public const string CaptureFolder = "폴더";
+    public const string CaptureCountRange = "1-999";
+    public const string CaptureChangeFolder = "변경";
+    public const string CaptureStart = "시작";
+    public const string CaptureCancel = "취소";
+    public const string CaptureFooter = "현재 위치부터 · 캡처 중 일시정지";
+    public const string CaptureShortcut = "Ctrl+Shift+C";
+    public const string CaptureConfirm = "60장 이상을 캡처합니다. 계속할까요?";
+    public const string CaptureNoMedia = "재생 중인 영상이 없습니다.";
+    public const string CaptureSaveFailed = "저장할 수 없습니다.";
+    public const string CaptureEofBanner = "파일 끝 · {0}장 저장됨 (요청 {1}장)";
+    public const string CapturePartialFailBanner = "캡처 실패 · {0}장 저장됨 (요청 {1}장)";
+
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
 }
 

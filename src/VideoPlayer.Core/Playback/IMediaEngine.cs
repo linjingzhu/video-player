@@ -18,6 +18,7 @@ public interface IMediaEngine
     void Pause();
     void Seek(double seconds);
     void FrameStep(int direction);
+    bool ScreenshotToFile(string path);
     void SetFitMode(string mode);
     void Close();
 }
@@ -85,10 +86,46 @@ public sealed class FakeMediaEngine : IMediaEngine
 
     public void Seek(double seconds) => Position = Math.Max(0, seconds);
 
+    public double FrameDuration { get; set; } = 1d / 24d;
+    public bool FailScreenshot { get; set; }
+    public List<string> CapturedPaths { get; } = [];
+
     public void FrameStep(int direction)
     {
         IsPaused = true;
-        Position = Math.Max(0, Position + (direction >= 0 ? 1d / 24d : -1d / 24d));
+        var delta = direction >= 0 ? FrameDuration : -FrameDuration;
+        var next = Position + delta;
+        if (Duration > 0)
+        {
+            next = Math.Min(Duration, next);
+        }
+
+        Position = Math.Max(0, next);
+    }
+
+    public bool ScreenshotToFile(string path)
+    {
+        if (!IsOpen || FailScreenshot || string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllBytes(path, [0x01, 0x02, 0x03]);
+            CapturedPaths.Add(path);
+            return File.Exists(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return false;
+        }
     }
 
     public void SetFitMode(string mode) => _ = mode;
