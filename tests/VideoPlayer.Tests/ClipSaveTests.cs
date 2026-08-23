@@ -172,6 +172,24 @@ public class ClipSaveTests
     }
 
     [Fact]
+    public void Gif_reencodes_with_fps_and_pingpong_like_webp()
+    {
+        var job = new ClipJob("show.mkv", "show", "/tmp/out", 10, 20, ClipFormat.Gif, 15, true);
+        var args = ClipSave.BuildArguments(job, "/tmp/out/show_000010-000020.gif");
+        Assert.Contains("-an", args);
+        Assert.Contains("-vf", args);
+        Assert.DoesNotContain("copy", args);
+        Assert.DoesNotContain("libwebp", args);
+        var filter = args[args.ToList().IndexOf("-vf") + 1];
+        Assert.Contains("fps=15", filter, StringComparison.Ordinal);
+        Assert.Contains("reverse", filter, StringComparison.Ordinal);
+        Assert.Contains("palettegen=max_colors=256", filter, StringComparison.Ordinal);
+        Assert.True(ClipSave.EncodingEnabled(ClipFormat.Gif));
+        Assert.True(ClipSave.EffectivePingPong(ClipFormat.Gif, true));
+        Assert.Equal(15, ClipSave.EffectiveFps(ClipFormat.Gif, 15));
+    }
+
+    [Fact]
     public void Gif_uses_256_color_palette_without_a_control()
     {
         var job = new ClipJob("show.mkv", "show", "/tmp/out", 10, 20, ClipFormat.Gif, 15, false);

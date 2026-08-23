@@ -69,6 +69,7 @@ public static class ClipFormats
         return ClipFormat.StreamCopy;
     }
 
+    /// <summary>webp and gif re-encode with fps + ping-pong. Only 원본복사 locks those controls.</summary>
     public static bool EncodingEnabled(ClipFormat format)
         => format is ClipFormat.Webp or ClipFormat.Gif;
 
