@@ -159,6 +159,8 @@ public class PlayerShellLayoutTests
         Assert.True(shell.Fullscreen.TransportIsFloatingOverlay);
         Assert.True(shell.Fullscreen.WindowedTransportIsDocked);
         Assert.Equal(0.80, shell.Fullscreen.TransportOverlayOpacity);
+        Assert.Equal(16, shell.Fullscreen.TransportInsetPx);
+        Assert.Equal(4, shell.Fullscreen.TransportRadiusPx);
         Assert.Equal(new[] { "Enter", "F11" }, shell.Fullscreen.ToggleKeys);
         Assert.Equal(3, shell.Fullscreen.IdleHideSeconds);
         Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);

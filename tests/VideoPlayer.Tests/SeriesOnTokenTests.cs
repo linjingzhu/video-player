@@ -42,6 +42,8 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.FullscreenTransportIsOverlay);
         Assert.True(SeriesOn.WindowedTransportIsDocked);
         Assert.Equal(0.80, SeriesOn.FullscreenTransportOpacity);
+        Assert.Equal(16, SeriesOn.FullscreenTransportInsetPx);
+        Assert.Equal(4, SeriesOn.FullscreenTransportRadiusPx);
         Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
         Assert.True(SeriesOn.IoMarksAreSquares);
         Assert.Equal(4, SeriesOn.ButtonPadding);
@@ -196,6 +198,8 @@ public class SeriesOnTokenTests
         Assert.Contains("SeriesOnFullscreenTransportBrush", appXaml, StringComparison.Ordinal);
         Assert.Contains("CC050505", appXaml, StringComparison.OrdinalIgnoreCase);
         var codeBehind = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml.cs"));
+        Assert.Contains("FullscreenTransportInsetPx", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("FullscreenTransportRadiusPx", codeBehind, StringComparison.Ordinal);
         Assert.Contains("case Key.Enter", codeBehind, StringComparison.Ordinal);
         Assert.Contains("case Key.F11", codeBehind, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);

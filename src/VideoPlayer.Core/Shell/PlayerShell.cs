@@ -229,6 +229,8 @@ public sealed class FullscreenChrome
     public bool TransportIsFloatingOverlay { get; } = true;
     public bool WindowedTransportIsDocked { get; } = true;
     public double TransportOverlayOpacity { get; } = SeriesOn.FullscreenTransportOpacity;
+    public int TransportInsetPx { get; } = SeriesOn.FullscreenTransportInsetPx;
+    public int TransportRadiusPx { get; } = SeriesOn.FullscreenTransportRadiusPx;
     public IReadOnlyList<string> ToggleKeys { get; } = ["Enter", "F11"];
     public int IdleHideSeconds { get; } = SeriesOn.FullscreenIdleHideSeconds;
 }

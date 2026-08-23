@@ -165,6 +165,8 @@ public class PlaybackSessionTests
         Assert.Equal(ShellScreen.Fullscreen, session.Shell.Screen);
         Assert.True(session.Shell.Fullscreen.TransportIsFloatingOverlay);
         Assert.Equal(0.80, session.Shell.Fullscreen.TransportOverlayOpacity);
+        Assert.Equal(16, session.Shell.Fullscreen.TransportInsetPx);
+        Assert.Equal(4, session.Shell.Fullscreen.TransportRadiusPx);
 
         session.ToggleFullscreen();
         Assert.Equal(ShellScreen.Main, session.Shell.Screen);

@@ -76,6 +76,8 @@ public static class SeriesOn
     public const bool FullscreenTransportIsOverlay = true;
     public const bool WindowedTransportIsDocked = true;
     public const double FullscreenTransportOpacity = 0.80;
+    public const int FullscreenTransportInsetPx = 16;
+    public const int FullscreenTransportRadiusPx = 4;
     public const int FullscreenIdleHideSeconds = 3;
     public const bool IoMarksAreSquares = true;
     public const bool HasWindowControls = true;

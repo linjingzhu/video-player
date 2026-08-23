@@ -220,18 +220,24 @@ public partial class MainWindow : Window
         CaptionBar.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
 
         var statusLift = StatusBar.Visibility == Visibility.Visible ? StatusBar.Height : 0;
-        TransportBar.Margin = new Thickness(0, 0, 0, statusLift);
         if (_fullscreen)
         {
             TransportDockSlot.Height = 0;
             TransportDockSlot.Visibility = Visibility.Collapsed;
             TransportBar.Background = (Brush)FindResource("SeriesOnFullscreenTransportBrush");
+            TransportBar.CornerRadius = new CornerRadius(SeriesOn.FullscreenTransportRadiusPx);
+            TransportBar.BorderThickness = new Thickness(0);
+            var inset = SeriesOn.FullscreenTransportInsetPx;
+            TransportBar.Margin = new Thickness(inset, 0, inset, inset + statusLift);
         }
         else
         {
             TransportDockSlot.Height = 40;
             TransportDockSlot.Visibility = Visibility.Visible;
             TransportBar.Background = (Brush)FindResource("SeriesOnChromeBrush");
+            TransportBar.CornerRadius = new CornerRadius(0);
+            TransportBar.BorderThickness = new Thickness(0, 1, 0, 0);
+            TransportBar.Margin = new Thickness(0, 0, 0, statusLift);
         }
     }
 
