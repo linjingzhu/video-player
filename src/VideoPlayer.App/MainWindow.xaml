@@ -113,6 +113,9 @@
           <Grid x:Name="VolumeHost" VerticalAlignment="Center" PreviewMouseWheel="Volume_MouseWheel">
             <Button x:Name="VolumeButton" Click="VolumeButton_Click"
                     PreviewMouseWheel="Volume_MouseWheel"
+                    PreviewMouseRightButtonDown="VolumeButton_RightClick"
+                    PreviewMouseRightButtonUp="VolumeButton_RightClick"
+                    ContextMenu="{x:Null}"
                     ToolTip="음량" Style="{StaticResource IconButton}">
               <Path Stroke="#FFF5F5F7" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                     StrokeLineJoin="Round"
@@ -121,19 +124,19 @@
             <Popup x:Name="VolumePopover"
                    PlacementTarget="{Binding ElementName=VolumeButton}"
                    Placement="Top"
-                   VerticalOffset="-6"
+                   VerticalOffset="-8"
                    AllowsTransparency="True"
                    StaysOpen="True"
                    Closed="VolumePopover_Closed">
-              <Border x:Name="VolumePopoverPanel" Width="48" Padding="8,10" CornerRadius="12"
+              <Border x:Name="VolumePopoverPanel" Width="48" Padding="8" CornerRadius="12"
                       Background="#E6141418"
                       PreviewMouseWheel="Volume_MouseWheel">
                 <StackPanel>
                   <TextBlock x:Name="VolumePercent" Text="100" HorizontalAlignment="Center"
                              Foreground="#FFF5F5F7"
                              FontFamily="Segoe UI Variable, Segoe UI"
-                             FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                  <Slider x:Name="VolumeSlider" Height="88" Minimum="0" Maximum="1" Value="1"
+                             FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                  <Slider x:Name="VolumeSlider" Height="80" Minimum="0" Maximum="1" Value="1"
                           Orientation="Vertical" HorizontalAlignment="Center"
                           Style="{StaticResource VerticalChromeSlider}"
                           ValueChanged="Volume_Changed"/>

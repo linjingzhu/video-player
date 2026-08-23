@@ -18,6 +18,23 @@ public class VolumeChromeTests
         Assert.True(shell.Volume.AccentOnFilledTrackOnly);
         Assert.True(shell.Volume.WheelOverSpeakerChangesVolume);
         Assert.True(shell.Volume.WheelOverPopoverChangesVolume);
+        Assert.True(shell.Volume.WheelShowsPercent);
+        Assert.True(shell.Volume.CompactDensity);
+        Assert.True(shell.Volume.ClickAgainCloses);
+        Assert.True(shell.Volume.ClickOutsideCloses);
+        Assert.False(shell.Volume.SpeakerRightClickMutes);
+        Assert.Equal(12, VolumeChrome.PercentSize);
+        Assert.Equal(SkinA.BodySize, VolumeChrome.PercentSize);
+        Assert.Equal(8, VolumeChrome.PanelPadding);
+        Assert.Equal(12, VolumeChrome.PanelRadius);
+        Assert.Equal(48, VolumeChrome.PanelWidth);
+        Assert.Equal(80, VolumeChrome.SliderHeight);
+        Assert.Equal(new[] { 4, 8, 12, 16 }, VolumeChrome.SpacingScale);
+        Assert.DoesNotContain(10, VolumeChrome.SpacingScale);
+        Assert.DoesNotContain(20, VolumeChrome.SpacingScale);
+        Assert.DoesNotContain(24, VolumeChrome.SpacingScale);
+        Assert.Equal(40, SkinA.TransportHeightPx);
+        Assert.Equal(28, SkinA.SidebarRailWidthPx);
         Assert.Contains(TransportControl.Volume, shell.Transport.Order);
         Assert.Equal(
             new[]
@@ -49,6 +66,7 @@ public class VolumeChromeTests
         Assert.True(VolumeChrome.IsMuteKey("m"));
         Assert.False(VolumeChrome.IsMuteKey("C"));
         Assert.False(chrome.SpeakerClickMutes);
+        Assert.False(chrome.SpeakerRightClickMutes);
         Assert.True(chrome.SpeakerClickTogglesPopover);
         Assert.True(chrome.VolumeZeroMutes);
 
@@ -106,15 +124,52 @@ public class VolumeChromeTests
     }
 
     [Fact]
-    public void Wheel_steps_change_volume_and_percent()
+    public void Click_outside_closes_the_popover_without_muting()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        session.SetVolume(0.40);
+        session.ToggleVolumePopover();
+        Assert.True(session.Shell.Volume.PopoverOpen);
+
+        session.CloseVolumePopover();
+        Assert.False(session.Shell.Volume.PopoverOpen);
+        Assert.False(session.Shell.Volume.Muted);
+        Assert.Equal(0.40, session.Engine.Volume, 3);
+    }
+
+    [Fact]
+    public void Right_click_does_not_mute_or_open_the_popover()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        session.SetVolume(0.72);
+        session.SpeakerRightClick();
+        Assert.False(session.Shell.Volume.Muted);
+        Assert.False(session.Shell.Volume.PopoverOpen);
+        Assert.Equal(0.72, session.Engine.Volume, 3);
+        Assert.Equal(72, session.Shell.Volume.Percent);
+
+        session.ToggleVolumePopover();
+        session.SpeakerRightClick();
+        Assert.True(session.Shell.Volume.PopoverOpen);
+        Assert.False(session.Shell.Volume.Muted);
+        Assert.Equal(0.72, session.Engine.Volume, 3);
+    }
+
+    [Fact]
+    public void Wheel_steps_change_volume_and_show_percent()
     {
         using var workspace = new TempWorkspace();
         var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
         session.SetVolume(0.50);
-        session.AdjustVolume(0.05);
+        session.NudgeVolumeFromWheel(0.05);
+        Assert.True(session.Shell.Volume.PopoverOpen);
         Assert.Equal(0.55, session.Engine.Volume, 3);
         Assert.Equal(55, session.Shell.Volume.Percent);
-        session.AdjustVolume(-0.05);
+        Assert.Equal("55", session.Shell.Volume.PercentText);
+        session.NudgeVolumeFromWheel(-0.05);
+        Assert.True(session.Shell.Volume.PopoverOpen);
         Assert.Equal(0.50, session.Engine.Volume, 3);
         Assert.Equal(50, session.Shell.Volume.Percent);
     }

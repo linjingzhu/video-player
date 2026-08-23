@@ -4,17 +4,29 @@ namespace VideoPlayer.Core.Shell;
 public sealed class VolumeChrome
 {
     public static IReadOnlyList<string> MuteKeys { get; } = ["M"];
+    public static readonly int[] SpacingScale = SkinA.SpacingScale;
+
+    public const int PercentSize = SkinA.BodySize;
+    public const int PanelPadding = 8;
+    public const int PanelRadius = SkinA.RadiusPanel;
+    public const int PanelWidth = 48;
+    public const int SliderHeight = 80;
 
     public bool HorizontalSliderOnTransport { get; } = false;
     public bool SpeakerOnTransport { get; } = true;
     public bool SpeakerClickMutes { get; } = false;
     public bool SpeakerClickTogglesPopover { get; } = true;
+    public bool SpeakerRightClickMutes { get; } = false;
+    public bool ClickAgainCloses { get; } = true;
+    public bool ClickOutsideCloses { get; } = true;
     public bool VerticalPopover { get; } = true;
     public bool PercentOnTop { get; } = true;
     public bool WhiteThumb { get; } = true;
     public bool AccentOnFilledTrackOnly { get; } = true;
     public bool WheelOverSpeakerChangesVolume { get; } = true;
     public bool WheelOverPopoverChangesVolume { get; } = true;
+    public bool WheelShowsPercent { get; } = true;
+    public bool CompactDensity { get; } = true;
     public bool VolumeZeroMutes { get; } = true;
     public bool PopoverOpen { get; set; }
     public bool Muted { get; set; }

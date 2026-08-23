@@ -635,8 +635,14 @@ public partial class MainWindow : Window
 
     private void Volume_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        _session.AdjustVolume(e.Delta > 0 ? 0.05 : -0.05);
+        _session.NudgeVolumeFromWheel(e.Delta > 0 ? 0.05 : -0.05);
         SyncVolumeUi();
+        e.Handled = true;
+    }
+
+    private void VolumeButton_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        _session.SpeakerRightClick();
         e.Handled = true;
     }
 

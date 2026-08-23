@@ -399,6 +399,17 @@ public sealed class PlaybackSession
 
     public void AdjustVolume(double delta) => SetVolume(Engine.Volume + delta);
 
+    public void NudgeVolumeFromWheel(double delta)
+    {
+        AdjustVolume(delta);
+        Shell.Volume.PopoverOpen = true;
+    }
+
+    public void SpeakerRightClick()
+    {
+        // Locked: right-click does not mute and does not toggle the popover.
+    }
+
     public void SetVolume(double volume)
     {
         var clamped = Math.Clamp(volume, 0, 1);
