@@ -1,0 +1,193 @@
+using VideoPlayer.Core.Playback;
+using VideoPlayer.Core.Shell;
+
+namespace VideoPlayer.Tests;
+
+public class SeriesOnTokenTests
+{
+    [Fact]
+    public void Accent_and_density_match_serieson_lock()
+    {
+        Assert.Equal("#C6FF00", SeriesOn.Accent);
+        Assert.Equal("#050505", SeriesOn.Background);
+        Assert.Equal("#0E0E0E", SeriesOn.Elevated);
+        Assert.Equal("#FFFFFF", SeriesOn.Text);
+        Assert.Equal("#8A8A8A", SeriesOn.Secondary);
+        Assert.True(SeriesOn.TitleIsAccent);
+        Assert.True(SeriesOn.VolumeFillIsAccent);
+        Assert.True(SeriesOn.TimecodeIsAccent);
+        Assert.True(SeriesOn.VolumeThumbIsRound);
+        Assert.True(SeriesOn.PlayTriangleIsWhite);
+        Assert.True(SeriesOn.StopButtonExists);
+        Assert.False(SeriesOn.SkipPlusMinusOnTransport);
+        Assert.True(SeriesOn.HorizontalVolumeSlider);
+        Assert.False(SeriesOn.VerticalVolumePopover);
+        Assert.False(SeriesOn.HasFileViewMenuBar);
+        Assert.True(SeriesOn.QuickMenuIsView);
+        Assert.True(SeriesOn.FileCommandsInHamburger);
+        Assert.True(SeriesOn.HasWindowControls);
+        Assert.False(SeriesOn.HasCastIcon);
+        Assert.False(SeriesOn.HasHdrIcon);
+        Assert.False(SeriesOn.HasEjectIcon);
+        Assert.False(SeriesOn.HasBrandWordmark);
+        Assert.Equal(36, SeriesOn.HeaderHeightPx);
+        Assert.Equal(40, SeriesOn.TransportHeightPx);
+        Assert.Equal(1, SeriesOn.TransportSeparatorPx);
+        Assert.Equal(88, SeriesOn.VolumeSliderWidthPx);
+        Assert.Equal(16, SeriesOn.HeaderTitleSize);
+        Assert.Equal(12, SeriesOn.BodySize);
+        Assert.Equal(new[] { 4, 8, 12, 16 }, SeriesOn.SpacingScale);
+        Assert.Equal(SkinA.TransportHeightPx, SeriesOn.TransportHeightPx);
+        Assert.Equal(SkinA.SidebarRailWidthPx, SeriesOn.SidebarRailWidthPx);
+        Assert.NotEqual(SkinA.Accent, SeriesOn.Accent);
+        Assert.Equal("#FFFFFF", SkinC.Accent);
+        Assert.Equal(SkinA.Accent, SkinC.Accent);
+    }
+
+    [Fact]
+    public void Header_is_title_quickmenu_and_window_controls()
+    {
+        var shell = PlayerShell.Boot();
+        Assert.True(shell.HasHeaderUi);
+        Assert.Equal("영상 플레이어", shell.Header.Title);
+        Assert.Equal("퀵메뉴", shell.Header.QuickMenuLabel);
+        Assert.True(shell.Header.QuickMenuIsView);
+        Assert.True(shell.Header.HasWindowControls);
+        Assert.False(shell.Header.HasFileViewMenuBar);
+        Assert.True(shell.Header.FileCommandsInHamburger);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
+        Assert.Equal(UiCopy.ViewMenuItems, new[]
+        {
+            "-10초",
+            "+10초",
+            "이전 화",
+            "다음 화",
+            "시리즈",
+            "사이드바",
+            "자막",
+            "여기까지 스킵",
+            "건너뛰기 자동",
+            "전체화면",
+            "다음 화 자동 재생",
+            "1.0x",
+            "캡처",
+            "구간 저장"
+        });
+        Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
+    }
+
+    [Fact]
+    public void Transport_is_rewind_play_stop_ff_seek_volume_time_cc_fullscreen_hamburger()
+    {
+        var order = PlayerShell.Boot().Transport.Order;
+        Assert.Equal(
+            new[]
+            {
+                TransportControl.Rewind,
+                TransportControl.PlayPause,
+                TransportControl.Stop,
+                TransportControl.FastForward,
+                TransportControl.Seek,
+                TransportControl.Volume,
+                TransportControl.Time,
+                TransportControl.Captions,
+                TransportControl.Fullscreen,
+                TransportControl.Hamburger
+            },
+            order);
+        Assert.Contains("Stop", Enum.GetNames<TransportControl>());
+        Assert.Contains("Hamburger", Enum.GetNames<TransportControl>());
+        Assert.True(PlayerShell.Boot().Transport.HasStop);
+        Assert.True(PlayerShell.Boot().Transport.TimeOnBar);
+        Assert.False(PlayerShell.Boot().Transport.SkipLabelsOnBar);
+        Assert.False(PlayerShell.Boot().Transport.SpeedOnBar);
+        Assert.False(PlayerShell.Boot().Transport.PreviousOnBar);
+        Assert.False(PlayerShell.Boot().Transport.NextOnBar);
+        Assert.False(PlayerShell.Boot().Transport.HasCastIcon);
+        Assert.False(PlayerShell.Boot().Transport.HasHdrIcon);
+        Assert.False(PlayerShell.Boot().Transport.HasEjectIcon);
+        Assert.Equal("-10초", PlayerShell.Boot().Transport.SkipBackLabel);
+        Assert.Equal("+10초", PlayerShell.Boot().Transport.SkipForwardLabel);
+    }
+
+    [Fact]
+    public void Main_window_markup_matches_serieson_chrome()
+    {
+        var mainXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml"));
+        var appXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml"));
+
+        Assert.Contains("영상 플레이어", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("퀵메뉴", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnAccentBrush", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Stop_Click", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnVolumeSlider", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("HamburgerButton", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"MainMenu\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Header=\"파일\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Header=\"보기\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"-10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"-10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"+10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("VolumePopover", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("VerticalChromeSlider", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Orientation=\"Vertical\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("SpaceX", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xAI", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Grok", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Cast", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("HDR", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Eject", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("불러오는 중", mainXaml, StringComparison.Ordinal);
+        Assert.Equal("불러오는 중", UiCopy.Loading);
+    }
+
+    [Fact]
+    public void Stop_seeks_to_zero_and_pauses_without_closing()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("ep.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 80 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(40);
+        Assert.False(engine.IsPaused);
+
+        session.Stop();
+        Assert.True(engine.IsOpen);
+        Assert.True(engine.IsPaused);
+        Assert.Equal(0, engine.Position);
+        Assert.True(session.Shell.IsPaused);
+    }
+
+    [Fact]
+    public void Series_c_and_next_episode_cta_stay()
+    {
+        var shell = PlayerShell.Boot();
+        Assert.True(shell.NextEpisode.OverlayOnly);
+        Assert.True(shell.NextEpisode.EndRegionOnly);
+        Assert.False(shell.NextEpisode.OnTransport);
+        Assert.Equal("다음 화 >", shell.NextEpisode.Label);
+        Assert.Equal("#FFFFFF", SkinC.Accent);
+        Assert.True(shell.Series.Enabled);
+        Assert.False(shell.Series.PlaylistButton);
+    }
+
+    private static string ReadRepoFile(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, relative);
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new FileNotFoundException(relative);
+    }
+}

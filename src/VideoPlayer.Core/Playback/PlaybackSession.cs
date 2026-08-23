@@ -347,6 +347,21 @@ public sealed class PlaybackSession
         UpdateChromeVisibility(DateTimeOffset.UtcNow);
     }
 
+    public void Stop()
+    {
+        if (_capturing || !Engine.IsOpen)
+        {
+            return;
+        }
+
+        Engine.Stop();
+        Shell.IsPaused = true;
+        _endedHandled = false;
+        SyncTransport();
+        Checkpoint("stop");
+        UpdateChromeVisibility(DateTimeOffset.UtcNow);
+    }
+
     public void SeekRelative(double seconds)
     {
         if (_capturing || !Engine.IsOpen)
@@ -402,7 +417,7 @@ public sealed class PlaybackSession
     public void NudgeVolumeFromWheel(double delta)
     {
         AdjustVolume(delta);
-        Shell.Volume.PopoverOpen = true;
+        Shell.Volume.PopoverOpen = false;
     }
 
     public void SpeakerRightClick()
@@ -458,7 +473,7 @@ public sealed class PlaybackSession
 
     public void ToggleVolumePopover()
     {
-        Shell.Volume.PopoverOpen = !Shell.Volume.PopoverOpen;
+        Shell.Volume.PopoverOpen = false;
     }
 
     public void CloseVolumePopover() => Shell.Volume.PopoverOpen = false;

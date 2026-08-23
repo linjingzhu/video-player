@@ -132,6 +132,15 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         IsPaused = true;
     }
 
+    public void Stop()
+    {
+        Pause();
+        if (IsOpen)
+        {
+            Seek(0);
+        }
+    }
+
     public void Seek(double seconds)
     {
         if (!_available)

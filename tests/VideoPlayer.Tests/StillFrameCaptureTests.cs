@@ -52,16 +52,16 @@ public class StillFrameCaptureTests
         Assert.Equal(
             new[]
             {
-                TransportControl.PreviousEpisode,
-                TransportControl.SkipBack,
+                TransportControl.Rewind,
                 TransportControl.PlayPause,
-                TransportControl.SkipForward,
-                TransportControl.NextEpisode,
+                TransportControl.Stop,
+                TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
-                TransportControl.Speed,
+                TransportControl.Time,
                 TransportControl.Captions,
-                TransportControl.Fullscreen
+                TransportControl.Fullscreen,
+                TransportControl.Hamburger
             },
             order);
         Assert.Equal(10, order.Count);

@@ -11,7 +11,7 @@ public class PlaybackSessionTests
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(UiCopy.AppTitle, shell.Title);
-        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
         Assert.False(shell.Sidebar.Open);
         Assert.False(shell.CenterPlayIcon);
         Assert.False(shell.Fullscreen.AlwaysOnTopPin);
@@ -22,9 +22,11 @@ public class PlaybackSessionTests
         Assert.True(shell.Status.DashedSlot);
         Assert.Equal("-10초", shell.Transport.SkipBackLabel);
         Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
+        Assert.False(shell.Transport.SkipLabelsOnBar);
         Assert.True(shell.Transport.NextEpisodeIconOnly);
         Assert.False(shell.Transport.NextEpisodeTextOnBar);
-        Assert.False(shell.Transport.TimeOnBar);
+        Assert.True(shell.Transport.TimeOnBar);
+        Assert.True(shell.HasHeaderUi);
         Assert.Equal("다음 화", shell.Fullscreen.NextEpisodeLabel);
         Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
         Assert.True(shell.Fullscreen.EndCtaIsOverlay);

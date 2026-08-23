@@ -6,12 +6,13 @@ using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.Core.Shell;
 
-/// <summary>Confirmed A v2 P0 shell. Old wireframe A discarded.</summary>
+/// <summary>SeriesOn main shell. Series C page and next-episode end CTA stay.</summary>
 public sealed class PlayerShell
 {
     public string Title { get; init; } = UiCopy.AppTitle;
     public IReadOnlyList<string> Menus { get; init; } = UiCopy.MainMenus;
     public string MenuSeparator { get; } = UiCopy.MenuSeparator;
+    public HeaderChrome Header { get; } = new();
     public ShellScreen Screen { get; set; } = ShellScreen.Main;
     public SidebarState Sidebar { get; } = new();
     public TransportState Transport { get; } = new();
@@ -40,7 +41,7 @@ public sealed class PlayerShell
     public bool HasCookieAuthUi { get; } = false;
     public bool HasDrmUi { get; } = false;
     public bool HasPaidUnlockUi { get; } = false;
-    public bool HasHeaderUi { get; } = false;
+    public bool HasHeaderUi { get; } = true;
     public bool HasSaveAsSheet { get; } = false;
     public bool SaveAsUsesOsDialog { get; } = true;
 
@@ -66,20 +67,22 @@ public static class ShellLayout
 {
     public const int SidebarRailWidthPx = 28;
     public const int SidebarOpenPanelWidthPx = 240;
+    public const int HeaderHeightPx = SeriesOn.HeaderHeightPx;
     public const int TransportHeightPx = 40;
+    public const int TransportSeparatorPx = SeriesOn.TransportSeparatorPx;
 
     public static IReadOnlyList<TransportControl> TransportOrder { get; } =
     [
-        TransportControl.PreviousEpisode,
-        TransportControl.SkipBack,
+        TransportControl.Rewind,
         TransportControl.PlayPause,
-        TransportControl.SkipForward,
-        TransportControl.NextEpisode,
+        TransportControl.Stop,
+        TransportControl.FastForward,
         TransportControl.Seek,
         TransportControl.Volume,
-        TransportControl.Speed,
+        TransportControl.Time,
         TransportControl.Captions,
-        TransportControl.Fullscreen
+        TransportControl.Fullscreen,
+        TransportControl.Hamburger
     ];
 }
 
@@ -87,14 +90,30 @@ public enum TransportControl
 {
     PreviousEpisode,
     SkipBack,
+    Rewind,
     PlayPause,
+    Stop,
+    FastForward,
     SkipForward,
     NextEpisode,
     Seek,
     Volume,
     Speed,
+    Time,
     Captions,
-    Fullscreen
+    Fullscreen,
+    Hamburger
+}
+
+public sealed class HeaderChrome
+{
+    public string Title { get; } = UiCopy.AppTitle;
+    public string QuickMenuLabel { get; } = UiCopy.QuickMenu;
+    public bool QuickMenuIsView { get; } = true;
+    public bool HasWindowControls { get; } = true;
+    public bool HasFileViewMenuBar { get; } = false;
+    public bool FileCommandsInHamburger { get; } = true;
+    public int HeightPx { get; } = ShellLayout.HeaderHeightPx;
 }
 
 public sealed class SidebarState
@@ -122,9 +141,17 @@ public sealed class TransportState
     public string NextIcon { get; } = UiCopy.NextEpisodeIcon;
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool NextEpisodeIconOnly { get; } = true;
-    public bool TimeOnBar { get; } = false;
+    public bool PreviousOnBar { get; } = false;
+    public bool NextOnBar { get; } = false;
+    public bool SkipLabelsOnBar { get; } = false;
+    public bool SpeedOnBar { get; } = false;
+    public bool TimeOnBar { get; } = true;
+    public bool HasStop { get; } = true;
     public bool HasRecordButton { get; } = false;
-    public bool HorizontalVolumeSlider { get; } = false;
+    public bool HasCastIcon { get; } = false;
+    public bool HasHdrIcon { get; } = false;
+    public bool HasEjectIcon { get; } = false;
+    public bool HorizontalVolumeSlider { get; } = true;
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
     public double Position { get; set; }
@@ -151,8 +178,9 @@ public sealed class TransportState
 
 public sealed class OverlayTimeState
 {
-    public bool AboveTransport { get; } = true;
+    public bool AboveTransport { get; } = false;
     public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomLeft;
+    public bool OnTransport { get; } = true;
 }
 
 public enum OverlayAnchor

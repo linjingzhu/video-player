@@ -184,7 +184,8 @@ public class DualSubtitleSheetTests
     public void Transport_cc_control_is_unchanged_and_does_not_open_sheet()
     {
         var order = PlayerShell.Boot().Transport.Order;
-        Assert.Equal(TransportControl.Captions, order[8]);
+        Assert.Equal(TransportControl.Captions, order[7]);
+        Assert.Contains(TransportControl.Captions, order);
         Assert.DoesNotContain("SubtitleSheet", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Delay", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Subtitles.HasDelaySheet);

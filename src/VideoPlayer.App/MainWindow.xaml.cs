@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -26,7 +28,7 @@ public partial class MainWindow : Window
     private bool _fullscreen;
     private bool _syncingVolumeUi;
     private WindowState _windowedState = WindowState.Normal;
-    private WindowStyle _windowedStyle = WindowStyle.SingleBorderWindow;
+    private WindowStyle _windowedStyle = WindowStyle.None;
 
     public MainWindow()
     {
@@ -67,14 +69,13 @@ public partial class MainWindow : Window
         StatusText.Text = shell.Status.Text;
         StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
         OverlayTime.Text = shell.OverlayTime;
-        OverlayTime.Visibility = !_fullscreen || shell.ChromeVisible ? Visibility.Visible : Visibility.Collapsed;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
         OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
-        SpeedButton.Content = shell.Transport.SpeedText;
-        PrevButton.IsEnabled = shell.Transport.HasPrevious;
-        NextButton.IsEnabled = shell.Transport.HasNext;
+        SetMenuHeader(QuickMenuButton.ContextMenu, "speed", shell.Transport.SpeedText);
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "prev", shell.Transport.HasPrevious);
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "next", shell.Transport.HasNext);
         CaptionsButton.Style = shell.Transport.CaptionsOn
             ? (Style)FindResource("CcOnButton")
             : (Style)FindResource("SkinATextButton");
@@ -98,11 +99,13 @@ public partial class MainWindow : Window
 
         BindSidebar();
         SeriesPage.IsEnabled = shell.Series.Enabled;
-        ShowSeriesItem.IsEnabled = shell.Series.Enabled;
-        AutoNextItem.IsEnabled = !_session.IsUrlSource;
-        CaptureMenuItem.IsEnabled = !_session.IsUrlSource;
-        ClipSaveMenuItem.IsEnabled = !_session.IsUrlSource;
-        SaveAsMenuItem.IsEnabled = _session.CanSaveAs;
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "series", shell.Series.Enabled);
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "autoNext", !_session.IsUrlSource);
+        SetMenuChecked(QuickMenuButton.ContextMenu, "autoNext", _session.AutoNext);
+        SetMenuChecked(QuickMenuButton.ContextMenu, "skipAuto", _session.SkipAutoEnabled);
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "capture", !_session.IsUrlSource);
+        SetMenuEnabled(QuickMenuButton.ContextMenu, "clip", !_session.IsUrlSource);
+        SetMenuEnabled(HamburgerButton.ContextMenu, "saveAs", _session.CanSaveAs);
         SeriesPage.Bind(
             _session.Series,
             _session.Resume,
@@ -203,8 +206,61 @@ public partial class MainWindow : Window
     {
         var showTransport = !_fullscreen || _session.Shell.ChromeVisible;
         TransportBar.Visibility = showTransport ? Visibility.Visible : Visibility.Collapsed;
-        MainMenu.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
+        CaptionBar.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
     }
+
+    private static MenuItem? FindMenuByTag(ContextMenu? menu, string tag)
+        => menu?.Items.OfType<MenuItem>().FirstOrDefault(item => tag.Equals(item.Tag as string, StringComparison.Ordinal));
+
+    private static void SetMenuEnabled(ContextMenu? menu, string tag, bool enabled)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.IsEnabled = enabled;
+        }
+    }
+
+    private static void SetMenuChecked(ContextMenu? menu, string tag, bool isChecked)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.IsChecked = isChecked;
+        }
+    }
+
+    private static void SetMenuHeader(ContextMenu? menu, string tag, string header)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.Header = header;
+        }
+    }
+
+    private void OpenContextMenu(Button button)
+    {
+        if (button.ContextMenu is not { } menu)
+        {
+            return;
+        }
+
+        menu.PlacementTarget = button;
+        menu.Placement = PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private void QuickMenuButton_Click(object sender, RoutedEventArgs e) => OpenContextMenu(QuickMenuButton);
+
+    private void Hamburger_Click(object sender, RoutedEventArgs e) => OpenContextMenu(HamburgerButton);
+
+    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void Maximize_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseWindow_Click(object sender, RoutedEventArgs e) => Close();
 
     private void OpenUrl_Click(object sender, RoutedEventArgs e)
     {
@@ -267,6 +323,8 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
     private void PlayPause_Click(object sender, RoutedEventArgs e) => _session.PlayPause();
+
+    private void Stop_Click(object sender, RoutedEventArgs e) => _session.Stop();
 
     private void Prev_Click(object sender, RoutedEventArgs e) => _session.PlayPreviousEpisode();
 
@@ -580,7 +638,6 @@ public partial class MainWindow : Window
             var volume = _session.Shell.Volume;
             VolumeSlider.Value = volume.Level;
             VolumePercent.Text = volume.PercentText;
-            VolumePopover.IsOpen = volume.PopoverOpen;
         }
         finally
         {
@@ -601,39 +658,8 @@ public partial class MainWindow : Window
 
     private void VolumeButton_Click(object sender, RoutedEventArgs e)
     {
-        _session.ToggleVolumePopover();
-        VolumePopover.IsOpen = _session.Shell.Volume.PopoverOpen;
-    }
-
-    private void VolumePopover_Closed(object? sender, EventArgs e)
-        => _session.CloseVolumePopover();
-
-    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (!VolumePopover.IsOpen || IsVolumeUiSource(e.OriginalSource as DependencyObject))
-        {
-            return;
-        }
-
-        _session.CloseVolumePopover();
-        VolumePopover.IsOpen = false;
-    }
-
-    private static bool IsVolumeUiSource(DependencyObject? source)
-    {
-        while (source is not null)
-        {
-            if (source is FrameworkElement element
-                && element.Name is "VolumeHost" or "VolumeButton" or "VolumePopoverPanel"
-                    or "VolumeSlider" or "VolumePercent")
-            {
-                return true;
-            }
-
-            source = VisualTreeHelper.GetParent(source);
-        }
-
-        return false;
+        _session.ToggleMute();
+        SyncVolumeUi();
     }
 
     private void Volume_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -921,7 +947,7 @@ public partial class MainWindow : Window
         PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
     }
 
-    private void PlaceTick(System.Windows.Shapes.Rectangle tick, bool show, double ratio)
+    private void PlaceTick(System.Windows.Shapes.Ellipse tick, bool show, double ratio)
     {
         tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         if (!show || SeekHost.ActualWidth <= 0)

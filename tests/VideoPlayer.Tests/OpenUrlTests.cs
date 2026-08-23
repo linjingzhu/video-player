@@ -309,7 +309,7 @@ public class OpenUrlTests
         Assert.False(session.Shell.HasCookieAuthUi);
         Assert.False(session.Shell.HasDrmUi);
         Assert.False(session.Shell.HasPaidUnlockUi);
-        Assert.False(session.Shell.HasHeaderUi);
+        Assert.True(session.Shell.HasHeaderUi);
         Assert.Empty(session.Recent.Items);
     }
 
