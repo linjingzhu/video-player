@@ -362,6 +362,46 @@ public sealed class PlaybackSession
         UpdateChromeVisibility(DateTimeOffset.UtcNow);
     }
 
+    public void Clear()
+    {
+        if (_capturing)
+        {
+            return;
+        }
+
+        if (Engine.IsOpen)
+        {
+            Checkpoint("clear");
+        }
+
+        Engine.Close();
+        Current = null;
+        Chapters = [];
+        EmbeddedSubtitleTracks = [];
+        UserSubtitlePath = null;
+        Cues = [];
+        SecondaryCues = [];
+        Shell.OverlaySubtitle = "";
+        Shell.OverlaySecondarySubtitle = "";
+        Shell.Clip.ClearMarks();
+        Shell.Clip.Open = false;
+        Shell.Subtitles.Close();
+        Shell.Capture.Open = false;
+        AutoNextOffer.ResetForNewTitle();
+        ResetSkipForNewTitle();
+        _endedHandled = false;
+        Shell.IsPaused = true;
+        Shell.StageEmpty = true;
+        Shell.NextEpisode.ShowCta = false;
+        Shell.NextEpisode.AutoNextPending = false;
+        SyncFileOnlyFeatures();
+        SyncTransport();
+        SyncClipSheet();
+        RefreshSidebar();
+        RefreshSeriesPanel();
+        UpdateChromeVisibility(DateTimeOffset.UtcNow);
+    }
+
     public void SeekRelative(double seconds)
     {
         if (_capturing || !Engine.IsOpen)
@@ -1210,6 +1250,21 @@ public sealed class PlaybackSession
 
     private void SyncTransport()
     {
+        if (!Engine.IsOpen)
+        {
+            Shell.Transport.Position = 0;
+            Shell.Transport.Duration = 0;
+            Shell.Transport.HasPrevious = false;
+            Shell.Transport.HasNext = false;
+            Shell.OverlayTime = "00:00:00 / 00:00:00";
+            Shell.IsPaused = true;
+            Shell.StageEmpty = true;
+            SyncVolumeChrome();
+            Shell.Transport.Speed = Speed;
+            return;
+        }
+
+        Shell.StageEmpty = false;
         Shell.Transport.Position = Engine.Position;
         Shell.Transport.Duration = Engine.Duration;
         Shell.Transport.Volume = Engine.Volume;

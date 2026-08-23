@@ -71,6 +71,7 @@ public partial class MainWindow : Window
         OverlayTime.Text = shell.OverlayTime;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
         OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
+        EmptyStageCover.Visibility = shell.StageEmpty ? Visibility.Visible : Visibility.Collapsed;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
         ApplyChromeMenus(shell);
@@ -86,7 +87,12 @@ public partial class MainWindow : Window
         NextCtaButton.Content = shell.NextEpisode.Label;
         NextCtaPanel.Visibility = shell.NextEpisode.ShowCta ? Visibility.Visible : Visibility.Collapsed;
         CancelAutoNextButton.Visibility = shell.NextEpisode.AutoNextPending ? Visibility.Visible : Visibility.Collapsed;
-        if (shell.Transport.Duration > 0)
+        if (shell.StageEmpty || shell.Transport.Duration <= 0)
+        {
+            SeekSlider.Maximum = 1;
+            SeekSlider.Value = 0;
+        }
+        else
         {
             SeekSlider.Maximum = shell.Transport.Duration;
             SeekSlider.Value = shell.Transport.Position;
@@ -330,6 +336,8 @@ public partial class MainWindow : Window
     private void PlayPause_Click(object sender, RoutedEventArgs e) => _session.PlayPause();
 
     private void Stop_Click(object sender, RoutedEventArgs e) => _session.Stop();
+
+    private void Clear_Click(object sender, RoutedEventArgs e) => _session.Clear();
 
     private void Prev_Click(object sender, RoutedEventArgs e) => _session.PlayPreviousEpisode();
 

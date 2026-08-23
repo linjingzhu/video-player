@@ -54,6 +54,9 @@ public static class SeriesOn
     public const bool VolumeThumbIsRound = true;
     public const bool PlayTriangleIsWhite = true;
     public const bool StopButtonExists = true;
+    public const bool HasClear = true;
+    public const bool ClearIsTextLabel = true;
+    public const bool ClearUsesEjectIcon = false;
     public const bool SkipPlusMinusOnTransport = false;
     public const bool HorizontalVolumeSlider = true;
     public const bool VerticalVolumePopover = false;

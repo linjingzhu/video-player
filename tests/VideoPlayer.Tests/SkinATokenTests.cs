@@ -204,6 +204,7 @@ public class SkinATokenTests
                 TransportControl.Rewind,
                 TransportControl.PlayPause,
                 TransportControl.Stop,
+                TransportControl.Clear,
                 TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,

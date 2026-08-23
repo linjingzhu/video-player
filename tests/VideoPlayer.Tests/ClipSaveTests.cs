@@ -69,7 +69,7 @@ public class ClipSaveTests
         Assert.False(shell.Transport.HasRecordButton);
         Assert.False(shell.Clip.HasRecordButton);
         Assert.False(ClipSave.HasRecordButton);
-        Assert.Equal(8, shell.Transport.Order.Count);
+        Assert.Equal(9, shell.Transport.Order.Count);
         Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());

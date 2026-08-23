@@ -42,7 +42,7 @@ public class PlayerShellLayoutTests
     }
 
     [Fact]
-    public void Transport_is_rewind_play_stop_ff_seek_volume_time_hamburger()
+    public void Transport_is_rewind_play_stop_clear_ff_seek_volume_time_hamburger()
     {
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(
@@ -51,6 +51,7 @@ public class PlayerShellLayoutTests
                 TransportControl.Rewind,
                 TransportControl.PlayPause,
                 TransportControl.Stop,
+                TransportControl.Clear,
                 TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
@@ -60,6 +61,9 @@ public class PlayerShellLayoutTests
             order);
         Assert.Equal("1.0x", UiCopy.SpeedDefault);
         Assert.Equal("CC", UiCopy.Captions);
+        Assert.Equal("지우기", UiCopy.Clear);
+        Assert.True(PlayerShell.Boot().Transport.HasClear);
+        Assert.False(PlayerShell.Boot().Transport.HasEjectIcon);
         Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
         Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
         Assert.Contains("CC", UiCopy.ViewMenuItems);

@@ -150,5 +150,6 @@ public sealed class FakeMediaEngine : IMediaEngine
     {
         IsOpen = false;
         IsPaused = true;
+        Position = 0;
     }
 }

@@ -123,6 +123,8 @@
           <Button Click="Stop_Click" ToolTip="정지" Style="{StaticResource SeriesOnIconButton}">
             <Path Fill="#FFFFFFFF" Data="M 6,6 H 18 V 18 H 6 Z"/>
           </Button>
+          <Button x:Name="ClearButton" Click="Clear_Click" Content="지우기" ToolTip="지우기"
+                  Style="{StaticResource SeriesOnClearButton}"/>
           <Button Click="SkipForward_Click" ToolTip="빨리감기" Style="{StaticResource SeriesOnIconButton}">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                   StrokeLineJoin="Round" Data="M 5,6 L 12,12 L 5,18 M 13,6 L 20,12 L 13,18"/>
@@ -248,6 +250,7 @@
                   MouseLeftButtonDown="Video_Click">
             <Grid>
               <WindowsFormsHost x:Name="PlayerHost"/>
+              <Border x:Name="EmptyStageCover" Background="#FF000000" IsHitTestVisible="False"/>
               <TextBlock x:Name="OverlaySecondarySubtitle" Text="" HorizontalAlignment="Center" VerticalAlignment="Top"
                          Margin="16,28,16,0" FontSize="18" TextAlignment="Center"
                          Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>

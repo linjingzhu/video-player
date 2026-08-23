@@ -9,6 +9,7 @@ public static class UiCopy
     public const string QuickMenu = "퀵메뉴";
     public const string MenuSeparator = "|";
     public const string Stop = "정지";
+    public const string Clear = "지우기";
     public const string Rewind = "되감기";
     public const string FastForward = "빨리감기";
     public const string Minimize = "최소화";

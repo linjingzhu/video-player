@@ -55,6 +55,7 @@ public class StillFrameCaptureTests
                 TransportControl.Rewind,
                 TransportControl.PlayPause,
                 TransportControl.Stop,
+                TransportControl.Clear,
                 TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
@@ -62,7 +63,7 @@ public class StillFrameCaptureTests
                 TransportControl.Hamburger
             },
             order);
-        Assert.Equal(8, order.Count);
+        Assert.Equal(9, order.Count);
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Capture.HasCameraOnTransport);

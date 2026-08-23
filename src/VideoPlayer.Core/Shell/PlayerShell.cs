@@ -35,6 +35,7 @@ public sealed class PlayerShell
     public bool IsPaused { get; set; } = true;
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
+    public bool StageEmpty { get; set; } = true;
     public bool VideoFullWidth { get; } = true;
     public bool VideoFullBleed { get; } = true;
     public bool NoLetterboxChrome { get; } = true;
@@ -76,6 +77,7 @@ public static class ShellLayout
         TransportControl.Rewind,
         TransportControl.PlayPause,
         TransportControl.Stop,
+        TransportControl.Clear,
         TransportControl.FastForward,
         TransportControl.Seek,
         TransportControl.Volume,
@@ -91,6 +93,7 @@ public enum TransportControl
     Rewind,
     PlayPause,
     Stop,
+    Clear,
     FastForward,
     SkipForward,
     NextEpisode,
@@ -151,6 +154,9 @@ public sealed class TransportState
     public bool CaptionsOnBar { get; } = false;
     public bool FullscreenOnBar { get; } = false;
     public bool HasStop { get; } = true;
+    public bool HasClear { get; } = true;
+    public string ClearLabel { get; } = UiCopy.Clear;
+    public bool ClearIsTextLabel { get; } = true;
     public bool HasRecordButton { get; } = false;
     public bool HasCastIcon { get; } = false;
     public bool HasHdrIcon { get; } = false;

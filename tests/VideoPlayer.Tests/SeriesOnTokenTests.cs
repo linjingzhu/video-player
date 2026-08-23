@@ -19,6 +19,10 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.VolumeThumbIsRound);
         Assert.True(SeriesOn.PlayTriangleIsWhite);
         Assert.True(SeriesOn.StopButtonExists);
+        Assert.True(SeriesOn.HasClear);
+        Assert.True(SeriesOn.ClearIsTextLabel);
+        Assert.False(SeriesOn.ClearUsesEjectIcon);
+        Assert.Equal("지우기", UiCopy.Clear);
         Assert.False(SeriesOn.SkipPlusMinusOnTransport);
         Assert.True(SeriesOn.HorizontalVolumeSlider);
         Assert.False(SeriesOn.VerticalVolumePopover);
@@ -98,7 +102,7 @@ public class SeriesOnTokenTests
     }
 
     [Fact]
-    public void Transport_is_rewind_play_stop_ff_seek_volume_time_hamburger()
+    public void Transport_is_rewind_play_stop_clear_ff_seek_volume_time_hamburger()
     {
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(
@@ -107,6 +111,7 @@ public class SeriesOnTokenTests
                 TransportControl.Rewind,
                 TransportControl.PlayPause,
                 TransportControl.Stop,
+                TransportControl.Clear,
                 TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
@@ -115,8 +120,14 @@ public class SeriesOnTokenTests
             },
             order);
         Assert.Contains("Stop", Enum.GetNames<TransportControl>());
+        Assert.Contains("Clear", Enum.GetNames<TransportControl>());
         Assert.Contains("Hamburger", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Eject", Enum.GetNames<TransportControl>());
         Assert.True(PlayerShell.Boot().Transport.HasStop);
+        Assert.True(PlayerShell.Boot().Transport.HasClear);
+        Assert.True(PlayerShell.Boot().Transport.ClearIsTextLabel);
+        Assert.Equal("지우기", PlayerShell.Boot().Transport.ClearLabel);
+        Assert.True(PlayerShell.Boot().StageEmpty);
         Assert.True(PlayerShell.Boot().Transport.TimeOnBar);
         Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
         Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
@@ -148,6 +159,10 @@ public class SeriesOnTokenTests
         Assert.Contains("SeriesOnAccentBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Stop_Click", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Clear_Click", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"지우기\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("EmptyStageCover", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnClearButton", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnVolumeSlider", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnIconButton", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnSeekSlider", mainXaml, StringComparison.Ordinal);
@@ -204,6 +219,41 @@ public class SeriesOnTokenTests
         Assert.True(engine.IsPaused);
         Assert.Equal(0, engine.Position);
         Assert.True(session.Shell.IsPaused);
+    }
+
+    [Fact]
+    public void Clear_unloads_persists_resume_and_empties_the_stage()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("ep.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 80 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(40);
+        Assert.False(session.Shell.StageEmpty);
+        Assert.NotNull(session.Current);
+
+        session.Clear();
+        Assert.False(engine.IsOpen);
+        Assert.True(engine.IsPaused);
+        Assert.Equal(0, engine.Position);
+        Assert.Null(session.Current);
+        Assert.True(session.Shell.StageEmpty);
+        Assert.Equal("00:00:00 / 00:00:00", session.Shell.OverlayTime);
+        Assert.Equal("", session.Shell.OverlaySubtitle);
+        Assert.False(session.Shell.NextEpisode.ShowCta);
+        Assert.False(session.Shell.Skip.Visible);
+        var saved = session.Resume.Find(video, new FileInfo(video).Length);
+        Assert.NotNull(saved);
+        Assert.Equal(40, saved!.PositionSeconds);
+        Assert.False(saved.Completed);
+        Assert.NotNull(session.Resume.Continue);
+        Assert.Equal(video, session.Resume.Continue!.Path);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine { Duration = 80 }, workspace.Data);
+        reopened.Open(video);
+        Assert.Equal(40, reopened.Engine.Position);
+        Assert.False(reopened.Shell.StageEmpty);
     }
 
     [Fact]
