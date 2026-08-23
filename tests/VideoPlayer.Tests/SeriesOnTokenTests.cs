@@ -45,6 +45,9 @@ public class SeriesOnTokenTests
         Assert.Equal(16, SeriesOn.FullscreenTransportInsetPx);
         Assert.Equal(4, SeriesOn.FullscreenTransportRadiusPx);
         Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
+        Assert.True(SeriesOn.StageDoubleClickTogglesFullscreen);
+        Assert.False(SeriesOn.TransportDoubleClickTogglesFullscreen);
+        Assert.False(SeriesOn.MenuDoubleClickTogglesFullscreen);
         Assert.True(SeriesOn.IoMarksAreSquares);
         Assert.Equal(4, SeriesOn.ButtonPadding);
         Assert.Equal(2, SeriesOn.IoMarkSizePx);
@@ -202,6 +205,9 @@ public class SeriesOnTokenTests
         Assert.Contains("FullscreenTransportRadiusPx", codeBehind, StringComparison.Ordinal);
         Assert.Contains("case Key.Enter", codeBehind, StringComparison.Ordinal);
         Assert.Contains("case Key.F11", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("IgnoreChromeDoubleClick", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Host.MouseDoubleClick", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ShouldToggleFromDoubleClick", codeBehind, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"InTick\" Width=\"6\"", mainXaml, StringComparison.Ordinal);

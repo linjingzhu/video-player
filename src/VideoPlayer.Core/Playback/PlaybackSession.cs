@@ -1410,4 +1410,11 @@ public static class FullscreenChromeController
 
         return now - lastActivity < IdleHide;
     }
+
+    public static bool ShouldToggleFromDoubleClick(bool onVideoStage, bool onTransportOrMenu)
+        => SeriesOn.StageDoubleClickTogglesFullscreen
+           && onVideoStage
+           && !onTransportOrMenu
+           && !SeriesOn.TransportDoubleClickTogglesFullscreen
+           && !SeriesOn.MenuDoubleClickTogglesFullscreen;
 }

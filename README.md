@@ -26,7 +26,7 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 - **다음 화** is an end-region video overlay, not a transport label
 - Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only and share the next-episode corner — one capsule when ranges do not overlap. Sources: locked chapter aliases and **퀵메뉴 > 여기까지 스킵** (season-folder key, shared). No marker hides the button. Default On is button only; **건너뛰기 자동** is a 3s cancel. Recap wins overlap. Credits CTA while in credits; next-episode CTA after credits end in the last 10s. No IntroDB
 - Status bar is a dashed slot and **hidden when idle**. Failure line only: **미지원** / **SW 폴백**
-- **Enter** and **F11** toggle fullscreen vs windowed. Fullscreen transport is a floating overlay at `#050505` / 80% opacity, **16px** inset from left/right/bottom, corner radius **4**. Windowed transport stays docked full-width at the bottom. Existing 3s idle hide still applies in fullscreen while playing (chrome stays when paused).
+- **Enter** and **F11** toggle fullscreen vs windowed. Double-click on the video stage does the same; double-clicks on the transport bar or menus are ignored. Fullscreen transport is a floating overlay at `#050505` / 80% opacity, **16px** inset from left/right/bottom, corner radius **4**. Windowed transport stays docked full-width at the bottom. Existing 3s idle hide still applies in fullscreen while playing (chrome stays when paused).
 - No always-on-top pin
 
 ## P1 series

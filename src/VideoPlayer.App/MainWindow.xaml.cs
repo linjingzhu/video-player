@@ -40,6 +40,7 @@ public partial class MainWindow : Window
         _session = new PlaybackSession(_engine, data);
         ApplyWindowMemory(_session.Window.Bounds);
         PlayerHost.Child = _engine.Host;
+        _engine.Host.MouseDoubleClick += (_, _) => Dispatcher.BeginInvoke(new Action(ToggleFullscreen));
         ApplySidebar();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => OnTick();
@@ -436,6 +437,33 @@ public partial class MainWindow : Window
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
         => e.Handled = true;
 
+    private void IgnoreChromeDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount >= 2)
+        {
+            e.Handled = true;
+        }
+    }
+
+    private bool OriginatesOnTransportOrMenu(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (ReferenceEquals(source, TransportBar)
+                || ReferenceEquals(source, QuickMenuButton)
+                || source is ContextMenu or MenuItem or System.Windows.Controls.Menu)
+            {
+                return true;
+            }
+
+            source = source is Visual visual
+                ? VisualTreeHelper.GetParent(visual)
+                : LogicalTreeHelper.GetParent(source);
+        }
+
+        return false;
+    }
+
     private void ClipSaveMenu_Click(object sender, RoutedEventArgs e)
     {
         if (_session.IsUrlSource)
@@ -651,11 +679,21 @@ public partial class MainWindow : Window
 
     private void Video_Click(object sender, MouseButtonEventArgs e)
     {
+        var onTransportOrMenu = OriginatesOnTransportOrMenu(e.OriginalSource as DependencyObject);
         if (e.ClickCount >= 2)
         {
-            ToggleFullscreen();
+            if (FullscreenChromeController.ShouldToggleFromDoubleClick(
+                    onVideoStage: !onTransportOrMenu,
+                    onTransportOrMenu: onTransportOrMenu))
+            {
+                ToggleFullscreen();
+            }
+
+            e.Handled = true;
+            return;
         }
-        else
+
+        if (!onTransportOrMenu)
         {
             _session.PlayPause();
         }

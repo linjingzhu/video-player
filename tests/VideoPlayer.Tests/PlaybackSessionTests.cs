@@ -151,6 +151,13 @@ public class PlaybackSessionTests
         Assert.True(FullscreenChromeController.ShouldShow(false, paused: false, start.AddSeconds(30), start));
         Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
         Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
+        Assert.True(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: true, onTransportOrMenu: false));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: true, onTransportOrMenu: true));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: false, onTransportOrMenu: false));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: false, onTransportOrMenu: true));
+        Assert.True(PlayerShell.Boot().Fullscreen.StageDoubleClickToggles);
+        Assert.False(PlayerShell.Boot().Fullscreen.TransportDoubleClickToggles);
+        Assert.False(PlayerShell.Boot().Fullscreen.MenuDoubleClickToggles);
     }
 
     [Fact]

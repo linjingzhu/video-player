@@ -34,10 +34,12 @@
                    IsHitTestVisible="False"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
           <Button x:Name="QuickMenuButton" Click="QuickMenuButton_Click"
+                  PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick"
                   Style="{StaticResource QuickMenuButton}" ToolTip="퀵메뉴"
                   shell:WindowChrome.IsHitTestVisibleInChrome="True">
             <Button.ContextMenu>
-              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF"
+                           PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick">
                 <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -435,7 +437,8 @@
   </DockPanel>
     <Border x:Name="TransportBar" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Background="{StaticResource SeriesOnChromeBrush}"
             BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,1,0,0" Height="40" Padding="0"
-            ClipToBounds="True">
+            ClipToBounds="True"
+            PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick">
       <Grid>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,4,4,0">
           <Button Click="SkipBack_Click" ToolTip="되감기" Style="{StaticResource SeriesOnIconButton}">
@@ -496,7 +499,8 @@
           <Rectangle Style="{StaticResource SeriesOnDivider}"/>
           <Button x:Name="HamburgerButton" Click="Hamburger_Click" ToolTip="보기" Style="{StaticResource SeriesOnIconButton}">
             <Button.ContextMenu>
-              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF"
+                           PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick">
                 <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>

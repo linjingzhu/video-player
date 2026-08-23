@@ -79,6 +79,9 @@ public static class SeriesOn
     public const int FullscreenTransportInsetPx = 16;
     public const int FullscreenTransportRadiusPx = 4;
     public const int FullscreenIdleHideSeconds = 3;
+    public const bool StageDoubleClickTogglesFullscreen = true;
+    public const bool TransportDoubleClickTogglesFullscreen = false;
+    public const bool MenuDoubleClickTogglesFullscreen = false;
     public const bool IoMarksAreSquares = true;
     public const bool HasWindowControls = true;
     public const bool HasCastIcon = false;

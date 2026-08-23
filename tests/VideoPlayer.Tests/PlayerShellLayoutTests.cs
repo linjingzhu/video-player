@@ -163,6 +163,9 @@ public class PlayerShellLayoutTests
         Assert.Equal(4, shell.Fullscreen.TransportRadiusPx);
         Assert.Equal(new[] { "Enter", "F11" }, shell.Fullscreen.ToggleKeys);
         Assert.Equal(3, shell.Fullscreen.IdleHideSeconds);
+        Assert.True(shell.Fullscreen.StageDoubleClickToggles);
+        Assert.False(shell.Fullscreen.TransportDoubleClickToggles);
+        Assert.False(shell.Fullscreen.MenuDoubleClickToggles);
         Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
         Assert.True(shell.NextEpisode.OverlayOnly);
         Assert.False(shell.NextEpisode.OnTransport);

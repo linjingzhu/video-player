@@ -233,6 +233,9 @@ public sealed class FullscreenChrome
     public int TransportRadiusPx { get; } = SeriesOn.FullscreenTransportRadiusPx;
     public IReadOnlyList<string> ToggleKeys { get; } = ["Enter", "F11"];
     public int IdleHideSeconds { get; } = SeriesOn.FullscreenIdleHideSeconds;
+    public bool StageDoubleClickToggles { get; } = SeriesOn.StageDoubleClickTogglesFullscreen;
+    public bool TransportDoubleClickToggles { get; } = SeriesOn.TransportDoubleClickTogglesFullscreen;
+    public bool MenuDoubleClickToggles { get; } = SeriesOn.MenuDoubleClickTogglesFullscreen;
 }
 
 public sealed class NextEpisodeChrome
