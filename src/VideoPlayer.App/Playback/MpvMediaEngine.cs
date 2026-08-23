@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows.Forms;
 using VideoPlayer.Core.Playback;
+using Panel = System.Windows.Forms.Panel;
 
 namespace VideoPlayer.App.Playback;
 
