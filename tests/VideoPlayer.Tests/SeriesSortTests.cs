@@ -179,6 +179,39 @@ public class SeriesSortTests
             Assert.All(items, i => Assert.False(i.Title.Contains(".mkv", StringComparison.OrdinalIgnoreCase)));
             Assert.Equal("S02E01", SeriesScanner.EpisodeTitle("S02E01.mkv"));
             Assert.NotEqual("S02E01.mkv", SeriesScanner.EpisodeTitle("S02E01.mkv"));
+            Assert.Equal(
+                Path.GetFileNameWithoutExtension("Show.S02E01.Better.Name.mkv"),
+                SeriesScanner.EpisodeTitle("Show.S02E01.Better.Name.mkv"));
+            Assert.NotEqual(
+                EpisodeParser.TitleFromFileName("Show.S02E01.Better.Name.mkv"),
+                SeriesScanner.EpisodeTitle("Show.S02E01.Better.Name.mkv"));
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
+
+    [Fact]
+    public void Table_title_is_stem_only_and_keeps_sxxexx()
+    {
+        var root = Directory.CreateTempSubdirectory("series-title-");
+        try
+        {
+            var s02 = Path.Combine(root.FullName, "S02");
+            Directory.CreateDirectory(s02);
+            File.WriteAllBytes(Path.Combine(s02, "Show.S02E01.Better.Name.mkv"), [1]);
+            var show = SeriesScanner.Scan(root.FullName);
+            var drill = new SeriesDrillDown();
+            drill.ReplaceShows([show]);
+            var items = drill.ListItems(new ResumeStore(), null);
+            Assert.Equal("Show.S02E01.Better.Name", items[0].Title);
+            Assert.Equal(
+                Path.GetFileNameWithoutExtension("Show.S02E01.Better.Name.mkv"),
+                items[0].Title);
+            Assert.NotEqual(
+                EpisodeParser.TitleFromFileName("Show.S02E01.Better.Name.mkv"),
+                items[0].Title);
         }
         finally
         {

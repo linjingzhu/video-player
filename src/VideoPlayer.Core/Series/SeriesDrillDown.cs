@@ -129,7 +129,7 @@ public sealed class SeriesDrillDown
                               && string.Equals(currentPath, e.Path, PathValidator.PathComparison);
                 return new SeriesListItem(
                     EpisodeParser.EpisodeLabel(e.SortKey),
-                    SeriesScanner.EpisodeTitle(e.FileName),
+                    SeriesScanner.EpisodeTitle(e.Path),
                     SeriesScanner.ProgressMark(saved),
                     e.Path,
                     e.Size,

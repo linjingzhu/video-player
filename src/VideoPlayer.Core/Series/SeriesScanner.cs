@@ -26,8 +26,12 @@ public static class SeriesScanner
     public static string SeasonLabel(int seasonNumber)
         => $"S{Math.Max(0, seasonNumber):00}";
 
+    /// <summary>
+    /// C v2 제목 is the filename stem only. Do not call
+    /// <see cref="EpisodeParser.TitleFromFileName"/> — that strips SxxExx.
+    /// </summary>
     public static string EpisodeTitle(string fileName)
-        => FileNameSanitizer.ForDisplay(Path.GetFileNameWithoutExtension(fileName));
+        => Path.GetFileNameWithoutExtension(fileName);
 
     public static string ProgressMark(ResumeEntry? saved)
         => saved switch
