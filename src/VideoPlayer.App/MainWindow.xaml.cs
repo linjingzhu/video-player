@@ -3,10 +3,13 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using VideoPlayer.App.Clip;
 using VideoPlayer.App.Playback;
 using VideoPlayer.Core.Capture;
+using VideoPlayer.Core.Clip;
 using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
@@ -19,6 +22,7 @@ public partial class MainWindow : Window
     private readonly PlaybackSession _session;
     private readonly DispatcherTimer _timer;
     private readonly MpvMediaEngine _engine;
+    private readonly FfmpegClipRunner _clipRunner = new();
     private bool _fullscreen;
     private WindowState _windowedState = WindowState.Normal;
     private WindowStyle _windowedStyle = WindowStyle.SingleBorderWindow;
@@ -96,6 +100,7 @@ public partial class MainWindow : Window
         ApplySidebar();
         ApplyChromeVisibility();
         ApplyCaptureChrome();
+        RefreshClipChrome();
     }
 
     private void ApplyCaptureChrome()
@@ -289,6 +294,80 @@ public partial class MainWindow : Window
 
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
         => e.Handled = true;
+
+    private void ClipSaveMenu_Click(object sender, RoutedEventArgs e)
+    {
+        ShowMainPage();
+        _session.OpenClipSheet();
+        RefreshShell();
+    }
+
+    private void ClipCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _session.CloseClipSheet();
+        RefreshShell();
+    }
+
+    private void ClipSave_Click(object sender, RoutedEventArgs e)
+    {
+        _session.RunClipSave(_clipRunner);
+        RefreshShell();
+    }
+
+    private void ClipFormat_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag })
+        {
+            return;
+        }
+
+        _session.SetClipFormat(ClipFormats.Parse(tag == "copy" ? "copy" : tag));
+        RefreshShell();
+    }
+
+    private void ClipFpsMinus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeClipFps(-1);
+        RefreshShell();
+    }
+
+    private void ClipFpsPlus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeClipFps(+1);
+        RefreshShell();
+    }
+
+    private void ClipPingPong_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetClipPingPong(!_session.Shell.Clip.PingPong);
+        RefreshShell();
+    }
+
+    private void ClipChangeFolder_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            SelectedPath = _session.Shell.Clip.FolderPath
+        };
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            _session.SetClipFolder(dialog.SelectedPath);
+            RefreshShell();
+        }
+    }
+
+    private void ClipOverlay_Click(object sender, MouseButtonEventArgs e)
+    {
+        _session.CloseClipSheet();
+        RefreshShell();
+        e.Handled = true;
+    }
+
+    private void ClipSheet_EatClick(object sender, MouseButtonEventArgs e)
+        => e.Handled = true;
+
+    private void SeekHost_SizeChanged(object sender, SizeChangedEventArgs e)
+        => PlaceClipTicks();
 
     private void ShowSeries_Click(object sender, RoutedEventArgs e) => ShowSeriesPage();
 
@@ -594,6 +673,21 @@ public partial class MainWindow : Window
                 _session.SkipForward();
                 e.Handled = true;
                 break;
+            case Key.I:
+                _session.SetInMark();
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.O:
+                _session.SetOutMark();
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.Escape when _session.Shell.Clip.Open:
+                _session.CloseClipSheet();
+                RefreshShell();
+                e.Handled = true;
+                break;
             case Key.Escape when _session.Shell.Subtitles.Open:
                 _session.CloseSubtitleSheet();
                 RefreshShell();
@@ -644,5 +738,67 @@ public partial class MainWindow : Window
         _session.Checkpoint("exit");
         _session.RememberWindow(new WindowBounds(Left, Top, Width, Height));
         _engine.Dispose();
+    }
+
+    private void RefreshClipChrome()
+    {
+        var clip = _session.Shell.Clip;
+        ClipOverlay.Visibility = clip.Open ? Visibility.Visible : Visibility.Collapsed;
+        ClipStartText.Text = clip.StartText;
+        ClipEndText.Text = clip.EndText;
+        ClipDurationText.Text = clip.DurationText;
+        ClipFpsText.Text = clip.FpsText;
+        ClipFolderText.Text = clip.FolderLabel;
+        ClipPreviewName.Text = clip.PreviewFileName;
+        ClipSaveButton.IsEnabled = clip.CanSave;
+        ClipFpsMinus.IsEnabled = clip.FpsEnabled;
+        ClipFpsPlus.IsEnabled = clip.FpsEnabled;
+        ClipFpsRow.Opacity = clip.FpsEnabled ? 1 : 0.45;
+        ClipPingPongToggle.IsEnabled = clip.PingPongEnabled;
+        ClipPingPongRow.Opacity = clip.PingPongEnabled ? 1 : 0.45;
+        ClipPingPongToggle.Background = clip.PingPong && clip.PingPongEnabled
+            ? (Brush)FindResource("ClipAccentBrush")
+            : new SolidColorBrush(Color.FromRgb(0x2C, 0x2C, 0x2E));
+        ClipPingPongToggle.Content = "";
+        ClipPaletteRow.Visibility = clip.PaletteNoticeVisible ? Visibility.Visible : Visibility.Collapsed;
+        ClipEncodingHint.Visibility = clip.EncodingLockHintVisible ? Visibility.Visible : Visibility.Collapsed;
+        ClipKeyframeNotice.Visibility = clip.KeyframeNoticeVisible ? Visibility.Visible : Visibility.Collapsed;
+        ApplyFormatButton(ClipFormatCopy, clip.Format == ClipFormat.StreamCopy);
+        ApplyFormatButton(ClipFormatWebp, clip.Format == ClipFormat.Webp);
+        ApplyFormatButton(ClipFormatGif, clip.Format == ClipFormat.Gif);
+        var banner = _session.Shell.ClipBanner;
+        ClipBanner.Visibility = banner.Visible ? Visibility.Visible : Visibility.Collapsed;
+        ClipBannerText.Text = banner.Text;
+        PlaceClipTicks();
+    }
+
+    private static void ApplyFormatButton(Button button, bool selected)
+    {
+        button.BorderBrush = selected
+            ? new SolidColorBrush(Color.FromRgb(0x0A, 0x84, 0xFF))
+            : new SolidColorBrush(Color.FromArgb(0x33, 0x2C, 0x2C, 0x2E));
+        button.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7));
+    }
+
+    private void PlaceClipTicks()
+    {
+        var clip = _session.Shell.Clip;
+        var duration = _session.Shell.Transport.Duration;
+        PlaceTick(InTick, clip.ShowInTick, ClipSave.TickRatio(clip.InMark, duration));
+        PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
+    }
+
+    private void PlaceTick(System.Windows.Shapes.Ellipse tick, bool show, double ratio)
+    {
+        tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show || SeekHost.ActualWidth <= 0)
+        {
+            return;
+        }
+
+        const double pad = 7;
+        var span = Math.Max(0, SeekHost.ActualWidth - (pad * 2) - tick.Width);
+        System.Windows.Controls.Canvas.SetLeft(tick, pad + (span * ratio));
+        System.Windows.Controls.Canvas.SetTop(tick, Math.Max(0, (MarkCanvas.ActualHeight - tick.Height) / 2));
     }
 }

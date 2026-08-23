@@ -280,6 +280,57 @@
       <Setter Property="Padding" Value="12,6"/>
       <Setter Property="Margin" Value="0,0,6,0"/>
     </Style>
+    <FontFamily x:Key="ClipFont">Segoe UI Variable, Segoe UI</FontFamily>
+    <SolidColorBrush x:Key="ClipSheetBrush" Color="#FF141418"/>
+    <SolidColorBrush x:Key="ClipTextBrush" Color="#FFF5F5F7"/>
+    <SolidColorBrush x:Key="ClipMutedBrush" Color="#FF8E8E93"/>
+    <SolidColorBrush x:Key="ClipAccentBrush" Color="#FF0A84FF"/>
+    <SolidColorBrush x:Key="ClipBorderBrush" Color="#332C2C2E"/>
+    <DropShadowEffect x:Key="ClipSheetShadow" Color="#FF000000" BlurRadius="24" ShadowDepth="0" Opacity="0.45"/>
+    <Style x:Key="ClipSheetButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Foreground" Value="{StaticResource ClipTextBrush}"/>
+      <Setter Property="Background" Value="#FF1C1C20"/>
+      <Setter Property="BorderBrush" Value="{StaticResource ClipBorderBrush}"/>
+      <Setter Property="Padding" Value="16,8"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="FontFamily" Value="{StaticResource ClipFont}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="bd" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#FF2A2A2E"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="ClipSaveButton" TargetType="Button" BasedOn="{StaticResource ClipSheetButton}">
+      <Setter Property="Background" Value="{StaticResource ClipAccentBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource ClipAccentBrush}"/>
+      <Setter Property="Foreground" Value="#FFFFFFFF"/>
+    </Style>
+    <Style x:Key="ClipFormatButton" TargetType="Button" BasedOn="{StaticResource ClipSheetButton}">
+      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="Margin" Value="0,0,6,0"/>
+      <Setter Property="MinWidth" Value="72"/>
+    </Style>
+    <Style x:Key="ClipStepperButton" TargetType="Button" BasedOn="{StaticResource ClipSheetButton}">
+      <Setter Property="Padding" Value="8,2"/>
+      <Setter Property="MinWidth" Value="28"/>
+      <Setter Property="Margin" Value="0"/>
+    </Style>
     <Style x:Key="ChromeSlider" TargetType="Slider">
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="Minimum" Value="0"/>

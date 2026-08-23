@@ -50,6 +50,9 @@
         <MenuItem Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                   Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
+        <MenuItem Header="구간 저장" Click="ClipSaveMenu_Click"
+                  Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
       </MenuItem>
     </Menu>
 
@@ -91,9 +94,16 @@
                   StrokeLineJoin="Round" Data="M 19,5 V 19 M 5,5 L 17,12 L 5,19"/>
           </Button>
         </StackPanel>
-        <Slider x:Name="SeekSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="0"
-                VerticalAlignment="Center" Margin="16,0" Style="{StaticResource ChromeSlider}"
-                PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
+        <Grid x:Name="SeekHost" Grid.Column="1" Margin="16,0" VerticalAlignment="Center"
+              SizeChanged="SeekHost_SizeChanged">
+          <Slider x:Name="SeekSlider" Minimum="0" Maximum="1" Value="0"
+                  VerticalAlignment="Center" Style="{StaticResource ChromeSlider}"
+                  PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
+          <Canvas x:Name="MarkCanvas" IsHitTestVisible="False" Height="16" VerticalAlignment="Center">
+            <Ellipse x:Name="InTick" Width="8" Height="8" Fill="#FFFFFFFF" Visibility="Collapsed"/>
+            <Ellipse x:Name="OutTick" Width="8" Height="8" Fill="#FFFFFFFF" Visibility="Collapsed"/>
+          </Canvas>
+        </Grid>
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
           <Path Stroke="#FFF5F5F7" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                 StrokeLineJoin="Round" VerticalAlignment="Center" Margin="0,0,8,0"
@@ -298,6 +308,144 @@
                           BackRequested="SeriesBack_Click"
                           OpenFolderRequested="OpenFolder_Click"
                           EpisodeActivated="SeriesPage_EpisodeActivated"/>
+        <Border x:Name="ClipBanner" HorizontalAlignment="Center" VerticalAlignment="Top"
+                Margin="0,16,0,0" Padding="14,8" CornerRadius="10"
+                Background="#E6141418" Visibility="Collapsed" IsHitTestVisible="False">
+          <TextBlock x:Name="ClipBannerText" FontSize="13" Foreground="#FFF5F5F7"
+                     FontFamily="{StaticResource ClipFont}"/>
+        </Border>
+        <Grid x:Name="ClipOverlay" Visibility="Collapsed" Background="#66000000"
+              MouseLeftButtonDown="ClipOverlay_Click">
+          <Border x:Name="ClipSheet" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Padding="20,18" CornerRadius="12"
+                  Background="{StaticResource ClipSheetBrush}"
+                  Effect="{StaticResource ClipSheetShadow}"
+                  MouseLeftButtonDown="ClipSheet_EatClick">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="구간 저장"
+                         FontFamily="{StaticResource ClipFont}" FontSize="20" FontWeight="SemiBold"
+                         Foreground="{StaticResource ClipTextBrush}" Margin="0,0,0,14"/>
+              <TextBlock x:Name="ClipPreviewName" DockPanel.Dock="Bottom"
+                         FontFamily="{StaticResource ClipFont}" FontSize="11"
+                         Foreground="{StaticResource ClipMutedBrush}"
+                         TextWrapping="Wrap" Margin="0,14,0,0"/>
+              <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="10"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="저장" Click="ClipSave_Click" Style="{StaticResource ClipSaveButton}"
+                        x:Name="ClipSaveButton"/>
+                <Button Grid.Column="2" Content="취소" Click="ClipCancel_Click" Style="{StaticResource ClipSheetButton}"/>
+              </Grid>
+              <StackPanel>
+                <Grid Margin="0,0,0,12">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="시작" FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
+                               FontFamily="{StaticResource ClipFont}"/>
+                    <TextBlock x:Name="ClipStartText" Text="00:00:00" FontSize="13"
+                               Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="끝" FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
+                               FontFamily="{StaticResource ClipFont}"/>
+                    <TextBlock x:Name="ClipEndText" Text="00:00:00" FontSize="13"
+                               Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="길이" FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
+                               FontFamily="{StaticResource ClipFont}"/>
+                    <TextBlock x:Name="ClipDurationText" Text="00:00:00" FontSize="13"
+                               Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  </StackPanel>
+                </Grid>
+                <Grid Margin="0,0,0,10">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="형식" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="ClipFormatCopy" Content="원본복사" Tag="copy" Click="ClipFormat_Click"
+                            Style="{StaticResource ClipFormatButton}"/>
+                    <Button x:Name="ClipFormatWebp" Content="webp" Tag="webp" Click="ClipFormat_Click"
+                            Style="{StaticResource ClipFormatButton}"/>
+                    <Button x:Name="ClipFormatGif" Content="gif" Tag="gif" Click="ClipFormat_Click"
+                            Style="{StaticResource ClipFormatButton}"/>
+                  </StackPanel>
+                </Grid>
+                <Grid Margin="0,0,0,10" x:Name="ClipFpsRow">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="fps" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="-" Click="ClipFpsMinus_Click" Style="{StaticResource ClipStepperButton}"
+                            x:Name="ClipFpsMinus"/>
+                    <TextBlock x:Name="ClipFpsText" Text="원본" Width="44" TextAlignment="Center"
+                               VerticalAlignment="Center" FontFamily="{StaticResource ClipFont}" FontSize="13"
+                               Foreground="{StaticResource ClipTextBrush}"/>
+                    <Button Content="+" Click="ClipFpsPlus_Click" Style="{StaticResource ClipStepperButton}"
+                            x:Name="ClipFpsPlus"/>
+                  </StackPanel>
+                </Grid>
+                <Grid Margin="0,0,0,10" x:Name="ClipPingPongRow">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="핑퐁" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  <Button x:Name="ClipPingPongToggle" Click="ClipPingPong_Click"
+                          HorizontalAlignment="Left" Style="{StaticResource ClipSheetButton}"
+                          Padding="18,5" MinWidth="52"/>
+                </Grid>
+                <Grid x:Name="ClipPaletteRow" Margin="0,0,0,10" Visibility="Collapsed">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="팔레트" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  <TextBlock Grid.Column="1" Text="256색" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipMutedBrush}" FontFamily="{StaticResource ClipFont}"/>
+                </Grid>
+                <TextBlock x:Name="ClipEncodingHint" Text="원본복사에서는 꺼짐"
+                           FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
+                           FontFamily="{StaticResource ClipFont}" Margin="0,0,0,2"/>
+                <TextBlock x:Name="ClipKeyframeNotice" Text="키프레임 단위로 저장됩니다."
+                           FontSize="11" Foreground="{StaticResource ClipMutedBrush}"
+                           FontFamily="{StaticResource ClipFont}" Margin="0,0,0,10"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="폴더" VerticalAlignment="Center"
+                             Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
+                  <Border Grid.Column="1" Background="#FF1C1C20" BorderBrush="{StaticResource ClipBorderBrush}"
+                          BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,8,0">
+                    <TextBlock x:Name="ClipFolderText" Text="Videos\구간" VerticalAlignment="Center"
+                               FontFamily="{StaticResource ClipFont}" FontSize="13"
+                               Foreground="{StaticResource ClipTextBrush}"/>
+                  </Border>
+                  <Button Grid.Column="2" Content="변경" Click="ClipChangeFolder_Click"
+                          Style="{StaticResource ClipSheetButton}"/>
+                </Grid>
+              </StackPanel>
+            </DockPanel>
+          </Border>
+        </Grid>
       </Grid>
     </Grid>
   </DockPanel>

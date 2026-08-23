@@ -1,4 +1,5 @@
 using VideoPlayer.Core.Capture;
+using VideoPlayer.Core.Clip;
 using VideoPlayer.Core.Skip;
 using VideoPlayer.Core.Subtitles;
 
@@ -22,6 +23,8 @@ public sealed class PlayerShell
     public CaptureBannerState CaptureBanner { get; } = new();
     public SkipCapsuleState Skip { get; } = new();
     public SubtitleSheetState Subtitles { get; } = new();
+    public ClipSheetState Clip { get; } = new();
+    public ClipBannerState ClipBanner { get; } = new();
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
     public string OverlaySecondarySubtitle { get; set; } = "";
@@ -108,6 +111,7 @@ public sealed class TransportState
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool NextEpisodeIconOnly { get; } = true;
     public bool TimeOnBar { get; } = false;
+    public bool HasRecordButton { get; } = false;
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
     public double Position { get; set; }
