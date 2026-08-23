@@ -157,6 +157,9 @@ public sealed class TransportState
     public bool HasClear { get; } = true;
     public string ClearLabel { get; } = UiCopy.Clear;
     public bool ClearIsTextLabel { get; } = true;
+    public bool ClearImmediatelyRightOfStop { get; } = true;
+    public bool ClearNeverMarksComplete { get; } = true;
+    public bool ClearAppliesToUrl { get; } = true;
     public bool HasRecordButton { get; } = false;
     public bool HasCastIcon { get; } = false;
     public bool HasHdrIcon { get; } = false;

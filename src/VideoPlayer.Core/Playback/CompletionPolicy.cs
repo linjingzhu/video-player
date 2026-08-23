@@ -36,6 +36,29 @@ public static class CompletionPolicy
 
         return new CheckpointResult(currentEntry, CurrentCompleted: lastTen);
     }
+
+    /// <summary>
+    /// 지우기: keep the current position and never mark the title complete.
+    /// Same for local files and http(s) sources.
+    /// </summary>
+    public static CheckpointResult SaveCurrentPosition(
+        MediaIdentity current,
+        double positionSeconds,
+        double durationSeconds)
+    {
+        var currentEntry = new ResumeEntry
+        {
+            Key = current.Key,
+            Path = current.Path,
+            Size = current.Size,
+            PositionSeconds = Math.Max(0, positionSeconds),
+            DurationSeconds = Math.Max(0, durationSeconds),
+            Completed = false,
+            UpdatedUtc = DateTimeOffset.UtcNow
+        };
+
+        return new CheckpointResult(currentEntry, CurrentCompleted: false);
+    }
 }
 
 public sealed class ResumeEntry

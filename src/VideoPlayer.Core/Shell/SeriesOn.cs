@@ -57,6 +57,10 @@ public static class SeriesOn
     public const bool HasClear = true;
     public const bool ClearIsTextLabel = true;
     public const bool ClearUsesEjectIcon = false;
+    public const bool ClearImmediatelyRightOfStop = true;
+    public const bool ClearNeverMarksComplete = true;
+    public const bool ClearSavesCurrentPosition = true;
+    public const bool ClearAppliesToUrl = true;
     public const bool SkipPlusMinusOnTransport = false;
     public const bool HorizontalVolumeSlider = true;
     public const bool VerticalVolumePopover = false;

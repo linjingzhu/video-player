@@ -22,6 +22,10 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.HasClear);
         Assert.True(SeriesOn.ClearIsTextLabel);
         Assert.False(SeriesOn.ClearUsesEjectIcon);
+        Assert.True(SeriesOn.ClearImmediatelyRightOfStop);
+        Assert.True(SeriesOn.ClearNeverMarksComplete);
+        Assert.True(SeriesOn.ClearSavesCurrentPosition);
+        Assert.True(SeriesOn.ClearAppliesToUrl);
         Assert.Equal("지우기", UiCopy.Clear);
         Assert.False(SeriesOn.SkipPlusMinusOnTransport);
         Assert.True(SeriesOn.HorizontalVolumeSlider);
@@ -126,7 +130,11 @@ public class SeriesOnTokenTests
         Assert.True(PlayerShell.Boot().Transport.HasStop);
         Assert.True(PlayerShell.Boot().Transport.HasClear);
         Assert.True(PlayerShell.Boot().Transport.ClearIsTextLabel);
+        Assert.True(PlayerShell.Boot().Transport.ClearImmediatelyRightOfStop);
+        Assert.True(PlayerShell.Boot().Transport.ClearNeverMarksComplete);
+        Assert.True(PlayerShell.Boot().Transport.ClearAppliesToUrl);
         Assert.Equal("지우기", PlayerShell.Boot().Transport.ClearLabel);
+        Assert.Equal(TransportControl.Clear, order[order.ToList().IndexOf(TransportControl.Stop) + 1]);
         Assert.True(PlayerShell.Boot().StageEmpty);
         Assert.True(PlayerShell.Boot().Transport.TimeOnBar);
         Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
@@ -161,6 +169,16 @@ public class SeriesOnTokenTests
         Assert.Contains("Stop_Click", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Clear_Click", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"지우기\"", mainXaml, StringComparison.Ordinal);
+        var stopClick = mainXaml.IndexOf("Click=\"Stop_Click\"", StringComparison.Ordinal);
+        var clearButton = mainXaml.IndexOf("x:Name=\"ClearButton\"", StringComparison.Ordinal);
+        Assert.True(stopClick >= 0 && clearButton > stopClick);
+        var betweenStopAndClear = mainXaml[stopClick..clearButton];
+        Assert.Equal(1, CountOccurrences(betweenStopAndClear, "Click=\""));
+        var nextButton = mainXaml.IndexOf("<Button", clearButton + 1, StringComparison.Ordinal);
+        var clearBlock = nextButton > clearButton ? mainXaml[clearButton..nextButton] : mainXaml[clearButton..];
+        Assert.Contains("Content=\"지우기\"", clearBlock, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Path", clearBlock, StringComparison.Ordinal);
+        Assert.DoesNotContain("Eject", clearBlock, StringComparison.Ordinal);
         Assert.Contains("EmptyStageCover", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnClearButton", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnVolumeSlider", mainXaml, StringComparison.Ordinal);
@@ -257,6 +275,59 @@ public class SeriesOnTokenTests
     }
 
     [Fact]
+    public void Clear_in_last_ten_seconds_keeps_position_and_does_not_mark_complete()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("ep.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 100 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(91);
+
+        session.Clear();
+        var saved = session.Resume.Find(video, new FileInfo(video).Length);
+        Assert.NotNull(saved);
+        Assert.Equal(91, saved!.PositionSeconds);
+        Assert.False(saved.Completed);
+        Assert.NotNull(session.Resume.Continue);
+        Assert.Equal(video, session.Resume.Continue!.Path);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine { Duration = 100 }, workspace.Data);
+        reopened.Open(video);
+        Assert.Equal(91, reopened.Engine.Position);
+        Assert.False(reopened.Resume.Find(video, new FileInfo(video).Length)!.Completed);
+    }
+
+    [Fact]
+    public void Clear_on_url_saves_current_position_and_never_marks_complete()
+    {
+        using var workspace = new TempWorkspace();
+        const string url = "https://example.com/show/S01E01.mkv";
+        var engine = new FakeMediaEngine { Duration = 100 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        Assert.True(session.OpenUrl(url).Success);
+        session.SeekAbsolute(95);
+        Assert.Equal(MediaSourceKind.HttpUrl, session.SourceKind);
+
+        session.Clear();
+        Assert.False(engine.IsOpen);
+        Assert.Null(session.Current);
+        Assert.True(session.Shell.StageEmpty);
+        var saved = session.Resume.FindUrl(url);
+        Assert.NotNull(saved);
+        Assert.Equal(url, saved!.Key);
+        Assert.Equal(95, saved.PositionSeconds);
+        Assert.False(saved.Completed);
+        Assert.NotNull(session.Resume.Continue);
+        Assert.Equal(url, session.Resume.Continue!.Path);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine { Duration = 100 }, workspace.Data);
+        reopened.OpenUrl(url);
+        Assert.Equal(95, reopened.Engine.Position);
+        Assert.False(reopened.Resume.FindUrl(url)!.Completed);
+    }
+
+    [Fact]
     public void Series_c_and_next_episode_cta_stay()
     {
         var shell = PlayerShell.Boot();
@@ -284,5 +355,18 @@ public class SeriesOnTokenTests
         }
 
         throw new FileNotFoundException(relative);
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 }

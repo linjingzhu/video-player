@@ -371,7 +371,7 @@ public sealed class PlaybackSession
 
         if (Engine.IsOpen)
         {
-            Checkpoint("clear");
+            SaveResumeAtCurrentPosition();
         }
 
         Engine.Close();
@@ -540,6 +540,20 @@ public sealed class PlaybackSession
         RefreshSidebar();
         RefreshSeriesPanel();
         _ = reason;
+    }
+
+    private void SaveResumeAtCurrentPosition()
+    {
+        if (Current is not { } current || !Engine.IsOpen)
+        {
+            return;
+        }
+
+        var result = CompletionPolicy.SaveCurrentPosition(current, Engine.Position, Engine.Duration);
+        Resume.Apply(result);
+        Persist();
+        RefreshSidebar();
+        RefreshSeriesPanel();
     }
 
     public void RememberWindow(WindowBounds bounds)

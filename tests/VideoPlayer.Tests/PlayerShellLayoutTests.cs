@@ -63,6 +63,8 @@ public class PlayerShellLayoutTests
         Assert.Equal("CC", UiCopy.Captions);
         Assert.Equal("지우기", UiCopy.Clear);
         Assert.True(PlayerShell.Boot().Transport.HasClear);
+        Assert.True(PlayerShell.Boot().Transport.ClearImmediatelyRightOfStop);
+        Assert.True(PlayerShell.Boot().Transport.ClearNeverMarksComplete);
         Assert.False(PlayerShell.Boot().Transport.HasEjectIcon);
         Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
         Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
