@@ -27,6 +27,16 @@ public class ClipSaveTests
         Assert.False(ClipSave.HasVideoDragSelect);
         Assert.True(ClipSave.HasSheetCurrentMarks);
         Assert.True(ClipSave.HasKeyboardIoMarks);
+        Assert.True(sheet.HasSheetRangeHandles);
+        Assert.True(ClipSave.HasSheetRangeHandles);
+        Assert.False(sheet.HasEmptySeekRangeDrag);
+        Assert.False(ClipSave.HasEmptySeekRangeDrag);
+        Assert.Equal(8, sheet.HandleSizePx);
+        Assert.Equal(ClipSave.HandleSizePx, sheet.HandleSizePx);
+        Assert.False(sheet.ShowStartHandle);
+        Assert.False(sheet.ShowEndHandle);
+        Assert.Equal("", sheet.StartHandleLetter);
+        Assert.Equal("", sheet.EndHandleLetter);
         Assert.Equal("길이", sheet.DurationLabel);
         Assert.Equal("형식", sheet.FormatLabel);
         Assert.Equal("원본복사", ClipFormats.Label(ClipFormat.StreamCopy));
@@ -99,6 +109,10 @@ public class ClipSaveTests
         Assert.True(session.Shell.Clip.Open);
         Assert.True(session.Shell.Clip.CanMarkCurrent);
         Assert.True(session.Shell.Clip.HasSheetCurrentMarks);
+        Assert.Equal(0, session.Shell.Clip.InMark);
+        Assert.Equal(80, session.Shell.Clip.OutMark);
+        Assert.True(session.Shell.Clip.ShowStartHandle);
+        Assert.True(session.Shell.Clip.ShowEndHandle);
 
         session.SeekAbsolute(12);
         session.SetInMark();
@@ -115,6 +129,138 @@ public class ClipSaveTests
         Assert.True(session.Shell.Clip.CanSave);
         Assert.Equal(ClipTickKind.Square, session.Shell.Clip.TickKind);
         Assert.False(session.Shell.Clip.HasVideoDragSelect);
+    }
+
+    [Fact]
+    public void Sheet_open_defaults_playhead_to_media_end()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("show.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 100 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(15);
+        Assert.False(session.Shell.Clip.ShowStartHandle);
+        session.OpenClipSheet();
+
+        var clip = session.Shell.Clip;
+        Assert.Equal(15, clip.InMark);
+        Assert.Equal(100, clip.OutMark);
+        Assert.Equal(15, clip.StartSeconds);
+        Assert.Equal(100, clip.EndSeconds);
+        Assert.Equal(85, clip.ClipDurationSeconds);
+        Assert.True(clip.ShowStartHandle);
+        Assert.True(clip.ShowEndHandle);
+        Assert.True(clip.ShowInTick);
+        Assert.True(clip.ShowOutTick);
+        Assert.Equal(ClipTickKind.Square, clip.TickKind);
+        Assert.Equal(8, clip.HandleSizePx);
+        Assert.Equal("", clip.StartHandleLetter);
+        Assert.False(clip.HasEmptySeekRangeDrag);
+        Assert.True(clip.CanSave);
+        Assert.Equal("show_000015-000140.mkv", clip.PreviewFileName);
+
+        session.CloseClipSheet();
+        Assert.False(session.Shell.Clip.ShowStartHandle);
+        Assert.True(session.Shell.Clip.ShowInTick);
+        Assert.Equal(15, session.Shell.Clip.InMark);
+    }
+
+    [Fact]
+    public void Sheet_open_fills_missing_end_and_keeps_existing_in()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("show.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 60 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(10);
+        session.SetInMark();
+        session.SeekAbsolute(25);
+        session.OpenClipSheet();
+        Assert.Equal(10, session.Shell.Clip.InMark);
+        Assert.Equal(60, session.Shell.Clip.OutMark);
+    }
+
+    [Fact]
+    public void Handles_and_sheet_actions_move_the_same_two_points()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("show.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 80 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(12);
+        session.OpenClipSheet();
+        Assert.Equal(12, session.Shell.Clip.StartSeconds);
+        Assert.Equal(80, session.Shell.Clip.EndSeconds);
+
+        session.MoveClipHandle(ClipHandle.Start, 20);
+        session.MoveClipHandle(ClipHandle.End, 44);
+        Assert.Equal(20, session.Shell.Clip.InMark);
+        Assert.Equal(44, session.Shell.Clip.OutMark);
+        Assert.Equal(20, session.Shell.Clip.StartSeconds);
+        Assert.Equal(44, session.Shell.Clip.EndSeconds);
+
+        session.SeekAbsolute(18);
+        session.SetInMark();
+        Assert.Equal(18, session.Shell.Clip.InMark);
+        Assert.Equal(44, session.Shell.Clip.OutMark);
+
+        session.SeekAbsolute(50);
+        session.SetOutMark();
+        Assert.Equal(18, session.Shell.Clip.StartSeconds);
+        Assert.Equal(50, session.Shell.Clip.EndSeconds);
+
+        session.CloseClipSheet();
+        session.MoveClipHandle(ClipHandle.End, 70);
+        Assert.Equal(50, session.Shell.Clip.OutMark);
+        Assert.False(session.Shell.Clip.ShowStartHandle);
+    }
+
+    [Fact]
+    public void Empty_seek_does_not_create_a_range()
+    {
+        Assert.False(ClipSave.HasEmptySeekRangeDrag);
+        Assert.False(PlayerShell.Boot().Clip.HasEmptySeekRangeDrag);
+        Assert.Equal(
+            (12d, 40d),
+            ClipSave.SheetOpenRange(null, null, 12, 40));
+        Assert.Equal(
+            (5d, 40d),
+            ClipSave.SheetOpenRange(5, null, 12, 40));
+        Assert.Equal(
+            (12d, 30d),
+            ClipSave.SheetOpenRange(null, 30, 12, 40));
+        Assert.Equal(
+            (5d, 30d),
+            ClipSave.SheetOpenRange(5, 30, 12, 40));
+        Assert.Equal(0, ClipSave.TimeFromSeekX(7, 100, 8, 40));
+        Assert.InRange(ClipSave.HandleLeft(0, 100, 8), 6.9, 7.1);
+    }
+
+    [Fact]
+    public void Save_exports_the_open_sheet_range_only()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("show.mkv", [1]);
+        var dest = Path.Combine(workspace.Root, "구간");
+        var engine = new FakeMediaEngine { Duration = 100 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(15);
+        session.SetClipFolder(dest);
+        session.OpenClipSheet();
+        var runner = new FakeClipProcessRunner();
+
+        var result = session.RunClipSave(runner);
+
+        Assert.True(result.Saved);
+        Assert.Equal("show_000015-000140.mkv", Path.GetFileName(result.Path));
+        Assert.Contains("-ss", runner.LastArguments);
+        Assert.Equal("15", runner.LastArguments[runner.LastArguments.IndexOf("-ss") + 1]);
+        Assert.Contains("-t", runner.LastArguments);
+        Assert.Equal("85", runner.LastArguments[runner.LastArguments.IndexOf("-t") + 1]);
     }
 
     [Fact]
@@ -137,6 +283,10 @@ public class ClipSaveTests
         Assert.True(session.Shell.Clip.HasKeyboardIoMarks);
 
         session.OpenClipSheet();
+        Assert.Equal(8, session.Shell.Clip.InMark);
+        Assert.Equal(19, session.Shell.Clip.OutMark);
+        Assert.True(session.Shell.Clip.ShowStartHandle);
+        Assert.True(session.Shell.Clip.ShowEndHandle);
         session.SeekAbsolute(22);
         session.SetInMark();
         Assert.Equal(22, session.Shell.Clip.InMark);
@@ -154,8 +304,9 @@ public class ClipSaveTests
         Assert.False(session.CanClipSave);
         session.OpenClipSheet();
         Assert.False(session.Shell.Clip.Open);
-        Assert.False(session.Shell.Clip.HasMedia);
-        Assert.False(session.Shell.Clip.CanMarkCurrent);
+        Assert.False(session.Shell.Clip.ShowStartHandle);
+        session.MoveClipHandle(ClipHandle.Start, 10);
+        Assert.Null(session.Shell.Clip.InMark);
         Assert.False(session.Shell.FileOnly.ClipSave);
     }
 
@@ -174,6 +325,12 @@ public class ClipSaveTests
         Assert.Contains("_session.SetOutMark();", codeBehind, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"InTick\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"OutTick\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StartHandle\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"EndHandle\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("ClipHandle_DragDelta", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("I/O", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("EmptySeekRange", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("CreateRangeFromSeek", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("DragSelect", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("DragSelect", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("VideoDrag", codeBehind, StringComparison.Ordinal);
@@ -396,6 +553,11 @@ public class ClipSaveTests
         Assert.Equal("00:02:16", clip.DurationText);
         Assert.True(clip.ShowInTick);
         Assert.True(clip.ShowOutTick);
+        Assert.True(clip.ShowStartHandle);
+        Assert.True(clip.ShowEndHandle);
+        Assert.Equal("", clip.StartHandleLetter);
+        Assert.Equal("", clip.EndHandleLetter);
+        Assert.False(clip.HasEmptySeekRangeDrag);
         Assert.False(clip.RenderIoLetters);
         Assert.Equal("", clip.InLetter);
         Assert.Equal("", clip.OutLetter);

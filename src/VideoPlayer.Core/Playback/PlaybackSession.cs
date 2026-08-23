@@ -904,6 +904,7 @@ public sealed class PlaybackSession
 
         Shell.Clip.Open = true;
         Shell.ClipBanner.Clear();
+        ApplyClipSheetOpenDefaults();
         SyncClipSheet();
     }
 
@@ -920,7 +921,7 @@ public sealed class PlaybackSession
             return;
         }
 
-        Shell.Clip.InMark = Math.Max(0, Engine.Position);
+        Shell.Clip.InMark = ClipSave.ClampMark(Engine.Position, Engine.Duration);
         SyncClipSheet();
     }
 
@@ -931,7 +932,27 @@ public sealed class PlaybackSession
             return;
         }
 
-        Shell.Clip.OutMark = Math.Max(0, Engine.Position);
+        Shell.Clip.OutMark = ClipSave.ClampMark(Engine.Position, Engine.Duration);
+        SyncClipSheet();
+    }
+
+    public void MoveClipHandle(ClipHandle handle, double seconds)
+    {
+        if (!Shell.Clip.Open || IsUrlSource || !Engine.IsOpen)
+        {
+            return;
+        }
+
+        var value = ClipSave.ClampMark(seconds, Engine.Duration);
+        if (handle == ClipHandle.Start)
+        {
+            Shell.Clip.InMark = value;
+        }
+        else
+        {
+            Shell.Clip.OutMark = value;
+        }
+
         SyncClipSheet();
     }
 
@@ -1036,6 +1057,18 @@ public sealed class PlaybackSession
         var mode = Settings.Hdr;
         Shell.Hdr.Mode = mode;
         Engine.SetHdrMode(mode);
+    }
+
+    private void ApplyClipSheetOpenDefaults()
+    {
+        if (!Engine.IsOpen || Current is not { Kind: MediaSourceKind.LocalFile })
+        {
+            return;
+        }
+
+        var range = ClipSave.SheetOpenRange(Shell.Clip.InMark, Shell.Clip.OutMark, Engine.Position, Engine.Duration);
+        Shell.Clip.InMark = range.Start;
+        Shell.Clip.OutMark = range.End;
     }
 
     private void SyncClipSheet()

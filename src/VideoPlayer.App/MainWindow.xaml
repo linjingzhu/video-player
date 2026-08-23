@@ -559,6 +559,24 @@
             <Rectangle x:Name="InTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
             <Rectangle x:Name="OutTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
           </Canvas>
+          <Canvas x:Name="HandleCanvas" Height="8" VerticalAlignment="Center">
+            <Thumb x:Name="StartHandle" Width="8" Height="8" Cursor="SizeWE"
+                   DragDelta="ClipHandle_DragDelta" Visibility="Collapsed">
+              <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                  <Rectangle Width="8" Height="8" Fill="#FFFFFFFF"/>
+                </ControlTemplate>
+              </Thumb.Template>
+            </Thumb>
+            <Thumb x:Name="EndHandle" Width="8" Height="8" Cursor="SizeWE"
+                   DragDelta="ClipHandle_DragDelta" Visibility="Collapsed">
+              <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                  <Rectangle Width="8" Height="8" Fill="#FFFFFFFF"/>
+                </ControlTemplate>
+              </Thumb.Template>
+            </Thumb>
+          </Canvas>
         </Grid>
       </Grid>
     </Border>
