@@ -101,6 +101,7 @@ public partial class MainWindow : Window
         AutoNextItem.IsEnabled = !_session.IsUrlSource;
         CaptureMenuItem.IsEnabled = !_session.IsUrlSource;
         ClipSaveMenuItem.IsEnabled = !_session.IsUrlSource;
+        SaveAsMenuItem.IsEnabled = _session.CanSaveAs;
         SeriesPage.Bind(
             _session.Series,
             _session.Resume,
@@ -224,6 +225,28 @@ public partial class MainWindow : Window
             ShowMainPage();
             RefreshShell();
         }
+    }
+
+    private void SaveAs_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_session.CanSaveAs || _session.Current is not { } current)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = UiCopy.SaveAs,
+            FileName = UrlSaveAs.SuggestedFileName(current.Path),
+            Filter = "Videos|*.mp4;*.mkv;*.avi;*.wmv;*.mov|All files|*.*"
+        };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        _session.SaveAs(dialog.FileName);
+        RefreshShell();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)

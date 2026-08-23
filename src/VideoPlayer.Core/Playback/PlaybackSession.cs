@@ -69,6 +69,7 @@ public sealed class PlaybackSession
     public bool CanAutoNext => AutoNext && FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.AutoNext);
     public bool CanCapture => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.Capture) && Engine.IsOpen;
     public bool CanClipSave => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.ClipSave) && Engine.IsOpen;
+    public bool CanSaveAs => UrlSaveAs.CanSave(SourceKind, Current?.Path);
     public IReadOnlyList<MediaChapter> Chapters { get; private set; } = [];
     public IReadOnlyList<MediaSubtitleTrack> EmbeddedSubtitleTracks { get; private set; } = [];
     public string? UserSubtitlePath { get; private set; }
@@ -116,6 +117,38 @@ public sealed class PlaybackSession
         }
 
         return PlayOpened(accepted, MediaIdentity.FromUrl(accepted), addToRecent: false, loadSidecars: false);
+    }
+
+    public UrlSaveResult SaveAs(string? destinationPath, IUrlGetClient? client = null)
+    {
+        if (!CanSaveAs || Current is not { Kind: MediaSourceKind.HttpUrl } current)
+        {
+            var denied = StatusText.SaveFailed(UiCopy.OpenUrlHttpOnlyReason);
+            Shell.Status.Fail(denied);
+            return new UrlSaveResult(false, destinationPath, Shell.Status.Text);
+        }
+
+        var dest = UrlSaveAs.ValidateDestination(destinationPath);
+        if (!dest.Success || dest.FullPath is null)
+        {
+            var invalid = StatusText.SaveFailed(dest.Error ?? UiCopy.NetworkFailed);
+            Shell.Status.Fail(invalid);
+            return new UrlSaveResult(false, destinationPath, Shell.Status.Text);
+        }
+
+        var getter = client ?? new PlainHttpGetClient();
+        var got = getter.Get(current.Path, dest.FullPath);
+        if (!got.Success)
+        {
+            var reason = got.NeedsCredentials
+                ? UiCopy.OpenUrlNoCookiesOrHeaders
+                : got.Error ?? UiCopy.NetworkFailed;
+            Shell.Status.Fail(StatusText.SaveFailed(reason));
+            return new UrlSaveResult(false, dest.FullPath, Shell.Status.Text);
+        }
+
+        Shell.Status.Clear();
+        return new UrlSaveResult(true, dest.FullPath, Shell.Status.Text);
     }
 
     public bool AttachUserSubtitle(string subtitlePath)

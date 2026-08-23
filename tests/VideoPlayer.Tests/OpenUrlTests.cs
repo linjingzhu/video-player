@@ -163,6 +163,7 @@ public class OpenUrlTests
         Assert.True(session.CanAutoNext);
         Assert.True(session.CanCapture);
         Assert.True(session.CanClipSave);
+        Assert.False(session.CanSaveAs);
         Assert.True(session.Shell.Series.Enabled);
         Assert.True(session.Shell.FileOnly.Capture);
         Assert.True(session.Shell.FileOnly.ClipSave);
@@ -174,6 +175,7 @@ public class OpenUrlTests
         Assert.False(session.CanAutoNext);
         Assert.False(session.CanCapture);
         Assert.False(session.CanClipSave);
+        Assert.True(session.CanSaveAs);
         Assert.False(session.Shell.Series.Enabled);
         Assert.False(session.Shell.FileOnly.SeriesTree);
         Assert.False(session.Shell.FileOnly.AutoNext);
@@ -236,7 +238,7 @@ public class OpenUrlTests
     [Fact]
     public void File_menu_has_open_url_and_transport_does_not()
     {
-        Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "종료" }, UiCopy.FileMenuItems);
+        Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
         Assert.Equal("URL 열기", UiCopy.OpenUrl);
         Assert.Equal("https://", UiCopy.OpenUrlPlaceholder);
         Assert.Equal("예: https://example.com/video.mp4", UiCopy.OpenUrlExample);

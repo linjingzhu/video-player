@@ -26,6 +26,9 @@
                   FontSize="12" FontWeight="Regular"/>
         <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>
+        <MenuItem x:Name="SaveAsMenuItem" Header="다른 이름으로 저장" Click="SaveAs_Click" IsEnabled="False"
+                  Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="12" FontWeight="Regular"/>
         <Separator/>
         <MenuItem Header="종료" Click="Exit_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="12" FontWeight="Regular"/>

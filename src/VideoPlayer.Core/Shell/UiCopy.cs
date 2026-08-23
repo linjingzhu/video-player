@@ -34,6 +34,8 @@ public static class UiCopy
     public const string OpenUrlNoCookiesOrHeaders = "쿠키·헤더는 지원하지 않습니다. 주소만 입력하세요.";
     public const string OpenUrlNoLogin = "로그인 정보는 지원하지 않습니다. http(s) 주소만 입력하세요.";
     public const string OpenUrlAction = "열기";
+    public const string SaveAs = "다른 이름으로 저장";
+    public const string SaveFailed = "저장 실패";
     public const string Exit = "종료";
     public const string SeriesPanel = "시리즈";
     public const string ToggleSidebar = "사이드바";
@@ -108,7 +110,7 @@ public static class UiCopy
 
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
 
-    public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, Exit];
+    public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, SaveAs, Exit];
 }
 
 public enum ShellScreen

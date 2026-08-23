@@ -31,8 +31,9 @@ public class PlayerShellLayoutTests
         var shell = PlayerShell.Boot();
         Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
         Assert.Equal("|", shell.MenuSeparator);
-        Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "종료" }, UiCopy.FileMenuItems);
+        Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
         Assert.Contains("URL 열기", UiCopy.FileMenuItems);
+        Assert.Contains("다른 이름으로 저장", UiCopy.FileMenuItems);
     }
 
     [Fact]

@@ -40,6 +40,8 @@ public sealed class PlayerShell
     public bool HasDrmUi { get; } = false;
     public bool HasPaidUnlockUi { get; } = false;
     public bool HasHeaderUi { get; } = false;
+    public bool HasSaveAsSheet { get; } = false;
+    public bool SaveAsUsesOsDialog { get; } = true;
 
     public static PlayerShell Boot() => new();
 
