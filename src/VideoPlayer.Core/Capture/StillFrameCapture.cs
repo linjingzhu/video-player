@@ -97,14 +97,26 @@ public static class StillFrameCapture
     public static string DefaultFolderPath()
     {
         var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-        return string.IsNullOrWhiteSpace(pictures)
-            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
-            : pictures;
+        if (!string.IsNullOrWhiteSpace(pictures)
+            && !PathsEqual(pictures, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)))
+        {
+            return pictures;
+        }
+
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return string.IsNullOrWhiteSpace(home)
+            ? PicturesLabel
+            : Path.Combine(home, PicturesLabel);
     }
 
     public static string FolderLabel(string? folderPath)
     {
         if (string.IsNullOrWhiteSpace(folderPath))
+        {
+            return PicturesLabel;
+        }
+
+        if (PathsEqual(folderPath, DefaultFolderPath()))
         {
             return PicturesLabel;
         }

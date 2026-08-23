@@ -59,8 +59,8 @@ public class StillFrameCaptureTests
             },
             order);
         Assert.Equal(10, order.Count);
-        Assert.False(Enum.GetNames<TransportControl>().Contains("Capture"));
-        Assert.False(Enum.GetNames<TransportControl>().Contains("Camera"));
+        Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Capture.HasCameraOnTransport);
     }
 
@@ -119,7 +119,7 @@ public class StillFrameCaptureTests
         using var workspace = new TempWorkspace();
         var video = workspace.File("lighthouse.mkv", [1]);
         var dest = Path.Combine(workspace.Root, "out");
-        var engine = new FakeMediaEngine { Duration = 120 };
+        var engine = new FakeMediaEngine { Duration = 20 * 60 };
         var session = new PlaybackSession(engine, workspace.Data);
         session.Open(video);
         Assert.False(engine.IsPaused);
