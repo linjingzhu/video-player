@@ -149,55 +149,38 @@ public class SkinATokenTests
         Assert.DoesNotContain("0A84FF", urlXaml, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("0A84FF", converter, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("0A84FF", codeBehind, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("<Ellipse", appXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("<Ellipse", mainXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("SkinAChromeBlur", appXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("SkinAChromeBlur", mainXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("KernelType=\"Gaussian\"", appXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"|\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"파일\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"보기\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"TransportBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"StatusBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"SidebarRail\" Grid.Column=\"0\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("<Rectangle x:Name=\"InTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("<Rectangle x:Name=\"OutTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);
+        Assert.Contains("<Ellipse Width=\"10\" Height=\"10\" Fill=\"{StaticResource SeriesOnAccentBrush}\"/>", appXaml, StringComparison.Ordinal);
+        Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
         var iconStyle = SliceBetween(appXaml, "x:Key=\"IconButton\"", "x:Key=\"SkinATextButton\"");
         var textStyle = SliceBetween(appXaml, "x:Key=\"SkinATextButton\"", "x:Key=\"SkinAPlayButton\"");
         Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", iconStyle, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", textStyle, StringComparison.Ordinal);
         Assert.Contains("MinWidth\" Value=\"52\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("MinWidth\" Value=\"72\"", appXaml, StringComparison.Ordinal);
-        Assert.Contains("MinWidth=\"52\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"16,8\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"8,4\"", seriesXaml, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"14,6\"", seriesXaml, StringComparison.Ordinal);
         Assert.Contains("BorderBrush=\"#66222222\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("PlaceTick(System.Windows.Shapes.Rectangle", codeBehind, StringComparison.Ordinal);
-        Assert.DoesNotContain("x:Name=\"Stop", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"-10초\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"NextCtaButton\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("Orientation=\"Vertical\"", mainXaml, StringComparison.Ordinal);
-        Assert.Contains("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("E10600", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("CornerRadius=\"2\"", urlXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("CornerRadius=\"4\"", urlXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("Stop", Enum.GetNames<TransportControl>());
-        Assert.DoesNotContain("Hamburger", Enum.GetNames<TransportControl>());
+        Assert.Contains("Stop", Enum.GetNames<TransportControl>());
+        Assert.Contains("Hamburger", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("SpaceX", mainXaml, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("xAI", mainXaml, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Grok", mainXaml, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void Skin_a_does_not_change_av2_shell_structure()
+    public void Skin_a_sheet_tokens_stay_white_while_main_shell_is_serieson()
     {
         var shell = PlayerShell.Boot();
-        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
-        Assert.Equal("", shell.MenuSeparator);
-        Assert.True(SkinA.NoMenuPipeSeparator);
+        Assert.Equal("#FFFFFF", SkinA.Accent);
+        Assert.True(SkinA.AccentIsWhite);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
         Assert.Equal(28, shell.Sidebar.RailWidthPx);
         Assert.False(shell.CenterPlayIcon);
         Assert.True(shell.VideoFullBleed);
@@ -207,25 +190,26 @@ public class SkinATokenTests
         Assert.Equal("다음 화 >", shell.NextEpisode.Label);
         Assert.Equal("-10초", shell.Transport.SkipBackLabel);
         Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
+        Assert.False(shell.Transport.SkipLabelsOnBar);
         Assert.Equal("1.0x", UiCopy.SpeedDefault);
         Assert.Equal("CC", UiCopy.Captions);
-        Assert.True(shell.Volume.VerticalPopover);
+        Assert.False(shell.Volume.VerticalPopover);
+        Assert.True(shell.Volume.HorizontalSliderOnTransport);
         Assert.True(shell.Status.FailureOnly);
         Assert.True(shell.Status.HideWhenIdle);
         Assert.False(shell.Status.Visible);
         Assert.Equal(
             new[]
             {
-                TransportControl.PreviousEpisode,
-                TransportControl.SkipBack,
+                TransportControl.Rewind,
                 TransportControl.PlayPause,
-                TransportControl.SkipForward,
-                TransportControl.NextEpisode,
+                TransportControl.Stop,
+                TransportControl.Clear,
+                TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
-                TransportControl.Speed,
-                TransportControl.Captions,
-                TransportControl.Fullscreen
+                TransportControl.Time,
+                TransportControl.Hamburger
             },
             shell.Transport.Order);
     }

@@ -347,6 +347,61 @@ public sealed class PlaybackSession
         UpdateChromeVisibility(DateTimeOffset.UtcNow);
     }
 
+    public void Stop()
+    {
+        if (_capturing || !Engine.IsOpen)
+        {
+            return;
+        }
+
+        Engine.Stop();
+        Shell.IsPaused = true;
+        _endedHandled = false;
+        SyncTransport();
+        Checkpoint("stop");
+        UpdateChromeVisibility(DateTimeOffset.UtcNow);
+    }
+
+    public void Clear()
+    {
+        if (_capturing)
+        {
+            return;
+        }
+
+        if (Engine.IsOpen)
+        {
+            SaveResumeAtCurrentPosition();
+        }
+
+        Engine.Close();
+        Current = null;
+        Chapters = [];
+        EmbeddedSubtitleTracks = [];
+        UserSubtitlePath = null;
+        Cues = [];
+        SecondaryCues = [];
+        Shell.OverlaySubtitle = "";
+        Shell.OverlaySecondarySubtitle = "";
+        Shell.Clip.ClearMarks();
+        Shell.Clip.Open = false;
+        Shell.Subtitles.Close();
+        Shell.Capture.Open = false;
+        AutoNextOffer.ResetForNewTitle();
+        ResetSkipForNewTitle();
+        _endedHandled = false;
+        Shell.IsPaused = true;
+        Shell.StageEmpty = true;
+        Shell.NextEpisode.ShowCta = false;
+        Shell.NextEpisode.AutoNextPending = false;
+        SyncFileOnlyFeatures();
+        SyncTransport();
+        SyncClipSheet();
+        RefreshSidebar();
+        RefreshSeriesPanel();
+        UpdateChromeVisibility(DateTimeOffset.UtcNow);
+    }
+
     public void SeekRelative(double seconds)
     {
         if (_capturing || !Engine.IsOpen)
@@ -402,7 +457,7 @@ public sealed class PlaybackSession
     public void NudgeVolumeFromWheel(double delta)
     {
         AdjustVolume(delta);
-        Shell.Volume.PopoverOpen = true;
+        Shell.Volume.PopoverOpen = false;
     }
 
     public void SpeakerRightClick()
@@ -458,7 +513,7 @@ public sealed class PlaybackSession
 
     public void ToggleVolumePopover()
     {
-        Shell.Volume.PopoverOpen = !Shell.Volume.PopoverOpen;
+        Shell.Volume.PopoverOpen = false;
     }
 
     public void CloseVolumePopover() => Shell.Volume.PopoverOpen = false;
@@ -485,6 +540,20 @@ public sealed class PlaybackSession
         RefreshSidebar();
         RefreshSeriesPanel();
         _ = reason;
+    }
+
+    private void SaveResumeAtCurrentPosition()
+    {
+        if (Current is not { } current || !Engine.IsOpen)
+        {
+            return;
+        }
+
+        var result = CompletionPolicy.SaveCurrentPosition(current, Engine.Position, Engine.Duration);
+        Resume.Apply(result);
+        Persist();
+        RefreshSidebar();
+        RefreshSeriesPanel();
     }
 
     public void RememberWindow(WindowBounds bounds)
@@ -704,6 +773,18 @@ public sealed class PlaybackSession
     }
 
     public void ExitFullscreen() => Shell.ExitFullscreen();
+
+    public void ToggleFullscreen()
+    {
+        if (Shell.Screen == ShellScreen.Fullscreen)
+        {
+            ExitFullscreen();
+        }
+        else
+        {
+            EnterFullscreen();
+        }
+    }
 
     public void ContinueWatching()
     {
@@ -1195,6 +1276,21 @@ public sealed class PlaybackSession
 
     private void SyncTransport()
     {
+        if (!Engine.IsOpen)
+        {
+            Shell.Transport.Position = 0;
+            Shell.Transport.Duration = 0;
+            Shell.Transport.HasPrevious = false;
+            Shell.Transport.HasNext = false;
+            Shell.OverlayTime = "00:00:00 / 00:00:00";
+            Shell.IsPaused = true;
+            Shell.StageEmpty = true;
+            SyncVolumeChrome();
+            Shell.Transport.Speed = Speed;
+            return;
+        }
+
+        Shell.StageEmpty = false;
         Shell.Transport.Position = Engine.Position;
         Shell.Transport.Duration = Engine.Duration;
         Shell.Transport.Volume = Engine.Volume;
@@ -1298,7 +1394,7 @@ public sealed class PlaybackSession
 
 public static class FullscreenChromeController
 {
-    public static readonly TimeSpan IdleHide = TimeSpan.FromSeconds(3);
+    public static readonly TimeSpan IdleHide = TimeSpan.FromSeconds(SeriesOn.FullscreenIdleHideSeconds);
 
     public static bool ShouldShow(bool fullscreen, bool paused, DateTimeOffset now, DateTimeOffset lastActivity)
     {
@@ -1314,4 +1410,18 @@ public static class FullscreenChromeController
 
         return now - lastActivity < IdleHide;
     }
+
+    public static bool ShouldToggleFromDoubleClick(bool onVideoStage, bool onTransportOrMenu)
+        => SeriesOn.StageDoubleClickTogglesFullscreen
+           && onVideoStage
+           && !onTransportOrMenu
+           && !SeriesOn.TransportDoubleClickTogglesFullscreen
+           && !SeriesOn.MenuDoubleClickTogglesFullscreen;
+
+    public static bool ShouldOpenStageMenuFromRightClick(bool onVideoStage, bool onTransportOrMenu)
+        => SeriesOn.StageRightClickOpensExistingMenu
+           && onVideoStage
+           && !onTransportOrMenu
+           && !SeriesOn.TransportRightClickOpensStageMenu
+           && !SeriesOn.MenuRightClickOpensStageMenu;
 }

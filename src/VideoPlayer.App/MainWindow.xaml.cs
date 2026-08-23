@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -26,7 +28,7 @@ public partial class MainWindow : Window
     private bool _fullscreen;
     private bool _syncingVolumeUi;
     private WindowState _windowedState = WindowState.Normal;
-    private WindowStyle _windowedStyle = WindowStyle.SingleBorderWindow;
+    private WindowStyle _windowedStyle = WindowStyle.None;
 
     public MainWindow()
     {
@@ -38,6 +40,8 @@ public partial class MainWindow : Window
         _session = new PlaybackSession(_engine, data);
         ApplyWindowMemory(_session.Window.Bounds);
         PlayerHost.Child = _engine.Host;
+        _engine.Host.MouseDoubleClick += (_, _) => Dispatcher.BeginInvoke(new Action(ToggleFullscreen));
+        _engine.Host.MouseUp += OnVideoHostMouseUp;
         ApplySidebar();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => OnTick();
@@ -67,17 +71,12 @@ public partial class MainWindow : Window
         StatusText.Text = shell.Status.Text;
         StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
         OverlayTime.Text = shell.OverlayTime;
-        OverlayTime.Visibility = !_fullscreen || shell.ChromeVisible ? Visibility.Visible : Visibility.Collapsed;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
         OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
+        EmptyStageCover.Visibility = shell.StageEmpty ? Visibility.Visible : Visibility.Collapsed;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
-        SpeedButton.Content = shell.Transport.SpeedText;
-        PrevButton.IsEnabled = shell.Transport.HasPrevious;
-        NextButton.IsEnabled = shell.Transport.HasNext;
-        CaptionsButton.Style = shell.Transport.CaptionsOn
-            ? (Style)FindResource("CcOnButton")
-            : (Style)FindResource("SkinATextButton");
+        ApplyChromeMenus(shell);
         SkipCapsule.Visibility = shell.Skip.Visible ? Visibility.Visible : Visibility.Collapsed;
         SkipCapsuleButton.Content = shell.Skip.Label;
         SkipCancelButton.Content = shell.Skip.CancelLabel;
@@ -90,7 +89,12 @@ public partial class MainWindow : Window
         NextCtaButton.Content = shell.NextEpisode.Label;
         NextCtaPanel.Visibility = shell.NextEpisode.ShowCta ? Visibility.Visible : Visibility.Collapsed;
         CancelAutoNextButton.Visibility = shell.NextEpisode.AutoNextPending ? Visibility.Visible : Visibility.Collapsed;
-        if (shell.Transport.Duration > 0)
+        if (shell.StageEmpty || shell.Transport.Duration <= 0)
+        {
+            SeekSlider.Maximum = 1;
+            SeekSlider.Value = 0;
+        }
+        else
         {
             SeekSlider.Maximum = shell.Transport.Duration;
             SeekSlider.Value = shell.Transport.Position;
@@ -98,11 +102,6 @@ public partial class MainWindow : Window
 
         BindSidebar();
         SeriesPage.IsEnabled = shell.Series.Enabled;
-        ShowSeriesItem.IsEnabled = shell.Series.Enabled;
-        AutoNextItem.IsEnabled = !_session.IsUrlSource;
-        CaptureMenuItem.IsEnabled = !_session.IsUrlSource;
-        ClipSaveMenuItem.IsEnabled = !_session.IsUrlSource;
-        SaveAsMenuItem.IsEnabled = _session.CanSaveAs;
         SeriesPage.Bind(
             _session.Series,
             _session.Resume,
@@ -199,12 +198,148 @@ public partial class MainWindow : Window
         SidebarPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void ApplyChromeMenus(PlayerShell shell)
+    {
+        foreach (var menu in new[] { QuickMenuButton.ContextMenu, HamburgerButton.ContextMenu })
+        {
+            SetMenuHeader(menu, "speed", shell.Transport.SpeedText);
+            SetMenuEnabled(menu, "prev", shell.Transport.HasPrevious);
+            SetMenuEnabled(menu, "next", shell.Transport.HasNext);
+            SetMenuEnabled(menu, "series", shell.Series.Enabled);
+            SetMenuEnabled(menu, "autoNext", !_session.IsUrlSource);
+            SetMenuChecked(menu, "autoNext", _session.AutoNext);
+            SetMenuChecked(menu, "skipAuto", _session.SkipAutoEnabled);
+            SetMenuEnabled(menu, "capture", !_session.IsUrlSource);
+            SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
+            SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
+        }
+    }
+
     private void ApplyChromeVisibility()
     {
         var showTransport = !_fullscreen || _session.Shell.ChromeVisible;
         TransportBar.Visibility = showTransport ? Visibility.Visible : Visibility.Collapsed;
-        MainMenu.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
+        CaptionBar.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
+
+        var statusLift = StatusBar.Visibility == Visibility.Visible ? StatusBar.Height : 0;
+        if (_fullscreen)
+        {
+            TransportDockSlot.Height = 0;
+            TransportDockSlot.Visibility = Visibility.Collapsed;
+            TransportBar.Background = (Brush)FindResource("SeriesOnFullscreenTransportBrush");
+            TransportBar.CornerRadius = new CornerRadius(SeriesOn.FullscreenTransportRadiusPx);
+            TransportBar.BorderThickness = new Thickness(0);
+            var inset = SeriesOn.FullscreenTransportInsetPx;
+            TransportBar.Margin = new Thickness(inset, 0, inset, inset + statusLift);
+        }
+        else
+        {
+            TransportDockSlot.Height = 40;
+            TransportDockSlot.Visibility = Visibility.Visible;
+            TransportBar.Background = (Brush)FindResource("SeriesOnChromeBrush");
+            TransportBar.CornerRadius = new CornerRadius(0);
+            TransportBar.BorderThickness = new Thickness(0, 1, 0, 0);
+            TransportBar.Margin = new Thickness(0, 0, 0, statusLift);
+        }
     }
+
+    private static MenuItem? FindMenuByTag(ContextMenu? menu, string tag)
+        => menu?.Items.OfType<MenuItem>().FirstOrDefault(item => tag.Equals(item.Tag as string, StringComparison.Ordinal));
+
+    private static void SetMenuEnabled(ContextMenu? menu, string tag, bool enabled)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.IsEnabled = enabled;
+        }
+    }
+
+    private static void SetMenuChecked(ContextMenu? menu, string tag, bool isChecked)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.IsChecked = isChecked;
+        }
+    }
+
+    private static void SetMenuHeader(ContextMenu? menu, string tag, string header)
+    {
+        var item = FindMenuByTag(menu, tag);
+        if (item is not null)
+        {
+            item.Header = header;
+        }
+    }
+
+    private void OpenContextMenu(Button button)
+    {
+        if (button.ContextMenu is not { } menu)
+        {
+            return;
+        }
+
+        menu.PlacementTarget = button;
+        menu.Placement = PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private void OpenStageMenuAtCursor()
+    {
+        if (QuickMenuButton.ContextMenu is not { } menu)
+        {
+            return;
+        }
+
+        ApplyChromeMenus(_session.Shell);
+        menu.PlacementTarget = VideoHostBorder;
+        menu.Placement = PlacementMode.MousePoint;
+        menu.IsOpen = true;
+    }
+
+    private void OnVideoHostMouseUp(object? sender, System.Windows.Forms.MouseEventArgs e)
+    {
+        if (e.Button != System.Windows.Forms.MouseButtons.Right)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (FullscreenChromeController.ShouldOpenStageMenuFromRightClick(
+                    onVideoStage: true,
+                    onTransportOrMenu: false))
+            {
+                OpenStageMenuAtCursor();
+            }
+        }));
+    }
+
+    private void Video_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        var onTransportOrMenu = OriginatesOnTransportOrMenu(e.OriginalSource as DependencyObject);
+        if (!FullscreenChromeController.ShouldOpenStageMenuFromRightClick(
+                onVideoStage: !onTransportOrMenu,
+                onTransportOrMenu: onTransportOrMenu))
+        {
+            return;
+        }
+
+        OpenStageMenuAtCursor();
+        e.Handled = true;
+    }
+
+    private void QuickMenuButton_Click(object sender, RoutedEventArgs e) => OpenContextMenu(QuickMenuButton);
+
+    private void Hamburger_Click(object sender, RoutedEventArgs e) => OpenContextMenu(HamburgerButton);
+
+    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void Maximize_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseWindow_Click(object sender, RoutedEventArgs e) => Close();
 
     private void OpenUrl_Click(object sender, RoutedEventArgs e)
     {
@@ -267,6 +402,10 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
     private void PlayPause_Click(object sender, RoutedEventArgs e) => _session.PlayPause();
+
+    private void Stop_Click(object sender, RoutedEventArgs e) => _session.Stop();
+
+    private void Clear_Click(object sender, RoutedEventArgs e) => _session.Clear();
 
     private void Prev_Click(object sender, RoutedEventArgs e) => _session.PlayPreviousEpisode();
 
@@ -343,6 +482,33 @@ public partial class MainWindow : Window
 
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)
         => e.Handled = true;
+
+    private void IgnoreChromeDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount >= 2)
+        {
+            e.Handled = true;
+        }
+    }
+
+    private bool OriginatesOnTransportOrMenu(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (ReferenceEquals(source, TransportBar)
+                || ReferenceEquals(source, QuickMenuButton)
+                || source is ContextMenu or MenuItem or System.Windows.Controls.Menu)
+            {
+                return true;
+            }
+
+            source = source is Visual visual
+                ? VisualTreeHelper.GetParent(visual)
+                : LogicalTreeHelper.GetParent(source);
+        }
+
+        return false;
+    }
 
     private void ClipSaveMenu_Click(object sender, RoutedEventArgs e)
     {
@@ -559,11 +725,21 @@ public partial class MainWindow : Window
 
     private void Video_Click(object sender, MouseButtonEventArgs e)
     {
+        var onTransportOrMenu = OriginatesOnTransportOrMenu(e.OriginalSource as DependencyObject);
         if (e.ClickCount >= 2)
         {
-            ToggleFullscreen();
+            if (FullscreenChromeController.ShouldToggleFromDoubleClick(
+                    onVideoStage: !onTransportOrMenu,
+                    onTransportOrMenu: onTransportOrMenu))
+            {
+                ToggleFullscreen();
+            }
+
+            e.Handled = true;
+            return;
         }
-        else
+
+        if (!onTransportOrMenu)
         {
             _session.PlayPause();
         }
@@ -580,7 +756,6 @@ public partial class MainWindow : Window
             var volume = _session.Shell.Volume;
             VolumeSlider.Value = volume.Level;
             VolumePercent.Text = volume.PercentText;
-            VolumePopover.IsOpen = volume.PopoverOpen;
         }
         finally
         {
@@ -601,39 +776,8 @@ public partial class MainWindow : Window
 
     private void VolumeButton_Click(object sender, RoutedEventArgs e)
     {
-        _session.ToggleVolumePopover();
-        VolumePopover.IsOpen = _session.Shell.Volume.PopoverOpen;
-    }
-
-    private void VolumePopover_Closed(object? sender, EventArgs e)
-        => _session.CloseVolumePopover();
-
-    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (!VolumePopover.IsOpen || IsVolumeUiSource(e.OriginalSource as DependencyObject))
-        {
-            return;
-        }
-
-        _session.CloseVolumePopover();
-        VolumePopover.IsOpen = false;
-    }
-
-    private static bool IsVolumeUiSource(DependencyObject? source)
-    {
-        while (source is not null)
-        {
-            if (source is FrameworkElement element
-                && element.Name is "VolumeHost" or "VolumeButton" or "VolumePopoverPanel"
-                    or "VolumeSlider" or "VolumePercent")
-            {
-                return true;
-            }
-
-            source = VisualTreeHelper.GetParent(source);
-        }
-
-        return false;
+        _session.ToggleMute();
+        SyncVolumeUi();
     }
 
     private void Volume_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -837,6 +981,7 @@ public partial class MainWindow : Window
                 ExitFullscreen();
                 e.Handled = true;
                 break;
+            case Key.Enter when Keyboard.Modifiers == ModifierKeys.None:
             case Key.F11:
                 ToggleFullscreen();
                 e.Handled = true;
@@ -921,7 +1066,7 @@ public partial class MainWindow : Window
         PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
     }
 
-    private void PlaceTick(System.Windows.Shapes.Rectangle tick, bool show, double ratio)
+    private void PlaceTick(FrameworkElement tick, bool show, double ratio)
     {
         tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         if (!show || SeekHost.ActualWidth <= 0)

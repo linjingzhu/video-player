@@ -52,19 +52,18 @@ public class StillFrameCaptureTests
         Assert.Equal(
             new[]
             {
-                TransportControl.PreviousEpisode,
-                TransportControl.SkipBack,
+                TransportControl.Rewind,
                 TransportControl.PlayPause,
-                TransportControl.SkipForward,
-                TransportControl.NextEpisode,
+                TransportControl.Stop,
+                TransportControl.Clear,
+                TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
-                TransportControl.Speed,
-                TransportControl.Captions,
-                TransportControl.Fullscreen
+                TransportControl.Time,
+                TransportControl.Hamburger
             },
             order);
-        Assert.Equal(10, order.Count);
+        Assert.Equal(9, order.Count);
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
         Assert.False(PlayerShell.Boot().Capture.HasCameraOnTransport);

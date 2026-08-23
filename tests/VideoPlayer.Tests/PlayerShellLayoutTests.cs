@@ -26,43 +26,56 @@ public class PlayerShellLayoutTests
     }
 
     [Fact]
-    public void Menus_are_file_and_view_only()
+    public void Menus_are_quickmenu_as_view_with_file_under_hamburger()
     {
         var shell = PlayerShell.Boot();
-        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
-        Assert.Equal("", shell.MenuSeparator);
-        Assert.True(SkinA.NoMenuPipeSeparator);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
+        Assert.True(shell.HasHeaderUi);
+        Assert.False(shell.Header.HasFileViewMenuBar);
+        Assert.True(shell.Header.QuickMenuIsView);
+        Assert.True(shell.Header.FileCommandsInHamburger);
         Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
         Assert.Contains("URL 열기", UiCopy.FileMenuItems);
         Assert.Contains("다른 이름으로 저장", UiCopy.FileMenuItems);
+        Assert.Contains("-10초", UiCopy.ViewMenuItems);
+        Assert.Contains("+10초", UiCopy.ViewMenuItems);
     }
 
     [Fact]
-    public void Transport_is_prev_skip_play_skip_next_icon_seek_volume_speed_cc_fullscreen()
+    public void Transport_is_rewind_play_stop_clear_ff_seek_volume_time_hamburger()
     {
         var order = PlayerShell.Boot().Transport.Order;
         Assert.Equal(
             new[]
             {
-                TransportControl.PreviousEpisode,
-                TransportControl.SkipBack,
+                TransportControl.Rewind,
                 TransportControl.PlayPause,
-                TransportControl.SkipForward,
-                TransportControl.NextEpisode,
+                TransportControl.Stop,
+                TransportControl.Clear,
+                TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
-                TransportControl.Speed,
-                TransportControl.Captions,
-                TransportControl.Fullscreen
+                TransportControl.Time,
+                TransportControl.Hamburger
             },
             order);
         Assert.Equal("1.0x", UiCopy.SpeedDefault);
         Assert.Equal("CC", UiCopy.Captions);
+        Assert.Equal("지우기", UiCopy.Clear);
+        Assert.True(PlayerShell.Boot().Transport.HasClear);
+        Assert.True(PlayerShell.Boot().Transport.ClearImmediatelyRightOfStop);
+        Assert.True(PlayerShell.Boot().Transport.ClearNeverMarksComplete);
+        Assert.False(PlayerShell.Boot().Transport.HasEjectIcon);
+        Assert.False(PlayerShell.Boot().Transport.CaptionsOnBar);
+        Assert.False(PlayerShell.Boot().Transport.FullscreenOnBar);
+        Assert.Contains("CC", UiCopy.ViewMenuItems);
         Assert.False(PlayerShell.Boot().Transport.HasRecordButton);
         Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
-        Assert.DoesNotContain(order, control => control == TransportControl.NextEpisode && PlayerShell.Boot().Transport.NextEpisodeTextOnBar);
+        Assert.False(PlayerShell.Boot().Transport.NextEpisodeTextOnBar);
         Assert.False(PlayerShell.Boot().Capture.HasCameraOnTransport);
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
+        Assert.True(PlayerShell.Boot().Transport.HasStop);
+        Assert.False(PlayerShell.Boot().Transport.SkipLabelsOnBar);
     }
 
     [Fact]
@@ -81,12 +94,12 @@ public class PlayerShellLayoutTests
     }
 
     [Fact]
-    public void Time_overlay_sits_above_transport_on_the_video()
+    public void Time_sits_on_the_transport_bar()
     {
         var shell = PlayerShell.Boot();
-        Assert.True(shell.OverlayClock.AboveTransport);
-        Assert.Equal(OverlayAnchor.BottomLeft, shell.OverlayClock.Anchor);
-        Assert.False(shell.Transport.TimeOnBar);
+        Assert.False(shell.OverlayClock.AboveTransport);
+        Assert.True(shell.OverlayClock.OnTransport);
+        Assert.True(shell.Transport.TimeOnBar);
         Assert.Equal("00:00:00 / 00:00:00", shell.OverlayTime);
     }
 
@@ -143,6 +156,17 @@ public class PlayerShellLayoutTests
         Assert.False(shell.Fullscreen.CenterPlayIcon);
         Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
         Assert.True(shell.Fullscreen.EndCtaIsOverlay);
+        Assert.True(shell.Fullscreen.TransportIsFloatingOverlay);
+        Assert.True(shell.Fullscreen.WindowedTransportIsDocked);
+        Assert.Equal(0.80, shell.Fullscreen.TransportOverlayOpacity);
+        Assert.Equal(16, shell.Fullscreen.TransportInsetPx);
+        Assert.Equal(4, shell.Fullscreen.TransportRadiusPx);
+        Assert.Equal(new[] { "Enter", "F11" }, shell.Fullscreen.ToggleKeys);
+        Assert.Equal(3, shell.Fullscreen.IdleHideSeconds);
+        Assert.True(shell.Fullscreen.StageDoubleClickToggles);
+        Assert.False(shell.Fullscreen.TransportDoubleClickToggles);
+        Assert.False(shell.Fullscreen.MenuDoubleClickToggles);
+        Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
         Assert.True(shell.NextEpisode.OverlayOnly);
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.False(shell.CenterPlayIcon);

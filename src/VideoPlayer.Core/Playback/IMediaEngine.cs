@@ -20,6 +20,7 @@ public interface IMediaEngine
     OpenMediaResult Open(string path, bool preferHardware);
     void Play();
     void Pause();
+    void Stop();
     void Seek(double seconds);
     void FrameStep(int direction);
     bool ScreenshotToFile(string path);
@@ -93,6 +94,12 @@ public sealed class FakeMediaEngine : IMediaEngine
 
     public void Pause() => IsPaused = true;
 
+    public void Stop()
+    {
+        IsPaused = true;
+        Position = 0;
+    }
+
     public void Seek(double seconds) => Position = Math.Max(0, seconds);
 
     public double FrameDuration { get; set; } = 1d / 24d;
@@ -143,5 +150,6 @@ public sealed class FakeMediaEngine : IMediaEngine
     {
         IsOpen = false;
         IsPaused = true;
+        Position = 0;
     }
 }

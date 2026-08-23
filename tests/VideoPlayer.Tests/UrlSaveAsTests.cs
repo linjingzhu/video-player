@@ -21,7 +21,7 @@ public class UrlSaveAsTests
         Assert.True(shell.SaveAsUsesOsDialog);
         Assert.False(shell.HasCookieAuthUi);
         Assert.False(shell.HasDrmUi);
-        Assert.False(shell.HasHeaderUi);
+        Assert.True(shell.HasHeaderUi);
         Assert.DoesNotContain(
             shell.Transport.Order,
             control => control.ToString().Contains("Save", StringComparison.OrdinalIgnoreCase));
@@ -105,7 +105,7 @@ public class UrlSaveAsTests
         Assert.Contains("쿠키", session.Shell.Status.Text);
         Assert.False(session.Shell.HasCookieAuthUi);
         Assert.False(session.Shell.HasDrmUi);
-        Assert.False(session.Shell.HasHeaderUi);
+        Assert.True(session.Shell.HasHeaderUi);
         Assert.False(session.Shell.HasPaidUnlockUi);
         Assert.False(UrlSaveAs.PromptsForCookies);
         Assert.False(UrlSaveAs.PromptsForKeys);

@@ -6,12 +6,13 @@ using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.Core.Shell;
 
-/// <summary>Confirmed A v2 P0 shell. Old wireframe A discarded.</summary>
+/// <summary>SeriesOn main shell. Series C page and next-episode end CTA stay.</summary>
 public sealed class PlayerShell
 {
     public string Title { get; init; } = UiCopy.AppTitle;
     public IReadOnlyList<string> Menus { get; init; } = UiCopy.MainMenus;
     public string MenuSeparator { get; } = UiCopy.MenuSeparator;
+    public HeaderChrome Header { get; } = new();
     public ShellScreen Screen { get; set; } = ShellScreen.Main;
     public SidebarState Sidebar { get; } = new();
     public TransportState Transport { get; } = new();
@@ -34,13 +35,15 @@ public sealed class PlayerShell
     public bool IsPaused { get; set; } = true;
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
+    public bool StageEmpty { get; set; } = true;
+    public bool StageRightClickOpensExistingMenu { get; } = SeriesOn.StageRightClickOpensExistingMenu;
     public bool VideoFullWidth { get; } = true;
     public bool VideoFullBleed { get; } = true;
     public bool NoLetterboxChrome { get; } = true;
     public bool HasCookieAuthUi { get; } = false;
     public bool HasDrmUi { get; } = false;
     public bool HasPaidUnlockUi { get; } = false;
-    public bool HasHeaderUi { get; } = false;
+    public bool HasHeaderUi { get; } = true;
     public bool HasSaveAsSheet { get; } = false;
     public bool SaveAsUsesOsDialog { get; } = true;
 
@@ -66,20 +69,21 @@ public static class ShellLayout
 {
     public const int SidebarRailWidthPx = 28;
     public const int SidebarOpenPanelWidthPx = 240;
+    public const int HeaderHeightPx = SeriesOn.HeaderHeightPx;
     public const int TransportHeightPx = 40;
+    public const int TransportSeparatorPx = SeriesOn.TransportSeparatorPx;
 
     public static IReadOnlyList<TransportControl> TransportOrder { get; } =
     [
-        TransportControl.PreviousEpisode,
-        TransportControl.SkipBack,
+        TransportControl.Rewind,
         TransportControl.PlayPause,
-        TransportControl.SkipForward,
-        TransportControl.NextEpisode,
+        TransportControl.Stop,
+        TransportControl.Clear,
+        TransportControl.FastForward,
         TransportControl.Seek,
         TransportControl.Volume,
-        TransportControl.Speed,
-        TransportControl.Captions,
-        TransportControl.Fullscreen
+        TransportControl.Time,
+        TransportControl.Hamburger
     ];
 }
 
@@ -87,14 +91,35 @@ public enum TransportControl
 {
     PreviousEpisode,
     SkipBack,
+    Rewind,
     PlayPause,
+    Stop,
+    Clear,
+    FastForward,
     SkipForward,
     NextEpisode,
     Seek,
     Volume,
     Speed,
+    Time,
     Captions,
-    Fullscreen
+    Fullscreen,
+    Hamburger
+}
+
+public sealed class HeaderChrome
+{
+    public string Title { get; } = UiCopy.AppTitle;
+    public string QuickMenuLabel { get; } = UiCopy.QuickMenu;
+    public bool QuickMenuIsView { get; } = true;
+    public bool HasWindowControls { get; } = true;
+    public bool HasFileViewMenuBar { get; } = false;
+    public bool FileCommandsInHamburger { get; } = true;
+    public bool FileCommandsInQuickMenu { get; } = true;
+    public bool HamburgerIsView { get; } = true;
+    public bool HasMenuPipe { get; } = false;
+    public bool ChromeIsSolid { get; } = true;
+    public int HeightPx { get; } = ShellLayout.HeaderHeightPx;
 }
 
 public sealed class SidebarState
@@ -122,9 +147,25 @@ public sealed class TransportState
     public string NextIcon { get; } = UiCopy.NextEpisodeIcon;
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool NextEpisodeIconOnly { get; } = true;
-    public bool TimeOnBar { get; } = false;
+    public bool PreviousOnBar { get; } = false;
+    public bool NextOnBar { get; } = false;
+    public bool SkipLabelsOnBar { get; } = false;
+    public bool SpeedOnBar { get; } = false;
+    public bool TimeOnBar { get; } = true;
+    public bool CaptionsOnBar { get; } = false;
+    public bool FullscreenOnBar { get; } = false;
+    public bool HasStop { get; } = true;
+    public bool HasClear { get; } = true;
+    public string ClearLabel { get; } = UiCopy.Clear;
+    public bool ClearIsTextLabel { get; } = true;
+    public bool ClearImmediatelyRightOfStop { get; } = true;
+    public bool ClearNeverMarksComplete { get; } = true;
+    public bool ClearAppliesToUrl { get; } = true;
     public bool HasRecordButton { get; } = false;
-    public bool HorizontalVolumeSlider { get; } = false;
+    public bool HasCastIcon { get; } = false;
+    public bool HasHdrIcon { get; } = false;
+    public bool HasEjectIcon { get; } = false;
+    public bool HorizontalVolumeSlider { get; } = true;
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
     public double Position { get; set; }
@@ -151,8 +192,9 @@ public sealed class TransportState
 
 public sealed class OverlayTimeState
 {
-    public bool AboveTransport { get; } = true;
+    public bool AboveTransport { get; } = false;
     public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomLeft;
+    public bool OnTransport { get; } = true;
 }
 
 public enum OverlayAnchor
@@ -185,6 +227,16 @@ public sealed class FullscreenChrome
     public bool CenterPlayIcon { get; } = false;
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool EndCtaIsOverlay { get; } = true;
+    public bool TransportIsFloatingOverlay { get; } = true;
+    public bool WindowedTransportIsDocked { get; } = true;
+    public double TransportOverlayOpacity { get; } = SeriesOn.FullscreenTransportOpacity;
+    public int TransportInsetPx { get; } = SeriesOn.FullscreenTransportInsetPx;
+    public int TransportRadiusPx { get; } = SeriesOn.FullscreenTransportRadiusPx;
+    public IReadOnlyList<string> ToggleKeys { get; } = ["Enter", "F11"];
+    public int IdleHideSeconds { get; } = SeriesOn.FullscreenIdleHideSeconds;
+    public bool StageDoubleClickToggles { get; } = SeriesOn.StageDoubleClickTogglesFullscreen;
+    public bool TransportDoubleClickToggles { get; } = SeriesOn.TransportDoubleClickTogglesFullscreen;
+    public bool MenuDoubleClickToggles { get; } = SeriesOn.MenuDoubleClickTogglesFullscreen;
 }
 
 public sealed class NextEpisodeChrome

@@ -1,12 +1,21 @@
 namespace VideoPlayer.Core.Shell;
 
-/// <summary>Confirmed A v2 P0 chrome copy. Old wireframe A discarded.</summary>
+/// <summary>SeriesOn chrome copy. 퀵메뉴 holds File and ±10; transport hamburger is View.</summary>
 public static class UiCopy
 {
     public const string AppTitle = "이어서";
     public const string FileMenu = "파일";
     public const string ViewMenu = "보기";
-    public const string MenuSeparator = "";
+    public const string QuickMenu = "퀵메뉴";
+    public const string MenuSeparator = "|";
+    public const string Stop = "정지";
+    public const string Clear = "지우기";
+    public const string Rewind = "되감기";
+    public const string FastForward = "빨리감기";
+    public const string Minimize = "최소화";
+    public const string Maximize = "최대화";
+    public const string CloseWindow = "닫기";
+    public const string Loading = "불러오는 중";
 
     public const string SidebarTitle = "최근 / 시리즈";
     public const string ContinueWatching = "이어보기";
@@ -109,9 +118,28 @@ public static class UiCopy
     public const string ClipSaveFailed = "저장할 수 없습니다.";
     public const string ClipFfmpegMissing = "ffmpeg를 찾을 수 없습니다.";
 
-    public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
+    public static IReadOnlyList<string> MainMenus { get; } = [QuickMenu];
 
     public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, SaveAs, Exit];
+
+    public static IReadOnlyList<string> ViewMenuItems { get; } =
+    [
+        SkipBack,
+        SkipForward,
+        PreviousEpisode,
+        NextEpisode,
+        SeriesPanel,
+        ToggleSidebar,
+        Subtitles,
+        SkipToHere,
+        SkipAuto,
+        Captions,
+        Fullscreen,
+        AutoNext,
+        SpeedDefault,
+        Capture,
+        ClipSave
+    ];
 }
 
 public enum ShellScreen

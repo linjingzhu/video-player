@@ -11,7 +11,7 @@ public class PlaybackSessionTests
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(UiCopy.AppTitle, shell.Title);
-        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
         Assert.False(shell.Sidebar.Open);
         Assert.False(shell.CenterPlayIcon);
         Assert.False(shell.Fullscreen.AlwaysOnTopPin);
@@ -22,9 +22,11 @@ public class PlaybackSessionTests
         Assert.True(shell.Status.DashedSlot);
         Assert.Equal("-10초", shell.Transport.SkipBackLabel);
         Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
+        Assert.False(shell.Transport.SkipLabelsOnBar);
         Assert.True(shell.Transport.NextEpisodeIconOnly);
         Assert.False(shell.Transport.NextEpisodeTextOnBar);
-        Assert.False(shell.Transport.TimeOnBar);
+        Assert.True(shell.Transport.TimeOnBar);
+        Assert.True(shell.HasHeaderUi);
         Assert.Equal("다음 화", shell.Fullscreen.NextEpisodeLabel);
         Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
         Assert.True(shell.Fullscreen.EndCtaIsOverlay);
@@ -147,6 +149,41 @@ public class PlaybackSessionTests
         Assert.False(FullscreenChromeController.ShouldShow(true, paused: false, start.AddSeconds(4), start));
         Assert.True(FullscreenChromeController.ShouldShow(true, paused: false, start.AddSeconds(2), start));
         Assert.True(FullscreenChromeController.ShouldShow(false, paused: false, start.AddSeconds(30), start));
+        Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
+        Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
+        Assert.True(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: true, onTransportOrMenu: false));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: true, onTransportOrMenu: true));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: false, onTransportOrMenu: false));
+        Assert.False(FullscreenChromeController.ShouldToggleFromDoubleClick(onVideoStage: false, onTransportOrMenu: true));
+        Assert.True(PlayerShell.Boot().Fullscreen.StageDoubleClickToggles);
+        Assert.False(PlayerShell.Boot().Fullscreen.TransportDoubleClickToggles);
+        Assert.False(PlayerShell.Boot().Fullscreen.MenuDoubleClickToggles);
+        Assert.True(FullscreenChromeController.ShouldOpenStageMenuFromRightClick(onVideoStage: true, onTransportOrMenu: false));
+        Assert.False(FullscreenChromeController.ShouldOpenStageMenuFromRightClick(onVideoStage: true, onTransportOrMenu: true));
+        Assert.False(FullscreenChromeController.ShouldOpenStageMenuFromRightClick(onVideoStage: false, onTransportOrMenu: false));
+        Assert.True(PlayerShell.Boot().StageRightClickOpensExistingMenu);
+        Assert.False(SeriesOn.TransportRightClickOpensStageMenu);
+        Assert.False(SeriesOn.MenuRightClickOpensStageMenu);
+    }
+
+    [Fact]
+    public void Enter_and_f11_toggle_fullscreen_vs_windowed()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        Assert.Equal(ShellScreen.Main, session.Shell.Screen);
+        Assert.Equal(new[] { "Enter", "F11" }, session.Shell.Fullscreen.ToggleKeys);
+
+        session.ToggleFullscreen();
+        Assert.Equal(ShellScreen.Fullscreen, session.Shell.Screen);
+        Assert.True(session.Shell.Fullscreen.TransportIsFloatingOverlay);
+        Assert.Equal(0.80, session.Shell.Fullscreen.TransportOverlayOpacity);
+        Assert.Equal(16, session.Shell.Fullscreen.TransportInsetPx);
+        Assert.Equal(4, session.Shell.Fullscreen.TransportRadiusPx);
+
+        session.ToggleFullscreen();
+        Assert.Equal(ShellScreen.Main, session.Shell.Screen);
+        Assert.True(session.Shell.Fullscreen.WindowedTransportIsDocked);
     }
 
     [Fact]

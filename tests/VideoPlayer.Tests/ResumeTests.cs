@@ -45,6 +45,24 @@ public class ResumeTests
     }
 
     [Fact]
+    public void Clear_resume_keeps_current_position_even_in_last_ten_seconds()
+    {
+        var file = new MediaIdentity("/library/S01E01.mkv", 1000);
+        var fileResult = CompletionPolicy.SaveCurrentPosition(file, 91, 100);
+        Assert.False(fileResult.CurrentCompleted);
+        Assert.False(fileResult.Current.Completed);
+        Assert.Equal(91, fileResult.Current.PositionSeconds);
+
+        var url = MediaIdentity.FromUrl("https://example.com/show/S01E01.mkv");
+        var urlResult = CompletionPolicy.SaveCurrentPosition(url, 95, 100);
+        Assert.False(urlResult.CurrentCompleted);
+        Assert.False(urlResult.Current.Completed);
+        Assert.Equal(95, urlResult.Current.PositionSeconds);
+        Assert.Equal(url.Key, urlResult.Current.Key);
+        Assert.Equal(0, urlResult.Current.Size);
+    }
+
+    [Fact]
     public void Resume_store_does_not_point_continue_at_next_after_last_ten()
     {
         var store = new ResumeStore();
