@@ -209,6 +209,8 @@ public partial class MainWindow : Window
             SetMenuEnabled(menu, "autoNext", !_session.IsUrlSource);
             SetMenuChecked(menu, "autoNext", _session.AutoNext);
             SetMenuChecked(menu, "skipAuto", _session.SkipAutoEnabled);
+            SetMenuChecked(menu, "hdrAuto", _session.HdrMode == HdrMode.Auto);
+            SetMenuChecked(menu, "hdrOff", _session.HdrMode == HdrMode.Off);
             SetMenuEnabled(menu, "capture", !_session.IsUrlSource);
             SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
             SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
@@ -478,6 +480,18 @@ public partial class MainWindow : Window
         {
             _session.SkipAutoEnabled = item.IsChecked;
         }
+    }
+
+    private void HdrAuto_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetHdrMode(HdrMode.Auto);
+        RefreshShell();
+    }
+
+    private void HdrOff_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SetHdrMode(HdrMode.Off);
+        RefreshShell();
     }
 
     private void OverlayChrome_MouseDown(object sender, MouseButtonEventArgs e)

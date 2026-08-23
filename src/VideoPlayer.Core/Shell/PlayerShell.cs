@@ -29,6 +29,9 @@ public sealed class PlayerShell
     public ClipSheetState Clip { get; } = new();
     public ClipBannerState ClipBanner { get; } = new();
     public VolumeChrome Volume { get; } = new();
+    public HdrChrome Hdr { get; } = new();
+    public bool HasCast { get; } = false;
+    public bool HasMiracast { get; } = false;
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
     public string OverlaySecondarySubtitle { get; set; } = "";
@@ -164,6 +167,7 @@ public sealed class TransportState
     public bool HasRecordButton { get; } = false;
     public bool HasCastIcon { get; } = false;
     public bool HasHdrIcon { get; } = false;
+    public bool HasHdrBadge { get; } = false;
     public bool HasEjectIcon { get; } = false;
     public bool HorizontalVolumeSlider { get; } = true;
     public bool HasPrevious { get; set; }

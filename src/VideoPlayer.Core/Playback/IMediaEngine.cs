@@ -16,6 +16,7 @@ public interface IMediaEngine
     string? LastError { get; }
     IReadOnlyList<MediaChapter> Chapters { get; }
     IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; }
+    HdrMode HdrMode { get; }
 
     OpenMediaResult Open(string path, bool preferHardware);
     void Play();
@@ -25,6 +26,7 @@ public interface IMediaEngine
     void FrameStep(int direction);
     bool ScreenshotToFile(string path);
     void SetFitMode(string mode);
+    void SetHdrMode(HdrMode mode);
     void Close();
 }
 
@@ -47,6 +49,7 @@ public sealed class FakeMediaEngine : IMediaEngine
     public List<MediaChapter> Chapters { get; set; } = [];
     IReadOnlyList<MediaChapter> IMediaEngine.Chapters => Chapters;
     public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; set; } = [];
+    public HdrMode HdrMode { get; private set; } = HdrPassThrough.Default;
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
@@ -145,6 +148,8 @@ public sealed class FakeMediaEngine : IMediaEngine
     }
 
     public void SetFitMode(string mode) => _ = mode;
+
+    public void SetHdrMode(HdrMode mode) => HdrMode = HdrPassThrough.Clamp(mode);
 
     public void Close()
     {

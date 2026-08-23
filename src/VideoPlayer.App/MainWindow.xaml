@@ -62,6 +62,10 @@
                 <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="autoNext" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
                           Click="AutoNext_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="hdrAuto" Header="HDR 자동" IsCheckable="True" IsChecked="True"
+                          Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
+                          Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
@@ -524,6 +528,10 @@
                 <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="autoNext" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
                           Click="AutoNext_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="hdrAuto" Header="HDR 자동" IsCheckable="True" IsChecked="True"
+                          Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
+                          Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"

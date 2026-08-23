@@ -118,7 +118,12 @@ public static class UiCopy
     public const string ClipSaveFailed = "저장할 수 없습니다.";
     public const string ClipFfmpegMissing = "ffmpeg를 찾을 수 없습니다.";
 
+    public const string Hdr = "HDR";
+    public const string HdrAuto = "HDR 자동";
+    public const string HdrOff = "HDR 끄기";
+
     public static IReadOnlyList<string> MainMenus { get; } = [QuickMenu];
+    public static IReadOnlyList<string> HdrChoices { get; } = [HdrAuto, HdrOff];
 
     public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, SaveAs, Exit];
 
@@ -136,6 +141,8 @@ public static class UiCopy
         Captions,
         Fullscreen,
         AutoNext,
+        HdrAuto,
+        HdrOff,
         SpeedDefault,
         Capture,
         ClipSave
