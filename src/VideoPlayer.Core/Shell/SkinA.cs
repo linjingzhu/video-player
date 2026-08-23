@@ -4,18 +4,22 @@ namespace VideoPlayer.Core.Shell;
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
 /// and to this pack's skip capsule and subtitle sheet only.
 /// Compact density: 40px transport, 28px rail, body 12. Spacing is 4 8 12 16.
-/// Video is full-bleed. Hover is circular 8% only. No center play circle.
+/// Video is full-bleed. Radii: control 2 / panel 4 / window 2. Accent is white.
+/// Only the play triangle is #E10600. Seek fill is white; thumb is square.
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA
 {
-    public const string Background = "#0B0B0D";
-    public const string Panel = "#141418";
-    public const string Border = "#2C2C2E";
-    public const double BorderOpacity = 0.20;
-    public const string Text = "#F5F5F7";
-    public const string Secondary = "#8E8E93";
-    public const string Accent = "#0A84FF";
+    public const string Background = "#050505";
+    public const string Elevated = "#0E0E0E";
+    public const string Panel = Elevated;
+    public const string Border = "#222222";
+    public const double BorderOpacity = 0.40;
+    public const string Text = "#FFFFFF";
+    public const string Secondary = "#8A8A8A";
+    public const string Accent = "#FFFFFF";
+    public const string PlayTriangle = "#E10600";
+    public const string OnAccent = "#050505";
     public const string Thumb = "#FFFFFF";
     public const string HoverWhite = "#14FFFFFF";
 
@@ -34,9 +38,10 @@ public static class SkinA
     public const bool NoWireframeWindowTitle = true;
     public const bool NoMockCaptionSentences = true;
 
-    public const int RadiusPill = 999;
-    public const int RadiusPanel = 12;
-    public const int RadiusControl = 10;
+    public const int RadiusControl = 2;
+    public const int RadiusPanel = 4;
+    public const int RadiusWindow = 2;
+    public const int RadiusPill = RadiusControl;
     public static readonly int[] SpacingScale = [4, 8, 12, 16];
     public const int SpacingMin = 4;
     public const int SpacingMax = 16;
@@ -46,13 +51,19 @@ public static class SkinA
     public const bool VideoIsFullBleed = true;
     public const bool NoLetterboxChrome = true;
     public const bool AccentOnTracksOnly = true;
+    public const bool AccentIsWhite = true;
     public const bool WhiteThumbs = true;
+    public const bool SquareThumbs = true;
+    public const bool NoRoundThumbs = true;
     public const bool BorderlessIcons = true;
-    public const bool CircularIconHover = true;
-    public const bool HoverIsCircularEightPercent = true;
-    public const bool PlayIsCircularCapsule = true;
+    public const bool CircularIconHover = false;
+    public const bool HoverIsCircularEightPercent = false;
+    public const bool HoverIsEightPercentWhite = true;
+    public const bool PlayIsCircularCapsule = false;
+    public const bool PlayTriangleIsOnlyRed = true;
     public const bool CtaIsCapsuleOverlay = true;
     public const bool FailureIsBannerSlot = true;
+    public const bool NoBlueAccent = true;
     public const bool NoBlueThumbs = true;
     public const bool NoGlow = true;
     public const bool NoBoxyButtons = true;

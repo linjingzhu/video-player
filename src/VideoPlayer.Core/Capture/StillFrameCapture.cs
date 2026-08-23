@@ -324,7 +324,7 @@ public sealed class CaptureSheetState
     public string TextColor => SkinA.Text;
     public string SecondaryColor => SkinA.Secondary;
     public int PanelRadius => SkinA.RadiusPanel;
-    public int StartRadius => SkinA.RadiusPill;
+    public int StartRadius => SkinA.RadiusControl;
     public bool NeedsConfirm => StillFrameCapture.NeedsConfirm(Count);
     public IReadOnlyList<CaptureFormat> Formats => CaptureFormats.All;
 

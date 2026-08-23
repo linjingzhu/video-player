@@ -22,16 +22,21 @@ public class SkinCTokenTests
     [Fact]
     public void Colors_match_shared_lock()
     {
-        Assert.Equal("#0B0B0D", SkinC.Background);
-        Assert.Equal("#141418", SkinC.Panel);
-        Assert.Equal("#2C2C2E", SkinC.Border);
-        Assert.Equal(0.20, SkinC.BorderOpacity);
-        Assert.Equal("#F5F5F7", SkinC.Text);
-        Assert.Equal("#8E8E93", SkinC.Secondary);
-        Assert.Equal("#0A84FF", SkinC.Accent);
+        Assert.Equal("#050505", SkinC.Background);
+        Assert.Equal("#0E0E0E", SkinC.Panel);
+        Assert.Equal("#222222", SkinC.Border);
+        Assert.Equal(0.40, SkinC.BorderOpacity);
+        Assert.Equal("#FFFFFF", SkinC.Text);
+        Assert.Equal("#8A8A8A", SkinC.Secondary);
+        Assert.Equal("#FFFFFF", SkinC.Accent);
+        Assert.Equal(SkinA.Accent, SkinC.Accent);
+        Assert.Equal(2, SkinC.RadiusControl);
+        Assert.Equal(4, SkinC.RadiusPanel);
+        Assert.Equal(2, SkinC.RadiusWindow);
         Assert.Equal("Segoe UI Variable", SkinC.FontFamily);
         Assert.True(SkinC.SelectionIsPanelPlusHairline);
         Assert.True(SkinC.BorderlessFolderIcons);
-        Assert.True(SkinC.HoverIsCircularEightPercent);
+        Assert.False(SkinC.HoverIsCircularEightPercent);
+        Assert.NotEqual("#0A84FF", SkinC.Accent);
     }
 }

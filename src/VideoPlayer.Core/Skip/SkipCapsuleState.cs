@@ -80,7 +80,7 @@ public sealed class SkipCapsuleState
     public string PanelColor { get; } = SkinA.Panel;
     public string BackgroundColor { get; } = SkinA.Background;
     public string AccentColor { get; } = SkinA.Accent;
-    public int CapsuleRadius { get; } = SkinA.RadiusPill;
+    public int CapsuleRadius { get; } = SkinA.RadiusControl;
     public bool UsesExternalDatabase { get; } = false;
     public bool UsesIntroDb { get; } = false;
     public bool UsesAccounts { get; } = false;

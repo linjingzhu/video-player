@@ -11,22 +11,22 @@
         AllowsTransparency="True"
         FontFamily="Segoe UI Variable, Segoe UI"
         FontSize="13">
-  <Border Background="#FF141418" CornerRadius="12" Padding="24,20"
-          BorderBrush="#332C2C2E" BorderThickness="1">
+  <Border Background="#FF0E0E0E" CornerRadius="2" Padding="24,20"
+          BorderBrush="#66222222" BorderThickness="1">
     <DockPanel>
       <TextBlock DockPanel.Dock="Top" Text="URL 열기" Style="{StaticResource SkinATitleText}" Margin="0,0,0,16"/>
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
         <Button x:Name="OpenButton" Content="열기" IsDefault="True" IsEnabled="False" Click="Open_Click"
-                MinWidth="72" Margin="0,0,8,0" Foreground="#FFFFFFFF" FontSize="13"
+                MinWidth="72" Margin="0,0,8,0" Foreground="#FF050505" FontSize="13"
                 FocusVisualStyle="{x:Null}">
           <Button.Template>
             <ControlTemplate TargetType="Button">
-              <Border x:Name="bd" Background="#FF0A84FF" CornerRadius="10" Padding="16,8">
+              <Border x:Name="bd" Background="#FFFFFFFF" CornerRadius="2" Padding="16,8">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
               <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                  <Setter TargetName="bd" Property="Background" Value="#FF409CFF"/>
+                  <Setter TargetName="bd" Property="Background" Value="#FFE8E8E8"/>
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
                   <Setter TargetName="bd" Property="Background" Value="#FF3A3A3E"/>
@@ -37,11 +37,11 @@
           </Button.Template>
         </Button>
         <Button x:Name="CancelButton" Content="취소" IsCancel="True" Click="Cancel_Click"
-                MinWidth="72" Foreground="#FFF5F5F7" FontSize="13"
+                MinWidth="72" Foreground="#FFFFFFFF" FontSize="13"
                 FocusVisualStyle="{x:Null}">
           <Button.Template>
             <ControlTemplate TargetType="Button">
-              <Border x:Name="bd" Background="Transparent" CornerRadius="10" Padding="16,8">
+              <Border x:Name="bd" Background="Transparent" CornerRadius="2" Padding="16,8">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
               <ControlTemplate.Triggers>
@@ -56,18 +56,18 @@
       <StackPanel>
         <Grid>
           <TextBox x:Name="UrlBox" Height="36" Padding="10,8" FontSize="13"
-                   Background="#FF0B0B0D" Foreground="#FFF5F5F7" CaretBrush="#FFF5F5F7"
-                   BorderBrush="#FF0A84FF" BorderThickness="1"
+                   Background="#FF050505" Foreground="#FFFFFFFF" CaretBrush="#FFFFFFFF"
+                   BorderBrush="#FFFFFFFF" BorderThickness="1"
                    VerticalContentAlignment="Center"
                    TextChanged="UrlBox_TextChanged">
             <TextBox.Resources>
               <Style TargetType="Border">
-                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="CornerRadius" Value="2"/>
               </Style>
             </TextBox.Resources>
           </TextBox>
           <TextBlock x:Name="Placeholder" Text="https://" IsHitTestVisible="False"
-                     Foreground="#FF8E8E93" FontSize="13" Margin="12,0,0,0"
+                     Foreground="#FF8A8A8A" FontSize="13" Margin="12,0,0,0"
                      VerticalAlignment="Center"/>
         </Grid>
         <TextBlock Text="예: https://example.com/video.mp4" Style="{StaticResource SkinAMetaText}" Margin="0,8,0,0"/>

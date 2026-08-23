@@ -26,11 +26,11 @@ public class DualSubtitleSheetTests
         Assert.False(sheet.CcHasLongPress);
         Assert.False(sheet.HasDelaySheet);
         Assert.True(sheet.SecondaryNeverAutoOn);
-        Assert.Equal("#141418", sheet.PanelColor);
-        Assert.Equal("#0B0B0D", sheet.BackgroundColor);
-        Assert.Equal("#0A84FF", sheet.AccentColor);
+        Assert.Equal("#0E0E0E", sheet.PanelColor);
+        Assert.Equal("#050505", sheet.BackgroundColor);
+        Assert.Equal("#FFFFFF", sheet.AccentColor);
         Assert.Equal(SkinA.Panel, sheet.PanelColor);
-        Assert.Equal(12, sheet.PanelRadius);
+        Assert.Equal(4, sheet.PanelRadius);
         Assert.True(SkinA.NoMockCaptionSentences);
         Assert.Equal("CC", UiCopy.Captions);
     }
