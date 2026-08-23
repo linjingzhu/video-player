@@ -4,11 +4,14 @@
              xmlns:local="clr-namespace:VideoPlayer.App"
              Background="#0B0B0D"
              Foreground="#F5F5F7"
+             FontSize="13"
+             FontWeight="Regular"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True">
   <!--
-    Skin Pack C tokens only. C v2 structure is unchanged:
-    tree 작품→Sxx, columns 회차|제목|진행, title=filename stem, episode=E03.
+    Skin Pack C token lock. Type 20/600, 13/400, 11/400.
+    Selection #141418 + hairline. Episode=E03, title=stem.
+    Keep C header Back. No mock captions as chrome.
   -->
   <UserControl.Resources>
     <local:SkinCProgressBrushConverter x:Key="SkinCProgressBrush"/>
@@ -22,6 +25,25 @@
 
     <Style TargetType="TextBlock">
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
+    </Style>
+
+    <Style x:Key="SkinC.Type20" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontSize" Value="20"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style x:Key="SkinC.Type11" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Regular"/>
+      <Setter Property="Foreground" Value="{StaticResource SkinC.Muted}"/>
+    </Style>
+
+    <Style x:Key="SkinC.CellText" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
+      <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
     </Style>
 
     <Style x:Key="SkinCGhostButton" TargetType="Button">
@@ -29,6 +51,8 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="8,4"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -49,6 +73,8 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="{StaticResource SkinC.Line}"/>
       <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="14,6"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -72,6 +98,8 @@
     <Style TargetType="TreeView">
       <Setter Property="Background" Value="{StaticResource SkinC.Bg}"/>
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="6,8"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -94,6 +122,8 @@
     <Style TargetType="TreeViewItem">
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
       <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="10,5"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -103,6 +133,8 @@
             <StackPanel>
               <Border x:Name="Bd"
                       Background="{TemplateBinding Background}"
+                      BorderBrush="Transparent"
+                      BorderThickness="1"
                       CornerRadius="999"
                       Padding="{TemplateBinding Padding}"
                       Margin="4,2">
@@ -115,6 +147,7 @@
             <ControlTemplate.Triggers>
               <Trigger Property="IsSelected" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="#141418"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource SkinC.Line}"/>
               </Trigger>
               <Trigger Property="IsExpanded" Value="False">
                 <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
@@ -134,7 +167,8 @@
       <Setter Property="BorderBrush" Value="{StaticResource SkinC.Line}"/>
       <Setter Property="BorderThickness" Value="0,0,0,1"/>
       <Setter Property="Padding" Value="10,8"/>
-      <Setter Property="FontWeight" Value="Medium"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="SeparatorVisibility" Value="Collapsed"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
     </Style>
@@ -179,10 +213,8 @@
                 Click="Back_Click"
                 ToolTip="뒤로"/>
         <TextBlock x:Name="TitleText"
+                   Style="{StaticResource SkinC.Type20}"
                    Text="시리즈"
-                   FontSize="20"
-                   FontWeight="Medium"
-                   Foreground="{StaticResource SkinC.Text}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
         <Button x:Name="OpenFolderButton"
@@ -203,7 +235,7 @@
                   StrokeEndLineCap="Round"
                   VerticalAlignment="Center"
                   Margin="0,0,8,0"/>
-            <TextBlock Text="폴더 열기" Foreground="{StaticResource SkinC.Text}"/>
+            <TextBlock Text="폴더 열기" FontSize="13" FontWeight="Regular" Foreground="{StaticResource SkinC.Text}"/>
           </StackPanel>
         </Button>
       </Grid>
@@ -213,11 +245,11 @@
               BorderThickness="0,1,0,0"
               Padding="16,10">
         <Grid>
-          <TextBlock x:Name="FooterLeftText" Foreground="{StaticResource SkinC.Muted}"/>
+          <TextBlock x:Name="FooterLeftText" Style="{StaticResource SkinC.Type11}"/>
           <TextBlock x:Name="FooterRightText"
+                     Style="{StaticResource SkinC.Type11}"
                      Text="정렬 회차 고정"
-                     HorizontalAlignment="Right"
-                     Foreground="{StaticResource SkinC.Muted}"/>
+                     HorizontalAlignment="Right"/>
         </Grid>
       </Border>
 
@@ -260,13 +292,17 @@
                   AlternatingRowBackground="Transparent"
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
+                  FontSize="13"
+                  FontWeight="Regular"
                   MouseDoubleClick="SeriesGrid_Activate">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="회차" Binding="{Binding Episode}" Width="80" CanUserSort="False"/>
-            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="*" CanUserSort="False"/>
+            <DataGridTextColumn Header="회차" Binding="{Binding Episode}" Width="80" CanUserSort="False"
+                                ElementStyle="{StaticResource SkinC.CellText}"/>
+            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="*" CanUserSort="False"
+                                ElementStyle="{StaticResource SkinC.CellText}"/>
             <DataGridTextColumn Header="진행" Binding="{Binding Progress}" Width="90" CanUserSort="False">
               <DataGridTextColumn.ElementStyle>
-                <Style TargetType="TextBlock">
+                <Style TargetType="TextBlock" BasedOn="{StaticResource SkinC.CellText}">
                   <Setter Property="Foreground" Value="{Binding Progress, Converter={StaticResource SkinCProgressBrush}}"/>
                 </Style>
               </DataGridTextColumn.ElementStyle>
