@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Safety;
 using VideoPlayer.Core.Series;
@@ -61,20 +63,18 @@ public partial class SeriesPage : UserControl
         {
             var showItem = new TreeViewItem
             {
-                Header = $"📁 {show.Label}",
+                Header = FolderHeader(show.Label),
                 Tag = show,
-                IsExpanded = true,
-                Foreground = Foreground
+                IsExpanded = true
             };
 
             foreach (var season in show.Children)
             {
                 var seasonItem = new TreeViewItem
                 {
-                    Header = $"📁 {season.Label}",
+                    Header = FolderHeader(season.Label),
                     Tag = season,
-                    IsSelected = season.Selected,
-                    Foreground = Foreground
+                    IsSelected = season.Selected
                 };
                 showItem.Items.Add(seasonItem);
             }
@@ -133,4 +133,31 @@ public partial class SeriesPage : UserControl
         => _drill?.Shows
             .SelectMany(s => s.Seasons)
             .FirstOrDefault(s => string.Equals(s.FolderPath, folderPath, PathValidator.PathComparison));
+
+    private static FrameworkElement FolderHeader(string label)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal };
+        row.Children.Add(new Path
+        {
+            Data = Geometry.Parse("M3.2,6.4 H8.1 L9.7,8.2 H20.8 V17.2 H3.2 Z"),
+            Stroke = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7)),
+            StrokeThickness = 1.15,
+            Fill = Brushes.Transparent,
+            Width = 15,
+            Height = 12,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+            StrokeLineJoin = PenLineJoin.Round,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round
+        });
+        row.Children.Add(new TextBlock
+        {
+            Text = label,
+            Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7)),
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        return row;
+    }
 }
