@@ -60,22 +60,25 @@ public class HdrPassThroughTests
         Assert.DoesNotContain("Cast", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Miracast", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("QuickMenu", Enum.GetNames<TransportControl>());
+        Assert.Contains("HDR 자동", UiCopy.ViewMenuItems);
+        Assert.Contains("HDR 끄기", UiCopy.ViewMenuItems);
         Assert.Equal(
             new[]
             {
-                TransportControl.PreviousEpisode,
-                TransportControl.SkipBack,
+                TransportControl.Rewind,
                 TransportControl.PlayPause,
-                TransportControl.SkipForward,
-                TransportControl.NextEpisode,
+                TransportControl.Stop,
+                TransportControl.Clear,
+                TransportControl.FastForward,
                 TransportControl.Seek,
                 TransportControl.Volume,
-                TransportControl.Speed,
-                TransportControl.Captions,
-                TransportControl.Fullscreen
+                TransportControl.Time,
+                TransportControl.Hamburger
             },
             shell.Transport.Order);
-        Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
+        Assert.Equal(new[] { "퀵메뉴" }, shell.Menus);
+        Assert.False(shell.Transport.HasHdrIcon);
+        Assert.False(shell.Transport.HasCastIcon);
     }
 
     [Theory]

@@ -141,6 +141,8 @@ public static class UiCopy
         Captions,
         Fullscreen,
         AutoNext,
+        HdrAuto,
+        HdrOff,
         SpeedDefault,
         Capture,
         ClipSave
