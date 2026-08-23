@@ -21,6 +21,8 @@ public class DualSubtitleSheetTests
         Assert.True(sheet.PrimaryIsBottom);
         Assert.True(sheet.SecondaryIsTop);
         Assert.False(sheet.CcOpensSheet);
+        Assert.True(sheet.CcNeverOpensSheet);
+        Assert.True(sheet.OpensFromViewMenuOnly);
         Assert.False(sheet.CcHasLongPress);
         Assert.False(sheet.HasDelaySheet);
         Assert.True(sheet.SecondaryNeverAutoOn);
@@ -193,5 +195,11 @@ public class DualSubtitleSheetTests
         session.ToggleCaptions();
         Assert.False(session.Shell.Subtitles.Open);
         Assert.False(session.Shell.Transport.CaptionsOn);
+        session.OpenSubtitleSheet();
+        Assert.True(session.Shell.Subtitles.Open);
+        session.ToggleCaptions();
+        Assert.True(session.Shell.Subtitles.Open);
+        Assert.True(session.Shell.Subtitles.CcNeverOpensSheet);
+        Assert.True(session.Shell.Subtitles.OpensFromViewMenuOnly);
     }
 }

@@ -177,6 +177,8 @@ public sealed class NextEpisodeChrome
     public bool OverlayOnly { get; } = true;
     public bool EndRegionOnly { get; } = true;
     public bool OnTransport { get; } = false;
+    public bool SharesSkipCorner { get; } = true;
+    public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomRight;
     public string Label { get; set; } = UiCopy.NextEpisodeCta;
     public string CancelLabel { get; } = UiCopy.NextEpisodeCancel;
 }

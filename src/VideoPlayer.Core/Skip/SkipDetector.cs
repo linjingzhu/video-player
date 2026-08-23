@@ -42,6 +42,19 @@ public static class SkipDetector
             .ToList();
     }
 
+    public static bool RangesOverlap(SkipSegment? skip, double nextStart, double duration)
+    {
+        if (skip is null || duration <= 0 || nextStart >= duration)
+        {
+            return false;
+        }
+
+        return skip.Start < duration && skip.End > nextStart;
+    }
+
+    public static (bool ShowSkip, bool ShowNext) ExclusiveCorner(bool skipActive, bool nextActive)
+        => skipActive && nextActive ? (true, false) : (skipActive, nextActive);
+
     public static SkipSegment? Active(IReadOnlyList<SkipSegment> segments, double position, IReadOnlySet<SkipKind>? dismissed = null)
     {
         foreach (var kind in SkipKinds.DisplayOrder)

@@ -74,6 +74,8 @@ public sealed class SkipCapsuleState
     public int AutoSeconds { get; set; }
     public bool OverlayOnly { get; } = true;
     public bool OnTransport { get; } = false;
+    public bool SharesNextEpisodeCorner { get; } = true;
+    public bool ExclusiveCornerCapsule { get; } = true;
     public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomRight;
     public string PanelColor { get; } = SkinA.Panel;
     public string BackgroundColor { get; } = SkinA.Background;

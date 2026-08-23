@@ -18,6 +18,10 @@ public class SkipCapsuleTests
         Assert.False(skip.UsesIntroDb);
         Assert.False(skip.UsesAccounts);
         Assert.True(skip.DefaultIsButtonOnly);
+        Assert.True(skip.SharesNextEpisodeCorner);
+        Assert.True(skip.ExclusiveCornerCapsule);
+        Assert.True(PlayerShell.Boot().NextEpisode.SharesSkipCorner);
+        Assert.Equal(OverlayAnchor.BottomRight, PlayerShell.Boot().NextEpisode.Anchor);
         Assert.False(skip.AutoEnabled);
         Assert.Equal("#141418", skip.PanelColor);
         Assert.Equal("#0B0B0D", skip.BackgroundColor);
@@ -256,5 +260,38 @@ public class SkipCapsuleTests
         Assert.False(session.Shell.Skip.Visible);
         Assert.True(session.Shell.NextEpisode.ShowCta);
         Assert.Equal("다음 화 >", session.Shell.NextEpisode.Label);
+        Assert.False(session.Shell.Skip.Visible);
+    }
+
+    [Fact]
+    public void Shared_corner_shows_only_one_capsule_when_ranges_do_not_overlap()
+    {
+        using var workspace = new TempWorkspace();
+        var season = Path.Combine(workspace.Root, "S01");
+        Directory.CreateDirectory(season);
+        var first = Path.Combine(season, "S01E01.mkv");
+        var second = Path.Combine(season, "S01E02.mkv");
+        File.WriteAllBytes(first, [1]);
+        File.WriteAllBytes(second, [2]);
+        var engine = new FakeMediaEngine
+        {
+            Duration = 200,
+            Chapters = [new MediaChapter("오프닝", 0, 80)]
+        };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenSeriesFolder(workspace.Root);
+        session.Open(first);
+
+        session.SeekAbsolute(10);
+        session.Tick(DateTimeOffset.UtcNow);
+        Assert.True(session.Shell.Skip.Visible);
+        Assert.False(session.Shell.NextEpisode.ShowCta);
+        Assert.False(SkipDetector.RangesOverlap(session.SkipSegments.Single(), 190, 200));
+
+        session.SeekAbsolute(195);
+        session.Tick(DateTimeOffset.UtcNow);
+        Assert.False(session.Shell.Skip.Visible);
+        Assert.True(session.Shell.NextEpisode.ShowCta);
+        Assert.Equal((true, false), SkipDetector.ExclusiveCorner(true, true));
     }
 }

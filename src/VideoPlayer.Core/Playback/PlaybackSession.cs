@@ -195,6 +195,7 @@ public sealed class PlaybackSession
         var now = DateTimeOffset.UtcNow;
         UpdateNextEpisodeChrome(now);
         UpdateSkipCapsule(now);
+        ResolveExclusiveCornerCapsule();
     }
 
     public void SkipBack() => SeekRelative(-JumpSeconds);
@@ -221,6 +222,7 @@ public sealed class PlaybackSession
         var now = DateTimeOffset.UtcNow;
         UpdateNextEpisodeChrome(now);
         UpdateSkipCapsule(now);
+        ResolveExclusiveCornerCapsule();
     }
 
     public void SetSpeed(double speed)
@@ -319,6 +321,7 @@ public sealed class PlaybackSession
 
     public void CancelAutoNext() => AutoNextOffer.Cancel();
 
+    /// <summary>보기 &gt; 자막 is the only opener. CC never calls this.</summary>
     public void OpenSubtitleSheet()
     {
         if (Current is { } current)
@@ -380,7 +383,10 @@ public sealed class PlaybackSession
 
         Persist();
         LoadSkipSegments(current.Path);
-        UpdateSkipCapsule(DateTimeOffset.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+        UpdateNextEpisodeChrome(now);
+        UpdateSkipCapsule(now);
+        ResolveExclusiveCornerCapsule();
         return marked;
     }
 
@@ -393,6 +399,7 @@ public sealed class PlaybackSession
             if (segment is not null)
             {
                 Shell.Skip.Show(segment, autoPending: false, 0);
+                ResolveExclusiveCornerCapsule();
                 return;
             }
         }
@@ -433,6 +440,7 @@ public sealed class PlaybackSession
         UpdateChromeVisibility(now);
         UpdateNextEpisodeChrome(now);
         UpdateSkipCapsule(now);
+        ResolveExclusiveCornerCapsule();
 
         if (Engine.IsOpen && Engine.Duration > 0 && Engine.Position >= Engine.Duration - 0.25)
         {
@@ -745,6 +753,17 @@ public sealed class PlaybackSession
         }
 
         Shell.Skip.Show(active, autoPending: false, 0);
+    }
+
+    private void ResolveExclusiveCornerCapsule()
+    {
+        var (showSkip, showNext) = SkipDetector.ExclusiveCorner(Shell.Skip.Visible, Shell.NextEpisode.ShowCta);
+        if (!showSkip && Shell.Skip.Visible)
+        {
+            Shell.Skip.Hide();
+        }
+
+        Shell.NextEpisode.ShowCta = showNext;
     }
 
     private void SyncTransport()

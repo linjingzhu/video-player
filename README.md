@@ -23,7 +23,7 @@ Windows desktop **영상 플레이어**. Local files only. No store, DRM, accoun
 - Video uses remaining width. No large centered play icon. Click the video surface to toggle play/pause
 - Transport: prev | **-10초** | play | **+10초** | next (icon only) | seek | volume | **1.0x** | **CC** | fullscreen
 - Time overlay sits above the transport. **다음 화** is an end-region video overlay, not a transport label
-- Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only. Sources: locked chapter aliases and **보기 > 여기까지 스킵** (season-folder key, shared). No marker hides the button. Default On is button only; **건너뛰기 자동** is a 3s cancel. Recap wins overlap. Credits CTA while in credits; next-episode CTA after credits end in the last 10s. No IntroDB
+- Skip capsules (**인트로 / 리캡 / 크레딧 건너뛰기**) sit bottom-right on the video only and share the next-episode corner — one capsule when ranges do not overlap. Sources: locked chapter aliases and **보기 > 여기까지 스킵** (season-folder key, shared). No marker hides the button. Default On is button only; **건너뛰기 자동** is a 3s cancel. Recap wins overlap. Credits CTA while in credits; next-episode CTA after credits end in the last 10s. No IntroDB
 - Status bar is a dashed slot and **hidden when idle**. Failure line only: **미지원** / **SW 폴백**
 - No always-on-top pin
 
