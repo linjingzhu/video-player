@@ -32,6 +32,8 @@ public sealed class PlayerShell
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
     public bool VideoFullWidth { get; } = true;
+    public bool VideoFullBleed { get; } = true;
+    public bool NoLetterboxChrome { get; } = true;
 
     public static PlayerShell Boot() => new();
 
@@ -53,8 +55,9 @@ public sealed class PlayerShell
 
 public static class ShellLayout
 {
-    public const int SidebarRailWidthPx = 36;
+    public const int SidebarRailWidthPx = 28;
     public const int SidebarOpenPanelWidthPx = 240;
+    public const int TransportHeightPx = 40;
 
     public static IReadOnlyList<TransportControl> TransportOrder { get; } =
     [

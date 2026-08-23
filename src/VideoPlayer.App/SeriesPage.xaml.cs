@@ -155,7 +155,7 @@ public partial class SeriesPage : UserControl
         row.Children.Add(new TextBlock
         {
             Text = label,
-            FontSize = 13,
+            FontSize = 12,
             FontWeight = FontWeights.Regular,
             Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7)),
             VerticalAlignment = VerticalAlignment.Center
