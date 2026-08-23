@@ -62,6 +62,8 @@ public class PlayerShellLayoutTests
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.False(shell.Transport.NextEpisodeTextOnBar);
         Assert.True(shell.Transport.NextEpisodeIconOnly);
+        Assert.Equal(UiCopy.NextEpisodeIcon, shell.Transport.NextIcon);
+        Assert.NotEqual(UiCopy.NextEpisode, shell.Transport.NextIcon);
         Assert.Equal("다음 화 >", shell.NextEpisode.Label);
         Assert.Equal("다음 화 >", UiCopy.NextEpisodeCta);
     }
@@ -93,10 +95,34 @@ public class PlayerShellLayoutTests
         status.Clear();
         Assert.False(status.Visible);
         Assert.Equal("SW 폴백", UiCopy.SoftwareFallback);
+
+        status.Fail("   ");
+        Assert.False(status.Visible);
+        Assert.Equal("", StatusText.Format(DecodePath.Hardware, "h264", "aac"));
+        Assert.True(StatusText.IsConfirmedFailureLine(StatusText.Unsupported("prores")));
+        Assert.True(StatusText.IsConfirmedFailureLine(StatusText.SoftwareFallback("h264", "aac")));
     }
 
     [Fact]
-    public void Fullscreen_keeps_overlay_cta_and_drops_old_a_chrome()
+    public void Successful_open_clears_prior_failure_so_the_idle_bar_stays_hidden()
+    {
+        using var workspace = new TempWorkspace();
+        var iso = workspace.File("disc.iso", [1]);
+        var ok = workspace.File("ok.mkv", [1]);
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+
+        session.Open(iso);
+        Assert.True(session.Shell.Status.Visible);
+        Assert.StartsWith("미지원", session.Shell.Status.Text);
+        Assert.True(StatusText.IsConfirmedFailureLine(session.Shell.Status.Text));
+
+        session.Open(ok);
+        Assert.False(session.Shell.Status.Visible);
+        Assert.Equal("", session.Shell.Status.Text);
+    }
+
+    [Fact]
+    public void Fullscreen_b_is_overlay_cta_without_pin_or_center_play()
     {
         var shell = PlayerShell.Boot();
         shell.EnterFullscreen();
@@ -105,6 +131,8 @@ public class PlayerShellLayoutTests
         Assert.False(shell.Fullscreen.CenterPlayIcon);
         Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
         Assert.True(shell.Fullscreen.EndCtaIsOverlay);
+        Assert.True(shell.NextEpisode.OverlayOnly);
+        Assert.False(shell.NextEpisode.OnTransport);
         Assert.False(shell.CenterPlayIcon);
     }
 

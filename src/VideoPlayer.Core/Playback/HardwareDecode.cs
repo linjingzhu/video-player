@@ -42,15 +42,18 @@ public readonly record struct DecodeOutcome(
 public static class StatusText
 {
     public static string Format(DecodePath path, string? videoCodec, string? audioCodec)
-        => path == DecodePath.Hardware
-            ? $"하드웨어 가속 · {SupportedFormats.DisplayCodecName(videoCodec)} · {SupportedFormats.DisplayCodecName(audioCodec)}"
-            : SoftwareFallback(videoCodec, audioCodec);
+        => path == DecodePath.Hardware ? "" : SoftwareFallback(videoCodec, audioCodec);
 
     public static string SoftwareFallback(string? videoCodec, string? audioCodec)
         => $"{UiCopy.SoftwareFallback} · {SupportedFormats.DisplayCodecName(videoCodec)} · {SupportedFormats.DisplayCodecName(audioCodec)}";
 
     public static string Unsupported(string? codecName)
         => $"{UiCopy.Unsupported} · {SupportedFormats.DisplayCodecName(codecName)}";
+
+    public static bool IsConfirmedFailureLine(string? text)
+        => !string.IsNullOrWhiteSpace(text)
+           && (text.StartsWith(UiCopy.Unsupported, StringComparison.Ordinal)
+               || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal));
 }
 
 public sealed record OpenMediaResult

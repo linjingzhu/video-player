@@ -146,7 +146,8 @@ public sealed class StatusBarState
 
     public void Clear() => Text = "";
 
-    public void Fail(string message) => Text = message;
+    public void Fail(string message)
+        => Text = string.IsNullOrWhiteSpace(message) ? "" : message.Trim();
 }
 
 public sealed class FullscreenChrome
