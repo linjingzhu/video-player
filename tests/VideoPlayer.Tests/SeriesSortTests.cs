@@ -153,6 +153,40 @@ public class SeriesSortTests
     }
 
     [Fact]
+    public void Designer_c_v2_title_is_stem_and_tree_is_korean_work_to_sxx()
+    {
+        var root = Directory.CreateTempSubdirectory("series-c-v2-");
+        try
+        {
+            var work = Path.Combine(root.FullName, "드라마");
+            Directory.CreateDirectory(work);
+            WriteSeason(work, "시즌 1", 1);
+            WriteSeason(work, "Season 02", 2);
+
+            var show = SeriesScanner.Scan(work);
+            Assert.Equal("드라마", show.Name);
+            Assert.Equal(new[] { "S01", "S02" }, show.Seasons.Select(s => s.Name));
+
+            var drill = new SeriesDrillDown();
+            drill.ReplaceShows([show]);
+            drill.OpenSeason(show.Seasons[1]);
+            var tree = drill.Tree();
+            Assert.Equal("드라마", tree[0].Label);
+            Assert.Equal(new[] { "S01", "S02" }, tree[0].Children.Select(c => c.Label));
+
+            var items = drill.ListItems(new ResumeStore(), null);
+            Assert.Equal(new[] { "S02E01", "S02E02" }, items.Select(i => i.Title));
+            Assert.All(items, i => Assert.False(i.Title.Contains(".mkv", StringComparison.OrdinalIgnoreCase)));
+            Assert.Equal("S02E01", SeriesScanner.EpisodeTitle("S02E01.mkv"));
+            Assert.NotEqual("S02E01.mkv", SeriesScanner.EpisodeTitle("S02E01.mkv"));
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
+
+    [Fact]
     public void Progress_mark_is_check_play_percent_or_dash()
     {
         Assert.Equal("✓", SeriesScanner.ProgressMark(new ResumeEntry
