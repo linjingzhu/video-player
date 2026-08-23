@@ -572,6 +572,12 @@ public sealed class PlaybackSession
         Persist();
     }
 
+    public void RememberVolume()
+    {
+        Settings.SetVolume(_unmutedVolume, _muted);
+        Persist();
+    }
+
     public SeriesShow OpenSeriesFolder(string folder)
     {
         var show = SeriesScanner.Scan(folder);
@@ -1404,9 +1410,19 @@ public sealed class PlaybackSession
         RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
         Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
+        ApplyPersistedVolume();
         Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
         _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName));
         RefreshSidebar();
+    }
+
+    private void ApplyPersistedVolume()
+    {
+        var level = Settings.Volume > 0 ? Settings.Volume : 1;
+        _unmutedVolume = level;
+        _muted = Settings.Muted;
+        Engine.Volume = _muted ? 0 : level;
+        SyncVolumeChrome();
     }
 
     private void RememberCaptureFolder(string path)

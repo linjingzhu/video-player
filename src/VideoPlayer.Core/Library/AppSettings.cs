@@ -10,6 +10,7 @@ namespace VideoPlayer.Core.Library;
 /// and wireframe copy ±10초. No settings UI in P0.
 /// Capture and clip-save keep last-used folders on separate keys.
 /// HDR is a global HDR 자동 / HDR 끄기 key (default 자동).
+/// Last volume (muted + level) is restored on launch. Speed is not stored.
 /// </summary>
 public sealed class AppSettings
 {
@@ -18,11 +19,16 @@ public sealed class AppSettings
     public const string CaptureFolderKey = "captureFolder";
     public const string ClipFolderKey = "clipFolder";
     public const string HdrKey = "hdr";
+    public const string VolumeKey = "volume";
+    public const string MutedKey = "muted";
+    public const double DefaultVolume = 1.0;
 
     public int JumpSeconds { get; private set; } = JumpInterval.DefaultSeconds;
     public string? CaptureFolder { get; private set; }
     public string? ClipFolder { get; private set; }
     public HdrMode Hdr { get; private set; } = HdrPassThrough.Default;
+    public double Volume { get; private set; } = DefaultVolume;
+    public bool Muted { get; private set; }
 
     /// <summary>v1.5 live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
     public int SetJumpSeconds(int seconds)
@@ -49,9 +55,26 @@ public sealed class AppSettings
         return Hdr;
     }
 
+    public (double Volume, bool Muted) SetVolume(double volume, bool muted)
+    {
+        Volume = ClampVolume(volume);
+        Muted = muted || Volume <= 0;
+        return (Volume, Muted);
+    }
+
+    public static double ClampVolume(double volume)
+    {
+        if (double.IsNaN(volume) || double.IsInfinity(volume))
+        {
+            return DefaultVolume;
+        }
+
+        return Math.Clamp(volume, 0, 1);
+    }
+
     public string ToJson()
         => JsonSerializer.Serialize(
-            new AppSettingsDto(JumpSeconds, CaptureFolder, ClipFolder, HdrPassThrough.ToSetting(Hdr)),
+            new AppSettingsDto(JumpSeconds, CaptureFolder, ClipFolder, HdrPassThrough.ToSetting(Hdr), Volume, Muted),
             JsonOptions);
 
     public static AppSettings FromJson(string? json)
@@ -101,6 +124,23 @@ public sealed class AppSettings
             {
                 settings.Hdr = HdrPassThrough.Parse(hdr.GetString());
             }
+
+            if (document.RootElement.TryGetProperty(VolumeKey, out var volume)
+                && volume.TryGetDouble(out var level))
+            {
+                settings.Volume = ClampVolume(level);
+            }
+
+            if (document.RootElement.TryGetProperty(MutedKey, out var muted)
+                && muted.ValueKind is JsonValueKind.True or JsonValueKind.False)
+            {
+                settings.Muted = muted.GetBoolean();
+            }
+
+            if (settings.Volume <= 0)
+            {
+                settings.Muted = true;
+            }
         }
         catch (JsonException)
         {
@@ -110,7 +150,13 @@ public sealed class AppSettings
         return settings;
     }
 
-    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder, string? ClipFolder, string Hdr);
+    private sealed record AppSettingsDto(
+        int JumpSeconds,
+        string? CaptureFolder,
+        string? ClipFolder,
+        string Hdr,
+        double Volume,
+        bool Muted);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

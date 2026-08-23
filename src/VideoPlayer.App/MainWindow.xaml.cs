@@ -1043,6 +1043,7 @@ public partial class MainWindow : Window
     private void OnClosing(object? sender, CancelEventArgs e)
     {
         _session.Checkpoint("exit");
+        _session.RememberVolume();
         _session.RememberWindow(new WindowBounds(Left, Top, Width, Height));
         _engine.Dispose();
     }

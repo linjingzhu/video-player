@@ -1,3 +1,4 @@
+using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
 
@@ -179,5 +180,78 @@ public class VolumeChromeTests
         Assert.False(session.Shell.Volume.PopoverOpen);
         Assert.Equal(0.50, session.Engine.Volume, 3);
         Assert.Equal(50, session.Shell.Volume.Percent);
+    }
+
+    [Fact]
+    public void Last_volume_persists_to_appdata_and_restores_without_speed()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        session.SetVolume(0.42);
+        session.SetSpeed(1.5);
+        session.RememberVolume();
+
+        var settingsPath = Path.Combine(workspace.Data, AppSettings.FileName);
+        Assert.True(File.Exists(settingsPath));
+        var json = File.ReadAllText(settingsPath);
+        Assert.Contains("\"volume\":", json, StringComparison.Ordinal);
+        Assert.Contains("\"muted\":", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("speed", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("volume", session.Resume.ToJson(), StringComparison.Ordinal);
+
+        var loaded = AppSettings.FromJson(json);
+        Assert.Equal(0.42, loaded.Volume, 3);
+        Assert.False(loaded.Muted);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        Assert.Equal(0.42, reopened.Engine.Volume, 3);
+        Assert.False(reopened.Shell.Volume.Muted);
+        Assert.Equal(42, reopened.Shell.Volume.Percent);
+        Assert.Equal(1.0, reopened.Speed);
+        Assert.Equal(1.0, reopened.Engine.Speed);
+    }
+
+    [Fact]
+    public void Muted_and_level_round_trip_on_reopen()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        session.SetVolume(0.72);
+        session.ToggleMute();
+        Assert.True(session.Shell.Volume.Muted);
+        Assert.Equal(0, session.Engine.Volume);
+        session.RememberVolume();
+
+        var loaded = AppSettings.FromJson(File.ReadAllText(Path.Combine(workspace.Data, AppSettings.FileName)));
+        Assert.Equal(0.72, loaded.Volume, 3);
+        Assert.True(loaded.Muted);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        Assert.True(reopened.Shell.Volume.Muted);
+        Assert.Equal(0, reopened.Engine.Volume);
+        Assert.Equal(1.0, reopened.Speed);
+
+        reopened.ToggleMute();
+        Assert.False(reopened.Shell.Volume.Muted);
+        Assert.Equal(0.72, reopened.Engine.Volume, 3);
+        Assert.Equal(72, reopened.Shell.Volume.Percent);
+    }
+
+    [Fact]
+    public void Missing_or_invalid_volume_json_uses_full_unmuted()
+    {
+        Assert.Equal(1.0, AppSettings.FromJson(null).Volume);
+        Assert.False(AppSettings.FromJson(null).Muted);
+        Assert.Equal(1.0, AppSettings.FromJson("").Volume);
+        Assert.Equal(1.0, AppSettings.FromJson("{ not json").Volume);
+        Assert.Equal(1.0, AppSettings.FromJson("""{"other": 5}""").Volume);
+        Assert.Equal(0, AppSettings.FromJson("""{"volume": 0}""").Volume);
+        Assert.True(AppSettings.FromJson("""{"volume": 0}""").Muted);
+        Assert.Equal(1.0, AppSettings.FromJson("""{"volume": 1.4}""").Volume);
+        Assert.Equal(0.55, AppSettings.FromJson("""{"volume": 0.55}""").Volume, 3);
+        Assert.True(AppSettings.FromJson("""{"volume": 0.4, "muted": true}""").Muted);
+        Assert.Equal(0.4, AppSettings.FromJson("""{"volume": 0.4, "muted": true}""").Volume, 3);
+        Assert.Equal("volume", AppSettings.VolumeKey);
+        Assert.Equal("muted", AppSettings.MutedKey);
     }
 }
