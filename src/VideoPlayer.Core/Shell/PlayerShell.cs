@@ -1,9 +1,11 @@
 namespace VideoPlayer.Core.Shell;
 
+/// <summary>Confirmed A v2 P0 shell. Old wireframe A discarded.</summary>
 public sealed class PlayerShell
 {
     public string Title { get; init; } = UiCopy.AppTitle;
     public IReadOnlyList<string> Menus { get; init; } = UiCopy.MainMenus;
+    public string MenuSeparator { get; } = UiCopy.MenuSeparator;
     public ShellScreen Screen { get; set; } = ShellScreen.Main;
     public SidebarState Sidebar { get; } = new();
     public TransportState Transport { get; } = new();
@@ -11,11 +13,13 @@ public sealed class PlayerShell
     public FullscreenChrome Fullscreen { get; } = new();
     public SeriesPanelState Series { get; } = new();
     public NextEpisodeChrome NextEpisode { get; } = new();
+    public OverlayTimeState OverlayClock { get; } = new();
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
     public bool IsPaused { get; set; } = true;
     public bool ChromeVisible { get; set; } = true;
     public bool CenterPlayIcon { get; } = false;
+    public bool VideoFullWidth { get; } = true;
 
     public static PlayerShell Boot() => new();
 
@@ -35,12 +39,50 @@ public sealed class PlayerShell
     public void ShowSeries() => Screen = ShellScreen.Series;
 }
 
+public static class ShellLayout
+{
+    public const int SidebarRailWidthPx = 36;
+    public const int SidebarOpenPanelWidthPx = 240;
+
+    public static IReadOnlyList<TransportControl> TransportOrder { get; } =
+    [
+        TransportControl.PreviousEpisode,
+        TransportControl.SkipBack,
+        TransportControl.PlayPause,
+        TransportControl.SkipForward,
+        TransportControl.NextEpisode,
+        TransportControl.Seek,
+        TransportControl.Volume,
+        TransportControl.Speed,
+        TransportControl.Captions,
+        TransportControl.Fullscreen
+    ];
+}
+
+public enum TransportControl
+{
+    PreviousEpisode,
+    SkipBack,
+    PlayPause,
+    SkipForward,
+    NextEpisode,
+    Seek,
+    Volume,
+    Speed,
+    Captions,
+    Fullscreen
+}
+
 public sealed class SidebarState
 {
     public string Title { get; } = UiCopy.SidebarTitle;
+    public int RailWidthPx { get; } = ShellLayout.SidebarRailWidthPx;
+    public int OpenPanelWidthPx { get; } = ShellLayout.SidebarOpenPanelWidthPx;
     public bool Open { get; set; }
     public SidebarResumeItem? Resume { get; set; }
     public List<SidebarSeriesItem> RecentSeries { get; } = [];
+
+    public int ContentWidthPx => Open ? OpenPanelWidthPx : 0;
 }
 
 public sealed record SidebarResumeItem(string Label, string Path, long Size);
@@ -49,8 +91,16 @@ public sealed record SidebarSeriesItem(string Title, string FolderPath);
 
 public sealed class TransportState
 {
+    public IReadOnlyList<TransportControl> Order { get; } = ShellLayout.TransportOrder;
     public string SkipBackLabel { get; } = UiCopy.SkipBack;
     public string SkipForwardLabel { get; } = UiCopy.SkipForward;
+    public string PreviousIcon { get; } = UiCopy.PreviousEpisodeIcon;
+    public string NextIcon { get; } = UiCopy.NextEpisodeIcon;
+    public bool NextEpisodeTextOnBar { get; } = false;
+    public bool NextEpisodeIconOnly { get; } = true;
+    public bool TimeOnBar { get; } = false;
+    public bool HasPrevious { get; set; }
+    public bool HasNext { get; set; }
     public double Position { get; set; }
     public double Duration { get; set; }
     public double Volume { get; set; } = 1.0;
@@ -73,9 +123,25 @@ public sealed class TransportState
     }
 }
 
+public sealed class OverlayTimeState
+{
+    public bool AboveTransport { get; } = true;
+    public OverlayAnchor Anchor { get; } = OverlayAnchor.BottomLeft;
+}
+
+public enum OverlayAnchor
+{
+    BottomLeft,
+    BottomCenter,
+    BottomRight
+}
+
 public sealed class StatusBarState
 {
     public string Text { get; set; } = "";
+    public bool FailureOnly { get; } = true;
+    public bool DashedSlot { get; } = true;
+    public bool HideWhenIdle { get; } = true;
     public bool Visible => !string.IsNullOrWhiteSpace(Text);
 
     public void Clear() => Text = "";
@@ -89,13 +155,19 @@ public sealed class FullscreenChrome
     public string NextEpisodeLabel { get; } = UiCopy.NextEpisode;
     public bool Visible { get; set; } = true;
     public bool AlwaysOnTopPin { get; } = false;
+    public bool CenterPlayIcon { get; } = false;
+    public bool NextEpisodeTextOnBar { get; } = false;
+    public bool EndCtaIsOverlay { get; } = true;
 }
 
 public sealed class NextEpisodeChrome
 {
     public bool ShowCta { get; set; }
     public bool AutoNextPending { get; set; }
-    public string Label { get; set; } = UiCopy.NextEpisode;
+    public bool OverlayOnly { get; } = true;
+    public bool EndRegionOnly { get; } = true;
+    public bool OnTransport { get; } = false;
+    public string Label { get; set; } = UiCopy.NextEpisodeCta;
     public string CancelLabel { get; } = UiCopy.NextEpisodeCancel;
 }
 

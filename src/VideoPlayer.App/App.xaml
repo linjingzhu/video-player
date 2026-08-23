@@ -10,6 +10,7 @@
     <SolidColorBrush x:Key="MutedBrush" Color="#FF9A9A9A"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#FFE8E8E8"/>
     <SolidColorBrush x:Key="HoverBrush" Color="#FF2A2A2A"/>
+    <DropShadowEffect x:Key="OverlayShadow" Color="#FF000000" BlurRadius="8" ShadowDepth="0" Opacity="0.85"/>
     <Style TargetType="Button">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="Background" Value="Transparent"/>
@@ -51,6 +52,67 @@
       <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
       <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
       <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="MinWidth" Value="36"/>
+    </Style>
+    <Style x:Key="RailButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Margin" Value="0"/>
+      <Setter Property="Padding" Value="2"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="NextCtaButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Padding" Value="14,8"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Background" Value="#CC111111"/>
+    </Style>
+    <Style x:Key="ChromeSlider" TargetType="Slider">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="Minimum" Value="0"/>
+      <Setter Property="IsMoveToPointEnabled" Value="True"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+            <Grid VerticalAlignment="Center">
+              <Border Height="4" Background="#FF3A3A3A" CornerRadius="2" Margin="6,0"/>
+              <Track x:Name="PART_Track">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Command="Slider.DecreaseLarge" IsHitTestVisible="False">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Height="4" Background="#FFE8E8E8" CornerRadius="2" Margin="6,0,0,0"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb Width="14" Height="14">
+                    <Thumb.Template>
+                      <ControlTemplate TargetType="Thumb">
+                        <Ellipse Fill="#FFF2F2F2" Stroke="#FF3A3A3A" StrokeThickness="1"/>
+                      </ControlTemplate>
+                    </Thumb.Template>
+                  </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Command="Slider.IncreaseLarge">
+                    <RepeatButton.Template>
+                      <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent" Height="16"/>
+                      </ControlTemplate>
+                    </RepeatButton.Template>
+                  </RepeatButton>
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
   </Application.Resources>
 </Application>

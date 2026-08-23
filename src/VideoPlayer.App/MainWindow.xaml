@@ -22,6 +22,7 @@
         <Separator/>
         <MenuItem Header="종료" Click="Exit_Click"/>
       </MenuItem>
+      <TextBlock Text="|" Margin="4,0" VerticalAlignment="Center" Foreground="#FF8A8A8A" IsHitTestVisible="False"/>
       <MenuItem Header="보기">
         <MenuItem Header="시리즈" Click="ShowSeries_Click"/>
         <MenuItem Header="사이드바" Click="ToggleSidebar_Click"/>
@@ -30,9 +31,12 @@
       </MenuItem>
     </Menu>
 
-    <StatusBar x:Name="StatusBar" DockPanel.Dock="Bottom" Background="#FF111111" Foreground="#FF9A9A9A" Visibility="Collapsed">
-      <TextBlock x:Name="StatusText"/>
-    </StatusBar>
+    <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Background="#FF111111" Padding="8,6" Visibility="Collapsed">
+      <Grid MinHeight="22">
+        <Rectangle Stroke="#FF6A6A6A" StrokeDashArray="4 3" StrokeThickness="1" RadiusX="2" RadiusY="2"/>
+        <TextBlock x:Name="StatusText" Margin="10,4" Foreground="#FFB0B0B0" VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
 
     <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="#FF1A1A1A" BorderBrush="#FF3A3A3A" BorderThickness="0,1,0,0" Padding="10,8">
       <Grid>
@@ -42,52 +46,64 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="PrevButton" Content="⏮" Click="Prev_Click" ToolTip="이전 화" Style="{StaticResource IconButton}" Padding="10,4"/>
           <Button Content="-10초" Click="SkipBack_Click"/>
           <Button x:Name="PlayButton" Content="▶" Click="PlayPause_Click" FontSize="16" Padding="14,4"/>
           <Button Content="+10초" Click="SkipForward_Click"/>
+          <Button x:Name="NextButton" Content="⏭" Click="Next_Click" ToolTip="다음 화" Style="{StaticResource IconButton}" Padding="10,4"/>
         </StackPanel>
-        <DockPanel Grid.Column="1" Margin="16,0">
-          <TextBlock x:Name="PositionText" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#FF9A9A9A"/>
-          <TextBlock x:Name="DurationText" Text="00:00:00" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#FF9A9A9A"/>
-          <Slider x:Name="SeekSlider" Minimum="0" Maximum="1" Value="0" VerticalAlignment="Center"
-                  PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
-        </DockPanel>
+        <Slider x:Name="SeekSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="0"
+                VerticalAlignment="Center" Margin="16,0" Style="{StaticResource ChromeSlider}"
+                PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
           <TextBlock Text="🔊" VerticalAlignment="Center" Margin="0,0,6,0"/>
-          <Slider x:Name="VolumeSlider" Width="90" Minimum="0" Maximum="1" Value="1" VerticalAlignment="Center"
+          <Slider x:Name="VolumeSlider" Width="90" Minimum="0" Maximum="1" Value="1"
+                  VerticalAlignment="Center" Style="{StaticResource ChromeSlider}"
                   ValueChanged="Volume_Changed"/>
           <Button x:Name="SpeedButton" Content="1.0x" Click="CycleSpeed_Click"/>
           <Button Content="CC" Click="Captions_Click"/>
-          <Button Content="⛶" Click="Fullscreen_Click" ToolTip="전체화면"/>
+          <Button Content="⛶" Click="Fullscreen_Click" ToolTip="전체화면" Style="{StaticResource IconButton}"/>
         </StackPanel>
       </Grid>
     </Border>
 
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition x:Name="SidebarColumn" Width="0"/>
+        <ColumnDefinition x:Name="SidebarRailColumn" Width="36"/>
+        <ColumnDefinition x:Name="SidebarContentColumn" Width="0"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <Border x:Name="SidebarPanel" Grid.Column="0" Background="#FF1C1C1C" BorderBrush="#FF3A3A3A" BorderThickness="0,0,1,0" Visibility="Collapsed">
+      <Border x:Name="SidebarRail" Grid.Column="0" Background="#FF1C1C1C" BorderBrush="#FF3A3A3A" BorderThickness="0,0,1,0">
+        <Button x:Name="SidebarToggle" Click="ToggleSidebar_Click" Style="{StaticResource RailButton}"
+                ToolTip="사이드바" VerticalAlignment="Top" Margin="0,6,0,0">
+          <Path Stroke="#FFF2F2F2" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                Data="M 4,6 H 20 M 4,12 H 20 M 4,18 H 20"/>
+        </Button>
+      </Border>
+
+      <Border x:Name="SidebarPanel" Grid.Column="1" Background="#FF1C1C1C" BorderBrush="#FF3A3A3A" BorderThickness="0,0,1,0" Visibility="Collapsed">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Text="최근 / 시리즈" FontWeight="SemiBold" Margin="12,10,12,6"/>
-          <ListBox x:Name="SidebarList" MouseDoubleClick="Sidebar_Activate"/>
+          <ListBox x:Name="SidebarList" MouseDoubleClick="Sidebar_Activate" MouseLeftButtonUp="Sidebar_Activate"/>
         </DockPanel>
       </Border>
 
-      <Grid Grid.Column="1">
+      <Grid Grid.Column="2">
         <Grid x:Name="VideoPage">
           <Border x:Name="VideoHostBorder" Background="#FF000000" MouseLeftButtonDown="Video_Click">
             <Grid>
               <WindowsFormsHost x:Name="PlayerHost"/>
-              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,48" IsHitTestVisible="False">
-                <TextBlock x:Name="OverlayTime" Text="" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="OverlaySubtitle" Text="" HorizontalAlignment="Center" Margin="0,8,0,0" FontSize="20"/>
-              </StackPanel>
-              <StackPanel x:Name="NextCtaPanel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,72"
+              <TextBlock x:Name="OverlayTime" Text="00:00:00 / 00:00:00"
+                         HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                         Margin="16,0,0,12" FontSize="13" Foreground="#FFF2F2F2"
+                         Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>
+              <TextBlock x:Name="OverlaySubtitle" Text="" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                         Margin="24,0,24,40" FontSize="20" TextAlignment="Center"
+                         Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>
+              <StackPanel x:Name="NextCtaPanel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,16"
                           Visibility="Collapsed">
-                <Button Content="다음 화" Click="Next_Click"/>
+                <Button x:Name="NextCtaButton" Content="다음 화 >" Click="Next_Click" Style="{StaticResource NextCtaButton}"/>
                 <Button x:Name="CancelAutoNextButton" Content="취소" Click="CancelAutoNext_Click" Margin="0,6,0,0" Visibility="Collapsed"/>
               </StackPanel>
             </Grid>
@@ -111,38 +127,6 @@
                 <DataGridTextColumn Header="진행" Binding="{Binding Progress}" Width="90"/>
               </DataGrid.Columns>
             </DataGrid>
-          </DockPanel>
-        </Grid>
-
-        <Grid x:Name="FullscreenChrome" Visibility="Collapsed" IsHitTestVisible="False">
-          <DockPanel>
-            <Grid DockPanel.Dock="Top" Margin="16,10">
-              <TextBlock x:Name="FsTitle" FontSize="16"/>
-            </Grid>
-            <Border DockPanel.Dock="Bottom" Margin="24,16" BorderBrush="#FF3A3A3A" BorderThickness="1" Background="#CC111111" Padding="12,10">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal">
-                  <Button Content="▶" Click="PlayPause_Click"/>
-                  <Button Content="-10초" Click="SkipBack_Click"/>
-                  <Button Content="+10초" Click="SkipForward_Click"/>
-                </StackPanel>
-                <DockPanel Grid.Column="1" Margin="12,0">
-                  <TextBlock x:Name="FsPosition" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                  <TextBlock x:Name="FsDuration" Text="00:00:00" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                  <Slider x:Name="FsSeek" Minimum="0" Maximum="1" VerticalAlignment="Center"/>
-                </DockPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                  <Button x:Name="FsSpeed" Content="1.0x" Click="CycleSpeed_Click"/>
-                  <Button Content="CC" Click="Captions_Click"/>
-                  <Button Content="다음 화" Click="Next_Click"/>
-                </StackPanel>
-              </Grid>
-            </Border>
           </DockPanel>
         </Grid>
       </Grid>

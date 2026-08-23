@@ -49,10 +49,6 @@ public partial class MainWindow : Window
     {
         _session.Tick(DateTimeOffset.UtcNow);
         RefreshShell();
-        if (_fullscreen)
-        {
-            ApplyFullscreenChrome(_session.Shell.ChromeVisible);
-        }
     }
 
     private void RefreshShell()
@@ -63,30 +59,27 @@ public partial class MainWindow : Window
             : UiCopy.AppTitle;
         StatusText.Text = shell.Status.Text;
         StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
-        PositionText.Text = shell.Transport.PositionText;
-        DurationText.Text = shell.Transport.DurationText;
         OverlayTime.Text = shell.OverlayTime;
+        OverlayTime.Visibility = !_fullscreen || shell.ChromeVisible ? Visibility.Visible : Visibility.Collapsed;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
         PlayButton.Content = shell.IsPaused ? "▶" : "❚❚";
         SpeedButton.Content = shell.Transport.SpeedText;
-        FsSpeed.Content = shell.Transport.SpeedText;
-        FsTitle.Text = shell.Fullscreen.Title;
-        FsPosition.Text = shell.Transport.PositionText;
-        FsDuration.Text = shell.Transport.DurationText;
+        PrevButton.IsEnabled = shell.Transport.HasPrevious;
+        NextButton.IsEnabled = shell.Transport.HasNext;
+        NextCtaButton.Content = shell.NextEpisode.Label;
         NextCtaPanel.Visibility = shell.NextEpisode.ShowCta ? Visibility.Visible : Visibility.Collapsed;
         CancelAutoNextButton.Visibility = shell.NextEpisode.AutoNextPending ? Visibility.Visible : Visibility.Collapsed;
         if (shell.Transport.Duration > 0)
         {
             SeekSlider.Maximum = shell.Transport.Duration;
             SeekSlider.Value = shell.Transport.Position;
-            FsSeek.Maximum = shell.Transport.Duration;
-            FsSeek.Value = shell.Transport.Position;
         }
 
         BindSidebar();
         SeriesHeading.Text = shell.Series.Heading;
         SeriesGrid.ItemsSource = shell.Series.Items;
         ApplySidebar();
+        ApplyChromeVisibility();
     }
 
     private void BindSidebar()
@@ -118,9 +111,29 @@ public partial class MainWindow : Window
 
     private void ApplySidebar()
     {
-        var open = _session.Shell.Sidebar.Open && !_fullscreen;
-        SidebarColumn.Width = open ? new GridLength(240) : new GridLength(0);
+        if (_fullscreen)
+        {
+            SidebarRailColumn.Width = new GridLength(0);
+            SidebarContentColumn.Width = new GridLength(0);
+            SidebarRail.Visibility = Visibility.Collapsed;
+            SidebarPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var open = _session.Shell.Sidebar.Open;
+        SidebarRailColumn.Width = new GridLength(ShellLayout.SidebarRailWidthPx);
+        SidebarContentColumn.Width = open
+            ? new GridLength(ShellLayout.SidebarOpenPanelWidthPx)
+            : new GridLength(0);
+        SidebarRail.Visibility = Visibility.Visible;
         SidebarPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ApplyChromeVisibility()
+    {
+        var showTransport = !_fullscreen || _session.Shell.ChromeVisible;
+        TransportBar.Visibility = showTransport ? Visibility.Visible : Visibility.Collapsed;
+        MainMenu.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -151,6 +164,8 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
     private void PlayPause_Click(object sender, RoutedEventArgs e) => _session.PlayPause();
+
+    private void Prev_Click(object sender, RoutedEventArgs e) => _session.PlayPreviousEpisode();
 
     private void Next_Click(object sender, RoutedEventArgs e) => _session.PlayNextEpisode();
 
@@ -206,7 +221,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (item.Tag is SidebarResumeItem resume)
+        if (item.Tag is SidebarResumeItem)
         {
             _session.ContinueWatching();
             ShowMainPage();
@@ -300,15 +315,10 @@ public partial class MainWindow : Window
         WindowStyle = WindowStyle.None;
         WindowState = WindowState.Normal;
         WindowState = WindowState.Maximized;
-        MainMenu.Visibility = Visibility.Collapsed;
-        StatusBar.Visibility = Visibility.Collapsed;
-        TransportBar.Visibility = Visibility.Collapsed;
         _fullscreen = true;
-        ApplySidebar();
-        FullscreenChrome.Visibility = Visibility.Visible;
-        FullscreenChrome.IsHitTestVisible = true;
         _session.EnterFullscreen();
         _session.NoteActivity(DateTimeOffset.UtcNow);
+        RefreshShell();
     }
 
     private void ExitFullscreen()
@@ -320,19 +330,9 @@ public partial class MainWindow : Window
             WindowState = _windowedState == WindowState.Maximized ? WindowState.Normal : _windowedState;
         }
 
-        MainMenu.Visibility = Visibility.Visible;
-        TransportBar.Visibility = Visibility.Visible;
-        FullscreenChrome.Visibility = Visibility.Collapsed;
         _fullscreen = false;
         _session.ExitFullscreen();
-        ApplySidebar();
         RefreshShell();
-    }
-
-    private void ApplyFullscreenChrome(bool visible)
-    {
-        FullscreenChrome.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        FullscreenChrome.IsHitTestVisible = visible;
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
