@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>VideoPlayer.Core</RootNamespace>
+    <AssemblyName>VideoPlayer.Core</AssemblyName>
+    <Description>Portable playback, series, resume, and safety logic for 영상 플레이어.</Description>
+  </PropertyGroup>
+</Project>
