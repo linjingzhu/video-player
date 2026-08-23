@@ -26,7 +26,9 @@ public static class SkinC
     public static readonly int[] SpacingScale = SkinA.SpacingScale;
     public const int SpacingMin = SkinA.SpacingMin;
     public const int SpacingMax = SkinA.SpacingMax;
+    public const int RadiusControl = SkinA.RadiusControl;
     public const int RadiusPanel = SkinA.RadiusPanel;
+    public const int RadiusWindow = SkinA.RadiusWindow;
 
     public const bool SelectionIsPanelPlusHairline = true;
     public const bool BorderlessFolderIcons = true;

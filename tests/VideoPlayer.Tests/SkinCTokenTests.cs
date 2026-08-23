@@ -30,7 +30,9 @@ public class SkinCTokenTests
         Assert.Equal("#8A8A8A", SkinC.Secondary);
         Assert.Equal("#FFFFFF", SkinC.Accent);
         Assert.Equal(SkinA.Accent, SkinC.Accent);
+        Assert.Equal(2, SkinC.RadiusControl);
         Assert.Equal(4, SkinC.RadiusPanel);
+        Assert.Equal(2, SkinC.RadiusWindow);
         Assert.Equal("Segoe UI Variable", SkinC.FontFamily);
         Assert.True(SkinC.SelectionIsPanelPlusHairline);
         Assert.True(SkinC.BorderlessFolderIcons);

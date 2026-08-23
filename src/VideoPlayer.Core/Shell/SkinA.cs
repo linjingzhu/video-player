@@ -4,7 +4,7 @@ namespace VideoPlayer.Core.Shell;
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
 /// and to this pack's skip capsule and subtitle sheet only.
 /// Compact density: 40px transport, 28px rail, body 12. Spacing is 4 8 12 16.
-/// Video is full-bleed. Tight radii 2 / 4 / 2. Accent is white.
+/// Video is full-bleed. Radii: control 2 / panel 4 / window 2. Accent is white.
 /// Only the play triangle is #E10600. Seek fill is white; thumb is square.
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
@@ -38,9 +38,10 @@ public static class SkinA
     public const bool NoWireframeWindowTitle = true;
     public const bool NoMockCaptionSentences = true;
 
-    public const int RadiusPill = 2;
-    public const int RadiusPanel = 4;
     public const int RadiusControl = 2;
+    public const int RadiusPanel = 4;
+    public const int RadiusWindow = 2;
+    public const int RadiusPill = RadiusControl;
     public static readonly int[] SpacingScale = [4, 8, 12, 16];
     public const int SpacingMin = 4;
     public const int SpacingMax = 16;

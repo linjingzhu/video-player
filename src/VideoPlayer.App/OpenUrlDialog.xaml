@@ -11,7 +11,7 @@
         AllowsTransparency="True"
         FontFamily="Segoe UI Variable, Segoe UI"
         FontSize="13">
-  <Border Background="#FF0E0E0E" CornerRadius="4" Padding="24,20"
+  <Border Background="#FF0E0E0E" CornerRadius="2" Padding="24,20"
           BorderBrush="#66222222" BorderThickness="1">
     <DockPanel>
       <TextBlock DockPanel.Dock="Top" Text="URL 열기" Style="{StaticResource SkinATitleText}" Margin="0,0,0,16"/>

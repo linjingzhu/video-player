@@ -54,9 +54,10 @@ public class SkinATokenTests
     {
         Assert.Equal("Segoe UI Variable", SkinA.FontFamily);
         Assert.Equal("Segoe UI", SkinA.FontFallback);
-        Assert.Equal(2, SkinA.RadiusPill);
-        Assert.Equal(4, SkinA.RadiusPanel);
         Assert.Equal(2, SkinA.RadiusControl);
+        Assert.Equal(4, SkinA.RadiusPanel);
+        Assert.Equal(2, SkinA.RadiusWindow);
+        Assert.Equal(SkinA.RadiusControl, SkinA.RadiusPill);
         Assert.Equal(new[] { 4, 8, 12, 16 }, SkinA.SpacingScale);
         Assert.DoesNotContain(20, SkinA.SpacingScale);
         Assert.DoesNotContain(24, SkinA.SpacingScale);
@@ -116,8 +117,13 @@ public class SkinATokenTests
         Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);
         Assert.Contains("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("E10600", appXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("CornerRadius=\"2\"", urlXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("CornerRadius=\"4\"", urlXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Stop", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain("Hamburger", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("SpaceX", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xAI", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Grok", mainXaml, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -132,6 +138,11 @@ public class SkinATokenTests
         Assert.True(shell.NextEpisode.EndRegionOnly);
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.Equal("다음 화 >", shell.NextEpisode.Label);
+        Assert.Equal("-10초", shell.Transport.SkipBackLabel);
+        Assert.Equal("+10초", shell.Transport.SkipForwardLabel);
+        Assert.Equal("1.0x", UiCopy.SpeedDefault);
+        Assert.Equal("CC", UiCopy.Captions);
+        Assert.True(shell.Volume.VerticalPopover);
         Assert.True(shell.Status.FailureOnly);
         Assert.True(shell.Status.HideWhenIdle);
         Assert.False(shell.Status.Visible);
