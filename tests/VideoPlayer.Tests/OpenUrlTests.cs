@@ -242,7 +242,7 @@ public class OpenUrlTests
         Assert.Equal("URL 열기", UiCopy.OpenUrl);
         Assert.Equal("https://", UiCopy.OpenUrlPlaceholder);
         Assert.Equal("예: https://example.com/video.mp4", UiCopy.OpenUrlExample);
-        Assert.Equal("http(s)만", UiCopy.OpenUrlHttpOnly);
+        Assert.Equal("http(s) 파일 주소만", UiCopy.OpenUrlHttpOnly);
         Assert.Equal("열기", UiCopy.OpenUrlAction);
         Assert.DoesNotContain(
             PlayerShell.Boot().Transport.Order,
@@ -280,7 +280,7 @@ public class OpenUrlTests
         Assert.Equal("URL 열기", dialog.Title);
         Assert.Equal("https://", dialog.Placeholder);
         Assert.Equal("예: https://example.com/video.mp4", dialog.Example);
-        Assert.Equal("http(s)만", dialog.HttpOnly);
+        Assert.Equal("http(s) 파일 주소만", dialog.HttpOnly);
         Assert.False(dialog.HasCookieAuthUi);
         Assert.False(dialog.HasDrmUi);
         Assert.False(dialog.HasPaidUnlockUi);
