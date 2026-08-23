@@ -716,7 +716,7 @@ public sealed class PlaybackSession
         clip.StartSeconds = range.Start;
         clip.EndSeconds = range.End;
         clip.ClipDurationSeconds = Math.Max(0, range.End - range.Start);
-        clip.CanSave = clip.HasMedia && ClipSave.IsLongEnough(clip.ClipDurationSeconds);
+        clip.CanSave = ClipSave.CanSave(clip.HasMedia, clip.StartSeconds, clip.EndSeconds);
     }
 
     public void UpdateChromeVisibility(DateTimeOffset now)

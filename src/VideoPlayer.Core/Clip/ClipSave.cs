@@ -122,12 +122,20 @@ public static class ClipSave
     public const string DefaultFolderLabel = @"Videos\구간";
     public const string DefaultFolderLeaf = "구간";
     public const ClipFormat DefaultFormat = ClipFormat.StreamCopy;
+    public const bool DefaultPingPong = false;
     public const ClipTickKind TickKind = ClipTickKind.Circle;
     public const bool RenderIoLetters = false;
     public const bool HasPaletteControl = false;
+    public const bool HasRecordButton = false;
 
     public static bool IsLongEnough(double durationSeconds)
         => durationSeconds >= MinDurationSeconds - 1e-9;
+
+    public static bool IsValidRange(double start, double end)
+        => end >= start && IsLongEnough(end - start);
+
+    public static bool CanSave(bool hasMedia, double start, double end)
+        => hasMedia && IsValidRange(start, end);
 
     public static bool EncodingEnabled(ClipFormat format) => ClipFormats.EncodingEnabled(format);
 
@@ -395,7 +403,7 @@ public static class ClipSave
             return Fail(UiCopy.ClipNoMedia, Array.Empty<string>());
         }
 
-        if (!IsLongEnough(job.EndSeconds - job.StartSeconds))
+        if (!IsValidRange(job.StartSeconds, job.EndSeconds))
         {
             return Fail(UiCopy.ClipTooShort, Array.Empty<string>());
         }
@@ -459,7 +467,7 @@ public sealed class ClipSheetState
     public bool Open { get; set; }
     public ClipFormat Format { get; set; } = ClipSave.DefaultFormat;
     public int? Fps { get; set; }
-    public bool PingPong { get; set; }
+    public bool PingPong { get; set; } = ClipSave.DefaultPingPong;
     public string FolderPath { get; set; } = ClipSave.DefaultFolderPath();
     public string Stem { get; set; } = "";
     public string SourcePath { get; set; } = "";
@@ -477,6 +485,7 @@ public sealed class ClipSheetState
     public bool KeyframeNoticeVisible => ClipFormats.KeyframeNoticeVisible(Format);
     public bool EncodingLockHintVisible => !ClipSave.EncodingEnabled(Format);
     public bool HasPaletteControl { get; } = ClipSave.HasPaletteControl;
+    public bool HasRecordButton { get; } = ClipSave.HasRecordButton;
     public bool RenderIoLetters { get; } = ClipSave.RenderIoLetters;
     public ClipTickKind TickKind { get; } = ClipSave.TickKind;
     public string InLetter => "";

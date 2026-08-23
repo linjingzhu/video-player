@@ -111,6 +111,7 @@ public sealed class TransportState
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool NextEpisodeIconOnly { get; } = true;
     public bool TimeOnBar { get; } = false;
+    public bool HasRecordButton { get; } = false;
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
     public double Position { get; set; }

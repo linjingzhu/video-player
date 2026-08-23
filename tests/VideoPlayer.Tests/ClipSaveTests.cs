@@ -47,11 +47,72 @@ public class ClipSaveTests
         Assert.Equal("", sheet.InLetter);
         Assert.Equal("", sheet.OutLetter);
         Assert.False(sheet.HasPaletteControl);
+        Assert.False(sheet.HasRecordButton);
+        Assert.False(sheet.PingPong);
+        Assert.False(ClipSave.DefaultPingPong);
+        Assert.Null(sheet.Fps);
+        Assert.Equal("원본", sheet.FpsText);
         Assert.True(SkinA.NoMockCaptionSentences);
         Assert.DoesNotContain("duration", sheet.DurationLabel, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("clip save", sheet.Title, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("captureFolder", AppSettings.ClipFolderKey, StringComparison.Ordinal);
         Assert.Equal("clipFolder", AppSettings.ClipFolderKey);
+    }
+
+    [Fact]
+    public void Transport_has_no_record_button()
+    {
+        var shell = PlayerShell.Boot();
+        Assert.False(shell.Transport.HasRecordButton);
+        Assert.False(shell.Clip.HasRecordButton);
+        Assert.False(ClipSave.HasRecordButton);
+        Assert.Equal(10, shell.Transport.Order.Count);
+        Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Camera", Enum.GetNames<TransportControl>());
+    }
+
+    [Fact]
+    public void Stream_copy_keeps_the_source_extension()
+    {
+        Assert.Equal("show_000010-000020.mp4",
+            ClipSave.FileName("show", 10, 20, ClipFormat.StreamCopy, @"C:\Videos\show.mp4"));
+        Assert.Equal("clip_000000-000002.mkv",
+            ClipSave.FileName("clip", 0, 2, ClipFormat.StreamCopy, "clip.mkv"));
+        Assert.Equal("clip_000000-000002.mov",
+            ClipSave.FileName("clip", 0, 2, ClipFormat.StreamCopy, "clip.MOV"));
+        Assert.Equal("clip_000000-000002.webp",
+            ClipSave.FileName("clip", 0, 2, ClipFormat.Webp, "clip.mkv"));
+        Assert.Equal("clip_000000-000002.gif",
+            ClipSave.FileName("clip", 0, 2, ClipFormat.Gif, "clip.mp4"));
+    }
+
+    [Fact]
+    public void Save_is_disabled_when_end_is_before_start_or_under_one_second()
+    {
+        Assert.False(ClipSave.IsValidRange(20, 10));
+        Assert.False(ClipSave.CanSave(true, 20, 10));
+        Assert.False(ClipSave.CanSave(true, 10, 10.5));
+        Assert.True(ClipSave.CanSave(true, 10, 11));
+        Assert.False(ClipSave.CanSave(false, 10, 20));
+
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("range.mkv", [1]);
+        var engine = new FakeMediaEngine { Duration = 40 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        session.SeekAbsolute(20);
+        session.SetInMark();
+        session.SeekAbsolute(10);
+        session.SetOutMark();
+        session.OpenClipSheet();
+        Assert.False(session.Shell.Clip.CanSave);
+        Assert.True(session.Shell.Clip.EndSeconds < session.Shell.Clip.StartSeconds);
+
+        var result = session.RunClipSave(new FakeClipProcessRunner());
+        Assert.False(result.Saved);
+        Assert.Equal(UiCopy.ClipTooShort, result.Banner);
+        Assert.True(session.Shell.Clip.Open);
     }
 
     [Fact]

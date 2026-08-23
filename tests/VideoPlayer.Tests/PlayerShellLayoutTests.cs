@@ -50,6 +50,8 @@ public class PlayerShellLayoutTests
             order);
         Assert.Equal("1.0x", UiCopy.SpeedDefault);
         Assert.Equal("CC", UiCopy.Captions);
+        Assert.False(PlayerShell.Boot().Transport.HasRecordButton);
+        Assert.DoesNotContain("Record", Enum.GetNames<TransportControl>());
         Assert.DoesNotContain(order, control => control == TransportControl.NextEpisode && PlayerShell.Boot().Transport.NextEpisodeTextOnBar);
         Assert.False(PlayerShell.Boot().Capture.HasCameraOnTransport);
         Assert.DoesNotContain("Capture", Enum.GetNames<TransportControl>());
