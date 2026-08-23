@@ -37,12 +37,23 @@ public class SkinATokenTests
     }
 
     [Fact]
-    public void Chrome_material_is_blur_plus_eight_percent_white()
+    public void Chrome_material_is_solid_background_without_blur()
     {
-        Assert.Equal("#14FFFFFF", SkinA.ChromeFill);
+        Assert.Equal("#050505", SkinA.ChromeFill);
+        Assert.Equal(SkinA.Background, SkinA.ChromeFill);
         Assert.Equal("#14FFFFFF", SkinA.HoverWhite);
-        Assert.Equal(20, SkinA.ChromeBlurRadius);
-        Assert.True(SkinA.ChromeIsBlurPlusWhite);
+        Assert.Equal(0, SkinA.ChromeBlurRadius);
+        Assert.False(SkinA.ChromeIsBlurPlusWhite);
+        Assert.True(SkinA.ChromeIsSolid);
+        Assert.Equal(1, SkinA.HairlineThicknessPx);
+        Assert.Equal("#222222", SkinA.Border);
+        Assert.Equal(0.40, SkinA.BorderOpacity);
+        Assert.Equal(4, SkinA.ButtonPadding);
+        Assert.Equal(SkinA.SpacingMin, SkinA.ButtonPadding);
+        Assert.Equal(2, SkinA.IoTickSizePx);
+        Assert.True(SkinA.IoTicksAreSquares);
+        Assert.False(SkinA.IoTicksAreEllipses);
+        Assert.True(SkinA.NoMenuPipeSeparator);
         Assert.True(SkinA.NoWireframeWindowTitle);
         Assert.True(SkinA.NoMockCaptionSentences);
         Assert.Equal("이어서", UiCopy.AppTitle);
@@ -139,7 +150,36 @@ public class SkinATokenTests
         Assert.DoesNotContain("0A84FF", converter, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("0A84FF", codeBehind, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("<Ellipse", appXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Ellipse", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("SkinAChromeBlur", appXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("SkinAChromeBlur", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("KernelType=\"Gaussian\"", appXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Text=\"|\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"파일\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"보기\" Background=\"#14FFFFFF\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TransportBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StatusBar\" DockPanel.Dock=\"Bottom\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SidebarRail\" Grid.Column=\"0\" Background=\"#FF050505\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("<Rectangle x:Name=\"InTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("<Rectangle x:Name=\"OutTick\" Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);
+        var iconStyle = SliceBetween(appXaml, "x:Key=\"IconButton\"", "x:Key=\"SkinATextButton\"");
+        var textStyle = SliceBetween(appXaml, "x:Key=\"SkinATextButton\"", "x:Key=\"SkinAPlayButton\"");
+        Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", iconStyle, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Padding\" Value=\"4\"/>", textStyle, StringComparison.Ordinal);
+        Assert.Contains("MinWidth\" Value=\"52\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("MinWidth\" Value=\"72\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("MinWidth=\"52\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"16,8\"", appXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"8,4\"", seriesXaml, StringComparison.Ordinal);
+        Assert.Contains("Padding\" Value=\"14,6\"", seriesXaml, StringComparison.Ordinal);
+        Assert.Contains("BorderBrush=\"#66222222\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("PlaceTick(System.Windows.Shapes.Rectangle", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"Stop", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"-10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"NextCtaButton\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Orientation=\"Vertical\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("E10600", appXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("CornerRadius=\"2\"", urlXaml, StringComparison.Ordinal);
@@ -156,6 +196,8 @@ public class SkinATokenTests
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
+        Assert.Equal("", shell.MenuSeparator);
+        Assert.True(SkinA.NoMenuPipeSeparator);
         Assert.Equal(28, shell.Sidebar.RailWidthPx);
         Assert.False(shell.CenterPlayIcon);
         Assert.True(shell.VideoFullBleed);
@@ -203,5 +245,14 @@ public class SkinATokenTests
         }
 
         throw new FileNotFoundException(relative);
+    }
+
+    private static string SliceBetween(string text, string start, string end)
+    {
+        var from = text.IndexOf(start, StringComparison.Ordinal);
+        Assert.True(from >= 0, start);
+        var until = text.IndexOf(end, from, StringComparison.Ordinal);
+        Assert.True(until > from, end);
+        return text[from..until];
     }
 }

@@ -42,7 +42,9 @@ public class ClipSaveTests
         Assert.Equal(SkinA.Panel, sheet.PanelColor);
         Assert.Equal(SkinA.Accent, sheet.SaveColor);
         Assert.Equal("#FFFFFF", sheet.TickColor);
-        Assert.Equal(ClipTickKind.Circle, sheet.TickKind);
+        Assert.Equal(ClipTickKind.Square, sheet.TickKind);
+        Assert.Equal(2, sheet.TickSizePx);
+        Assert.Equal(SkinA.IoTickSizePx, sheet.TickSizePx);
         Assert.False(sheet.RenderIoLetters);
         Assert.Equal("", sheet.InLetter);
         Assert.Equal("", sheet.OutLetter);
@@ -287,7 +289,8 @@ public class ClipSaveTests
         Assert.False(clip.RenderIoLetters);
         Assert.Equal("", clip.InLetter);
         Assert.Equal("", clip.OutLetter);
-        Assert.Equal(ClipTickKind.Circle, clip.TickKind);
+        Assert.Equal(ClipTickKind.Square, clip.TickKind);
+        Assert.Equal(2, clip.TickSizePx);
         Assert.Equal(0, ClipSave.TickRatio(null, engine.Duration));
         Assert.InRange(ClipSave.TickRatio(clip.InMark, engine.Duration), 0.28, 0.30);
         Assert.True(clip.CanSave);

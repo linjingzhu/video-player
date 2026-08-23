@@ -79,9 +79,8 @@
     <SolidColorBrush x:Key="SkinAPlayTriangleBrush" Color="#FFE10600"/>
     <SolidColorBrush x:Key="SkinAThumbBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="SkinAHoverBrush" Color="#14FFFFFF"/>
-    <SolidColorBrush x:Key="SkinAChromeFillBrush" Color="#14FFFFFF"/>
+    <SolidColorBrush x:Key="SkinAChromeFillBrush" Color="#FF050505"/>
     <SolidColorBrush x:Key="SkinATrackRestBrush" Color="#FF3A3A3E"/>
-    <BlurEffect x:Key="SkinAChromeBlur" Radius="20" KernelType="Gaussian"/>
     <Style x:Key="SkinATitleText" TargetType="TextBlock">
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
@@ -106,7 +105,7 @@
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Width" Value="32"/>
       <Setter Property="Height" Value="32"/>
-      <Setter Property="Padding" Value="6"/>
+      <Setter Property="Padding" Value="4"/>
       <Setter Property="Margin" Value="4,0"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
@@ -132,7 +131,7 @@
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="Padding" Value="4"/>
       <Setter Property="Margin" Value="4,0"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
       <Setter Property="FontSize" Value="12"/>

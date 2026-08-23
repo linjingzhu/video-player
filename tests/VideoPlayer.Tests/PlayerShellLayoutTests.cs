@@ -26,11 +26,12 @@ public class PlayerShellLayoutTests
     }
 
     [Fact]
-    public void Menus_are_file_pipe_view_only()
+    public void Menus_are_file_and_view_only()
     {
         var shell = PlayerShell.Boot();
         Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
-        Assert.Equal("|", shell.MenuSeparator);
+        Assert.Equal("", shell.MenuSeparator);
+        Assert.True(SkinA.NoMenuPipeSeparator);
         Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
         Assert.Contains("URL 열기", UiCopy.FileMenuItems);
         Assert.Contains("다른 이름으로 저장", UiCopy.FileMenuItems);

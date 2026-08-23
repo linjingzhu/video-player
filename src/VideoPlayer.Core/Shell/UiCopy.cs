@@ -6,7 +6,7 @@ public static class UiCopy
     public const string AppTitle = "이어서";
     public const string FileMenu = "파일";
     public const string ViewMenu = "보기";
-    public const string MenuSeparator = "|";
+    public const string MenuSeparator = "";
 
     public const string SidebarTitle = "최근 / 시리즈";
     public const string ContinueWatching = "이어보기";
