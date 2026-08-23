@@ -3,6 +3,7 @@ namespace VideoPlayer.Core.Shell;
 /// <summary>
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome only.
 /// Does not change A v2 shell structure, layout, or behavior.
+/// Capture sheet chrome also uses these values.
 /// </summary>
 public static class SkinA
 {

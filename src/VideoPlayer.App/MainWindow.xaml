@@ -39,6 +39,10 @@
         <MenuItem x:Name="AutoNextItem" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
                   Click="AutoNext_Click" Background="#FF141418" Foreground="#FFF5F5F7"
                   FontSize="13" FontWeight="Regular"/>
+        <Separator/>
+        <MenuItem Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
+                  Background="#FF141418" Foreground="#FFF5F5F7"
+                  FontSize="13" FontWeight="Regular"/>
       </MenuItem>
     </Menu>
 
@@ -147,6 +151,94 @@
                 <Button x:Name="CancelAutoNextButton" Content="취소" Click="CancelAutoNext_Click" Margin="0,6,0,0"
                         Style="{StaticResource SkinATextButton}" Visibility="Collapsed"/>
               </StackPanel>
+              <Border x:Name="CaptureBanner" HorizontalAlignment="Center" VerticalAlignment="Top"
+                      Margin="0,16,0,0" Padding="14,8" CornerRadius="10"
+                      Background="#E6141418" Visibility="Collapsed" IsHitTestVisible="False">
+                <TextBlock x:Name="CaptureBannerText" FontSize="13" Foreground="#FFF5F5F7"
+                           FontFamily="{StaticResource CaptureFont}"/>
+              </Border>
+              <Border x:Name="CaptureSheet" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Margin="0,16,16,0" Padding="18,16" CornerRadius="12"
+                      Background="{StaticResource CaptureSheetBrush}"
+                      Effect="{StaticResource CaptureSheetShadow}"
+                      Visibility="Collapsed">
+                <DockPanel>
+                  <TextBlock x:Name="CaptureSheetTitle" DockPanel.Dock="Top" Text="캡처"
+                             FontFamily="{StaticResource CaptureFont}" FontSize="20" FontWeight="SemiBold"
+                             Foreground="{StaticResource CaptureTextBrush}" Margin="0,0,0,14"/>
+                  <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0">
+                    <TextBlock Text="현재 위치부터 · 캡처 중 일시정지"
+                               FontFamily="{StaticResource CaptureFont}" FontSize="11"
+                               Foreground="{StaticResource CaptureMutedBrush}"
+                               VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="180"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                      <Button Content="취소" Click="CaptureCancel_Click" Style="{StaticResource CaptureSheetButton}" Margin="0,0,8,0"/>
+                      <Button Content="시작" Click="CaptureStart_Click" Style="{StaticResource CaptureStartButton}"/>
+                    </StackPanel>
+                  </Grid>
+                  <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="장수" VerticalAlignment="Center" Foreground="{StaticResource CaptureTextBrush}" FontFamily="{StaticResource CaptureFont}"/>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="-" Click="CaptureCountMinus_Click" Style="{StaticResource CaptureStepperButton}"/>
+                        <TextBlock x:Name="CaptureCountText" Text="1" Width="40" TextAlignment="Center"
+                                   VerticalAlignment="Center" FontFamily="{StaticResource CaptureFont}" FontSize="13"/>
+                        <Button Content="+" Click="CaptureCountPlus_Click" Style="{StaticResource CaptureStepperButton}"/>
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="1-999" VerticalAlignment="Center"
+                                 Foreground="{StaticResource CaptureMutedBrush}" FontSize="11"
+                                 FontFamily="{StaticResource CaptureFont}"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="간격" VerticalAlignment="Center" Foreground="{StaticResource CaptureTextBrush}" FontFamily="{StaticResource CaptureFont}"/>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="-" Click="CaptureIntervalMinus_Click" Style="{StaticResource CaptureStepperButton}"/>
+                        <TextBlock x:Name="CaptureIntervalText" Text="1프레임" MinWidth="64" TextAlignment="Center"
+                                   VerticalAlignment="Center" FontFamily="{StaticResource CaptureFont}" FontSize="13"/>
+                        <Button Content="+" Click="CaptureIntervalPlus_Click" Style="{StaticResource CaptureStepperButton}"/>
+                      </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="포맷" VerticalAlignment="Center" Foreground="{StaticResource CaptureTextBrush}" FontFamily="{StaticResource CaptureFont}"/>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="FormatPng" Content="png" Tag="png" Click="CaptureFormat_Click" Style="{StaticResource CaptureFormatButton}"/>
+                        <Button x:Name="FormatJpg" Content="jpg" Tag="jpg" Click="CaptureFormat_Click" Style="{StaticResource CaptureFormatButton}"/>
+                        <Button x:Name="FormatWebp" Content="webp" Tag="webp" Click="CaptureFormat_Click" Style="{StaticResource CaptureFormatButton}"/>
+                      </StackPanel>
+                    </Grid>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="56"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="폴더" VerticalAlignment="Center" Foreground="{StaticResource CaptureTextBrush}" FontFamily="{StaticResource CaptureFont}"/>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Width="16" Height="14" Stretch="Uniform" Stroke="{StaticResource CaptureTextBrush}"
+                              StrokeThickness="1.4" Fill="Transparent" Margin="0,0,8,0"
+                              Data="M 1,5 L 1,13 L 15,13 L 15,6 L 8,6 L 6.5,4 Z"/>
+                        <TextBlock x:Name="CaptureFolderText" Text="Pictures" VerticalAlignment="Center"
+                                   FontFamily="{StaticResource CaptureFont}" FontSize="13"
+                                   Foreground="{StaticResource CaptureTextBrush}"/>
+                      </StackPanel>
+                      <Button Grid.Column="2" Content="변경" Click="CaptureChangeFolder_Click" Style="{StaticResource CaptureSheetButton}"/>
+                    </Grid>
+                  </StackPanel>
+                </DockPanel>
+              </Border>
             </Grid>
           </Border>
         </Grid>

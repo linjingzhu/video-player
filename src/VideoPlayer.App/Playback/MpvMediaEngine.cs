@@ -147,6 +147,34 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         IsPaused = true;
     }
 
+    public bool ScreenshotToFile(string path)
+    {
+        if (!_available || !IsOpen || string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var extension = Path.GetExtension(path).TrimStart('.').ToLowerInvariant();
+        if (extension is "jpg" or "jpeg")
+        {
+            MpvNative.Set(_mpv, "screenshot-format", "jpg");
+            MpvNative.Set(_mpv, "screenshot-jpeg-quality", "90");
+        }
+        else if (extension == "webp")
+        {
+            MpvNative.Set(_mpv, "screenshot-format", "webp");
+            MpvNative.Set(_mpv, "screenshot-webp-quality", "80");
+            MpvNative.Set(_mpv, "screenshot-webp-lossless", "no");
+        }
+        else
+        {
+            MpvNative.Set(_mpv, "screenshot-format", "png");
+        }
+
+        var code = MpvNative.Command(_mpv, "screenshot-to-file", path, "video");
+        return code >= 0 && File.Exists(path);
+    }
+
     public void SetFitMode(string mode)
     {
         if (!_available)

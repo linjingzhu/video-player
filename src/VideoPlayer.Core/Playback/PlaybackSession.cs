@@ -1,3 +1,4 @@
+using VideoPlayer.Core.Capture;
 using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Media;
 using VideoPlayer.Core.Safety;
@@ -14,6 +15,7 @@ public sealed class PlaybackSession
     private IReadOnlyList<SeriesEpisode> _flatEpisodes = [];
     private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
     private bool _endedHandled;
+    private bool _capturing;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null)
     {
@@ -40,6 +42,7 @@ public sealed class PlaybackSession
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
     public double Speed { get; private set; }
     public bool AutoNext { get; set; } = true;
+    public bool IsCapturing => _capturing;
     public string? LastUnsupportedCodec { get; private set; }
     public SeriesDrillDown Series => _drill;
 
@@ -142,7 +145,7 @@ public sealed class PlaybackSession
 
     public void PlayPause()
     {
-        if (!Engine.IsOpen)
+        if (_capturing || !Engine.IsOpen)
         {
             return;
         }
@@ -164,7 +167,7 @@ public sealed class PlaybackSession
 
     public void SeekRelative(double seconds)
     {
-        if (!Engine.IsOpen)
+        if (_capturing || !Engine.IsOpen)
         {
             return;
         }
@@ -188,7 +191,7 @@ public sealed class PlaybackSession
 
     public void SeekAbsolute(double seconds)
     {
-        if (!Engine.IsOpen)
+        if (_capturing || !Engine.IsOpen)
         {
             return;
         }
@@ -298,6 +301,11 @@ public sealed class PlaybackSession
     public void Tick(DateTimeOffset now)
     {
         SyncTransport();
+        if (_capturing)
+        {
+            return;
+        }
+
         if (Shell.Transport.CaptionsOn && Cues.Count > 0)
         {
             var text = SubtitleParser.CueAt(Cues, TimeSpan.FromSeconds(Engine.Position));
@@ -350,6 +358,83 @@ public sealed class PlaybackSession
 
     public void ToggleSidebar() => Shell.Sidebar.Open = !Shell.Sidebar.Open;
 
+    public void OpenCaptureSheet()
+    {
+        Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(
+            string.IsNullOrWhiteSpace(Shell.Capture.FolderPath)
+                ? Settings.CaptureFolder
+                : Shell.Capture.FolderPath);
+        Shell.Capture.Open = true;
+    }
+
+    public void CloseCaptureSheet() => Shell.Capture.Open = false;
+
+    public void NudgeCaptureCount(int delta) => Shell.Capture.NudgeCount(delta);
+
+    public void NudgeCaptureInterval(int delta) => Shell.Capture.NudgeInterval(delta);
+
+    public void SetCaptureFormat(CaptureFormat format) => Shell.Capture.Format = format;
+
+    public bool SetCaptureFolder(string path)
+    {
+        var check = PathValidator.ValidateLocalFilePath(path);
+        if (!check.Success || check.FullPath is null)
+        {
+            return false;
+        }
+
+        RememberCaptureFolder(check.FullPath);
+        return true;
+    }
+
+    public CaptureRunResult RunStillCapture()
+    {
+        if (Current is not { } current || !Engine.IsOpen)
+        {
+            var missing = new CaptureRunResult(
+                StillFrameCapture.ClampCount(Shell.Capture.Count),
+                0,
+                false,
+                Engine.IsPaused,
+                false,
+                CaptureBannerKind.Failure,
+                UiCopy.CaptureNoMedia,
+                []);
+            ApplyCaptureBanner(missing);
+            return missing;
+        }
+
+        _capturing = true;
+        try
+        {
+            Engine.Pause();
+            Shell.IsPaused = true;
+            var result = StillFrameCapture.Run(
+                Engine,
+                new CaptureJob(
+                    Path.GetFileNameWithoutExtension(current.Path),
+                    Shell.Capture.FolderPath,
+                    Shell.Capture.Count,
+                    Shell.Capture.IntervalFrames,
+                    Shell.Capture.Format));
+            ApplyCaptureBanner(result);
+            if (result.Saved > 0)
+            {
+                RememberCaptureFolder(Shell.Capture.FolderPath);
+            }
+
+            Shell.Capture.Open = false;
+            SyncTransport();
+            return result;
+        }
+        finally
+        {
+            _capturing = false;
+        }
+    }
+
+    public void DismissCaptureBanner() => Shell.CaptureBanner.Clear();
+
     public void UpdateChromeVisibility(DateTimeOffset now)
         => Shell.ChromeVisible = FullscreenChromeController.ShouldShow(Shell.Screen == ShellScreen.Fullscreen, Shell.IsPaused, now, _lastActivity);
 
@@ -370,7 +455,7 @@ public sealed class PlaybackSession
     private void PlayAdjacentEpisode(int offset)
     {
         AutoNextOffer.ResetForNewTitle();
-        if (Current is not { } current)
+        if (_capturing || Current is not { } current)
         {
             return;
         }
@@ -442,6 +527,9 @@ public sealed class PlaybackSession
         }
     }
 
+    private void ApplyCaptureBanner(CaptureRunResult result)
+        => Shell.CaptureBanner.Show(result.BannerKind, result.Banner);
+
     private void RefreshSeriesPanel()
     {
         Shell.Series.Level = _drill.Level;
@@ -463,7 +551,21 @@ public sealed class PlaybackSession
         RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
         Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
+        Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
         RefreshSidebar();
+    }
+
+    private void RememberCaptureFolder(string path)
+    {
+        var check = PathValidator.ValidateLocalFilePath(path);
+        if (!check.Success || check.FullPath is null)
+        {
+            return;
+        }
+
+        Shell.Capture.FolderPath = check.FullPath;
+        Settings.SetCaptureFolder(check.FullPath);
+        Persist();
     }
 
     private void Persist()

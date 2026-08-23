@@ -11,8 +11,10 @@ public sealed class AppSettings
 {
     public const string FileName = "settings.json";
     public const string JumpSecondsKey = "jumpSeconds";
+    public const string CaptureFolderKey = "captureFolder";
 
     public int JumpSeconds { get; private set; } = JumpInterval.DefaultSeconds;
+    public string? CaptureFolder { get; private set; }
 
     /// <summary>v1.5 live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
     public int SetJumpSeconds(int seconds)
@@ -21,8 +23,14 @@ public sealed class AppSettings
         return JumpSeconds;
     }
 
+    public string? SetCaptureFolder(string? path)
+    {
+        CaptureFolder = string.IsNullOrWhiteSpace(path) ? null : path.Trim();
+        return CaptureFolder;
+    }
+
     public string ToJson()
-        => JsonSerializer.Serialize(new AppSettingsDto(JumpSeconds), JsonOptions);
+        => JsonSerializer.Serialize(new AppSettingsDto(JumpSeconds, CaptureFolder), JsonOptions);
 
     public static AppSettings FromJson(string? json)
     {
@@ -35,11 +43,25 @@ public sealed class AppSettings
         try
         {
             using var document = JsonDocument.Parse(json);
-            if (document.RootElement.ValueKind == JsonValueKind.Object
-                && document.RootElement.TryGetProperty(JumpSecondsKey, out var jump)
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return settings;
+            }
+
+            if (document.RootElement.TryGetProperty(JumpSecondsKey, out var jump)
                 && jump.TryGetInt32(out var seconds))
             {
                 settings.JumpSeconds = JumpInterval.Clamp(seconds);
+            }
+
+            if (document.RootElement.TryGetProperty(CaptureFolderKey, out var folder)
+                && folder.ValueKind == JsonValueKind.String)
+            {
+                var value = folder.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    settings.CaptureFolder = value;
+                }
             }
         }
         catch (JsonException)
@@ -50,7 +72,7 @@ public sealed class AppSettings
         return settings;
     }
 
-    private sealed record AppSettingsDto(int JumpSeconds);
+    private sealed record AppSettingsDto(int JumpSeconds, string? CaptureFolder);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

@@ -1,3 +1,5 @@
+using VideoPlayer.Core.Capture;
+
 namespace VideoPlayer.Core.Shell;
 
 /// <summary>Confirmed A v2 P0 shell. Old wireframe A discarded.</summary>
@@ -14,6 +16,8 @@ public sealed class PlayerShell
     public SeriesPanelState Series { get; } = new();
     public NextEpisodeChrome NextEpisode { get; } = new();
     public OverlayTimeState OverlayClock { get; } = new();
+    public CaptureSheetState Capture { get; } = new();
+    public CaptureBannerState CaptureBanner { get; } = new();
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
     public bool IsPaused { get; set; } = true;
