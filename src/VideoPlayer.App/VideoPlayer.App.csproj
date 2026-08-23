@@ -23,4 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\VideoPlayer.Core\VideoPlayer.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Assets\Ieseo.ico" />
+    <Resource Include="Assets\Ieseo.ico" />
+  </ItemGroup>
 </Project>
