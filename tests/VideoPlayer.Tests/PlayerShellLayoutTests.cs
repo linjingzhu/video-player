@@ -156,6 +156,12 @@ public class PlayerShellLayoutTests
         Assert.False(shell.Fullscreen.CenterPlayIcon);
         Assert.False(shell.Fullscreen.NextEpisodeTextOnBar);
         Assert.True(shell.Fullscreen.EndCtaIsOverlay);
+        Assert.True(shell.Fullscreen.TransportIsFloatingOverlay);
+        Assert.True(shell.Fullscreen.WindowedTransportIsDocked);
+        Assert.Equal(0.80, shell.Fullscreen.TransportOverlayOpacity);
+        Assert.Equal(new[] { "Enter", "F11" }, shell.Fullscreen.ToggleKeys);
+        Assert.Equal(3, shell.Fullscreen.IdleHideSeconds);
+        Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
         Assert.True(shell.NextEpisode.OverlayOnly);
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.False(shell.CenterPlayIcon);

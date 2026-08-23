@@ -774,6 +774,18 @@ public sealed class PlaybackSession
 
     public void ExitFullscreen() => Shell.ExitFullscreen();
 
+    public void ToggleFullscreen()
+    {
+        if (Shell.Screen == ShellScreen.Fullscreen)
+        {
+            ExitFullscreen();
+        }
+        else
+        {
+            EnterFullscreen();
+        }
+    }
+
     public void ContinueWatching()
     {
         if (Resume.Continue is { } pointer)
@@ -1382,7 +1394,7 @@ public sealed class PlaybackSession
 
 public static class FullscreenChromeController
 {
-    public static readonly TimeSpan IdleHide = TimeSpan.FromSeconds(3);
+    public static readonly TimeSpan IdleHide = TimeSpan.FromSeconds(SeriesOn.FullscreenIdleHideSeconds);
 
     public static bool ShouldShow(bool fullscreen, bool paused, DateTimeOffset now, DateTimeOffset lastActivity)
     {

@@ -71,6 +71,12 @@ public static class SeriesOn
     public const bool HamburgerIsView = true;
     public const bool CaptionsOnBar = false;
     public const bool FullscreenOnBar = false;
+    public const bool EnterTogglesFullscreen = true;
+    public const bool F11TogglesFullscreen = true;
+    public const bool FullscreenTransportIsOverlay = true;
+    public const bool WindowedTransportIsDocked = true;
+    public const double FullscreenTransportOpacity = 0.80;
+    public const int FullscreenIdleHideSeconds = 3;
     public const bool IoMarksAreSquares = true;
     public const bool HasWindowControls = true;
     public const bool HasCastIcon = false;

@@ -84,6 +84,7 @@
     <SolidColorBrush x:Key="SeriesOnAccentBrush" Color="#FFC6FF00"/>
     <SolidColorBrush x:Key="SeriesOnTextBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="SeriesOnChromeBrush" Color="#FF050505"/>
+    <SolidColorBrush x:Key="SeriesOnFullscreenTransportBrush" Color="#CC050505"/>
     <SolidColorBrush x:Key="SeriesOnDividerBrush" Color="#66222222"/>
     <SolidColorBrush x:Key="SeriesOnTrackRestBrush" Color="#FF3A3A3E"/>
     <BlurEffect x:Key="SkinAChromeBlur" Radius="20" KernelType="Gaussian"/>

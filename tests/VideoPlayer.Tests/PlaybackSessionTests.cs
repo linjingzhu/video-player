@@ -149,6 +149,26 @@ public class PlaybackSessionTests
         Assert.False(FullscreenChromeController.ShouldShow(true, paused: false, start.AddSeconds(4), start));
         Assert.True(FullscreenChromeController.ShouldShow(true, paused: false, start.AddSeconds(2), start));
         Assert.True(FullscreenChromeController.ShouldShow(false, paused: false, start.AddSeconds(30), start));
+        Assert.Equal(TimeSpan.FromSeconds(3), FullscreenChromeController.IdleHide);
+        Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
+    }
+
+    [Fact]
+    public void Enter_and_f11_toggle_fullscreen_vs_windowed()
+    {
+        using var workspace = new TempWorkspace();
+        var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        Assert.Equal(ShellScreen.Main, session.Shell.Screen);
+        Assert.Equal(new[] { "Enter", "F11" }, session.Shell.Fullscreen.ToggleKeys);
+
+        session.ToggleFullscreen();
+        Assert.Equal(ShellScreen.Fullscreen, session.Shell.Screen);
+        Assert.True(session.Shell.Fullscreen.TransportIsFloatingOverlay);
+        Assert.Equal(0.80, session.Shell.Fullscreen.TransportOverlayOpacity);
+
+        session.ToggleFullscreen();
+        Assert.Equal(ShellScreen.Main, session.Shell.Screen);
+        Assert.True(session.Shell.Fullscreen.WindowedTransportIsDocked);
     }
 
     [Fact]

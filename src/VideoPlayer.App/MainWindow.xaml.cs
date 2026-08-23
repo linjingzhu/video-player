@@ -218,6 +218,21 @@ public partial class MainWindow : Window
         var showTransport = !_fullscreen || _session.Shell.ChromeVisible;
         TransportBar.Visibility = showTransport ? Visibility.Visible : Visibility.Collapsed;
         CaptionBar.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
+
+        var statusLift = StatusBar.Visibility == Visibility.Visible ? StatusBar.Height : 0;
+        TransportBar.Margin = new Thickness(0, 0, 0, statusLift);
+        if (_fullscreen)
+        {
+            TransportDockSlot.Height = 0;
+            TransportDockSlot.Visibility = Visibility.Collapsed;
+            TransportBar.Background = (Brush)FindResource("SeriesOnFullscreenTransportBrush");
+        }
+        else
+        {
+            TransportDockSlot.Height = 40;
+            TransportDockSlot.Visibility = Visibility.Visible;
+            TransportBar.Background = (Brush)FindResource("SeriesOnChromeBrush");
+        }
     }
 
     private static MenuItem? FindMenuByTag(ContextMenu? menu, string tag)
@@ -876,6 +891,7 @@ public partial class MainWindow : Window
                 ExitFullscreen();
                 e.Handled = true;
                 break;
+            case Key.Enter when Keyboard.Modifiers == ModifierKeys.None:
             case Key.F11:
                 ToggleFullscreen();
                 e.Handled = true;

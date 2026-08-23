@@ -37,6 +37,12 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.HamburgerIsView);
         Assert.False(SeriesOn.CaptionsOnBar);
         Assert.False(SeriesOn.FullscreenOnBar);
+        Assert.True(SeriesOn.EnterTogglesFullscreen);
+        Assert.True(SeriesOn.F11TogglesFullscreen);
+        Assert.True(SeriesOn.FullscreenTransportIsOverlay);
+        Assert.True(SeriesOn.WindowedTransportIsDocked);
+        Assert.Equal(0.80, SeriesOn.FullscreenTransportOpacity);
+        Assert.Equal(3, SeriesOn.FullscreenIdleHideSeconds);
         Assert.True(SeriesOn.IoMarksAreSquares);
         Assert.Equal(4, SeriesOn.ButtonPadding);
         Assert.Equal(2, SeriesOn.IoMarkSizePx);
@@ -184,6 +190,14 @@ public class SeriesOnTokenTests
         Assert.Contains("SeriesOnVolumeSlider", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnIconButton", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnSeekSlider", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TransportDockSlot\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TransportBar\" VerticalAlignment=\"Bottom\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"TransportBar\" DockPanel.Dock=\"Bottom\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("SeriesOnFullscreenTransportBrush", appXaml, StringComparison.Ordinal);
+        Assert.Contains("CC050505", appXaml, StringComparison.OrdinalIgnoreCase);
+        var codeBehind = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml.cs"));
+        Assert.Contains("case Key.Enter", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("case Key.F11", codeBehind, StringComparison.Ordinal);
         Assert.Contains("Padding\" Value=\"4\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("Width=\"2\" Height=\"2\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"InTick\" Width=\"6\"", mainXaml, StringComparison.Ordinal);

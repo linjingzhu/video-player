@@ -21,6 +21,7 @@
   <shell:WindowChrome.WindowChrome>
     <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0"/>
   </shell:WindowChrome.WindowChrome>
+  <Grid>
   <DockPanel>
     <Border x:Name="CaptionBar" DockPanel.Dock="Top" Background="{StaticResource SeriesOnChromeBrush}" Height="36"
             BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,0,0,1">
@@ -104,116 +105,7 @@
       </Grid>
     </Border>
 
-    <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="{StaticResource SeriesOnChromeBrush}"
-            BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,1,0,0" Height="40" Padding="0"
-            ClipToBounds="True">
-      <Grid>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,4,4,0">
-          <Button Click="SkipBack_Click" ToolTip="되감기" Style="{StaticResource SeriesOnIconButton}">
-            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                  StrokeLineJoin="Round" Data="M 11,6 L 4,12 L 11,18 M 19,6 L 12,12 L 19,18"/>
-          </Button>
-          <Button x:Name="PlayButton" Click="PlayPause_Click" Style="{StaticResource SeriesOnIconButton}" ToolTip="재생">
-            <Grid Width="14" Height="14">
-              <Path x:Name="PlayIcon" Fill="#FFFFFFFF" Stretch="Uniform" Data="M 3,1 L 13,7 L 3,13 Z"/>
-              <Path x:Name="PauseIcon" Fill="#FFFFFFFF" Stretch="Uniform" Visibility="Collapsed"
-                    Data="M 2,1 H 5.5 V 13 H 2 Z M 8.5,1 H 12 V 13 H 8.5 Z"/>
-            </Grid>
-          </Button>
-          <Button Click="Stop_Click" ToolTip="정지" Style="{StaticResource SeriesOnIconButton}">
-            <Path Fill="#FFFFFFFF" Data="M 6,6 H 18 V 18 H 6 Z"/>
-          </Button>
-          <Button x:Name="ClearButton" Click="Clear_Click" Content="지우기" ToolTip="지우기"
-                  Style="{StaticResource SeriesOnClearButton}"/>
-          <Button Click="SkipForward_Click" ToolTip="빨리감기" Style="{StaticResource SeriesOnIconButton}">
-            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                  StrokeLineJoin="Round" Data="M 5,6 L 12,12 L 5,18 M 13,6 L 20,12 L 13,18"/>
-          </Button>
-          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
-          <Grid x:Name="VolumeHost" VerticalAlignment="Center" PreviewMouseWheel="Volume_MouseWheel">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Button x:Name="VolumeButton" Click="VolumeButton_Click"
-                    PreviewMouseWheel="Volume_MouseWheel"
-                    PreviewMouseRightButtonDown="VolumeButton_RightClick"
-                    PreviewMouseRightButtonUp="VolumeButton_RightClick"
-                    ContextMenu="{x:Null}"
-                    ToolTip="음량" Style="{StaticResource SeriesOnIconButton}">
-              <Path Stroke="#FFFFFFFF" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                    StrokeLineJoin="Round"
-                    Data="M 2,9 H 6 L 11,5 V 19 L 6,15 H 2 Z M 14,9 C 16,10 16,14 14,15"/>
-            </Button>
-            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="1"
-                    VerticalAlignment="Center" Margin="4,0"
-                    Style="{StaticResource SeriesOnVolumeSlider}"
-                    PreviewMouseWheel="Volume_MouseWheel"
-                    ValueChanged="Volume_Changed"/>
-            <TextBlock x:Name="VolumePercent" Grid.Column="2" Text="100" Width="28" TextAlignment="Right"
-                       VerticalAlignment="Center" Margin="4,0,8,0"
-                       Foreground="#FFFFFFFF"
-                       FontFamily="Segoe UI Variable, Segoe UI"
-                       FontSize="12" FontWeight="Regular"/>
-          </Grid>
-          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
-          <TextBlock x:Name="OverlayTime" Text="00:00:00 / 00:00:00"
-                     VerticalAlignment="Center" Margin="8,0"
-                     Foreground="{StaticResource SeriesOnAccentBrush}"
-                     FontFamily="Segoe UI Variable, Segoe UI"
-                     FontSize="12" FontWeight="Regular"
-                     IsHitTestVisible="False"/>
-          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
-          <Button x:Name="HamburgerButton" Click="Hamburger_Click" ToolTip="보기" Style="{StaticResource SeriesOnIconButton}">
-            <Button.ContextMenu>
-              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF">
-                <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="saveAs" Header="다른 이름으로 저장" Click="SaveAs_Click" IsEnabled="False"
-                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="종료" Click="Exit_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <Separator/>
-                <MenuItem Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="prev" Header="이전 화" Click="Prev_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <Separator/>
-                <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
-                          Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="autoNext" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
-                          Click="AutoNext_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <Separator/>
-                <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
-                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="clip" Header="구간 저장" Click="ClipSaveMenu_Click"
-                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-              </ContextMenu>
-            </Button.ContextMenu>
-            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                  Data="M 4,6 H 20 M 4,12 H 20 M 4,18 H 20"/>
-          </Button>
-        </StackPanel>
-        <Grid x:Name="SeekHost" Height="8" VerticalAlignment="Top" Margin="8,1,8,0"
-              SizeChanged="SeekHost_SizeChanged">
-          <Slider x:Name="SeekSlider" Minimum="0" Maximum="1" Value="0"
-                  VerticalAlignment="Center" Style="{StaticResource SeriesOnSeekSlider}"
-                  PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
-          <Canvas x:Name="MarkCanvas" IsHitTestVisible="False" Height="8" VerticalAlignment="Center">
-            <Rectangle x:Name="InTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
-            <Rectangle x:Name="OutTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
-          </Canvas>
-        </Grid>
-      </Grid>
-    </Border>
+    <Border x:Name="TransportDockSlot" DockPanel.Dock="Bottom" Height="40"/>
 
     <Grid>
       <Grid.ColumnDefinitions>
@@ -541,4 +433,116 @@
       </Grid>
     </Grid>
   </DockPanel>
+    <Border x:Name="TransportBar" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Background="{StaticResource SeriesOnChromeBrush}"
+            BorderBrush="{StaticResource SeriesOnDividerBrush}" BorderThickness="0,1,0,0" Height="40" Padding="0"
+            ClipToBounds="True">
+      <Grid>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,4,4,0">
+          <Button Click="SkipBack_Click" ToolTip="되감기" Style="{StaticResource SeriesOnIconButton}">
+            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  StrokeLineJoin="Round" Data="M 11,6 L 4,12 L 11,18 M 19,6 L 12,12 L 19,18"/>
+          </Button>
+          <Button x:Name="PlayButton" Click="PlayPause_Click" Style="{StaticResource SeriesOnIconButton}" ToolTip="재생">
+            <Grid Width="14" Height="14">
+              <Path x:Name="PlayIcon" Fill="#FFFFFFFF" Stretch="Uniform" Data="M 3,1 L 13,7 L 3,13 Z"/>
+              <Path x:Name="PauseIcon" Fill="#FFFFFFFF" Stretch="Uniform" Visibility="Collapsed"
+                    Data="M 2,1 H 5.5 V 13 H 2 Z M 8.5,1 H 12 V 13 H 8.5 Z"/>
+            </Grid>
+          </Button>
+          <Button Click="Stop_Click" ToolTip="정지" Style="{StaticResource SeriesOnIconButton}">
+            <Path Fill="#FFFFFFFF" Data="M 6,6 H 18 V 18 H 6 Z"/>
+          </Button>
+          <Button x:Name="ClearButton" Click="Clear_Click" Content="지우기" ToolTip="지우기"
+                  Style="{StaticResource SeriesOnClearButton}"/>
+          <Button Click="SkipForward_Click" ToolTip="빨리감기" Style="{StaticResource SeriesOnIconButton}">
+            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  StrokeLineJoin="Round" Data="M 5,6 L 12,12 L 5,18 M 13,6 L 20,12 L 13,18"/>
+          </Button>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
+          <Grid x:Name="VolumeHost" VerticalAlignment="Center" PreviewMouseWheel="Volume_MouseWheel">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="VolumeButton" Click="VolumeButton_Click"
+                    PreviewMouseWheel="Volume_MouseWheel"
+                    PreviewMouseRightButtonDown="VolumeButton_RightClick"
+                    PreviewMouseRightButtonUp="VolumeButton_RightClick"
+                    ContextMenu="{x:Null}"
+                    ToolTip="음량" Style="{StaticResource SeriesOnIconButton}">
+              <Path Stroke="#FFFFFFFF" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                    StrokeLineJoin="Round"
+                    Data="M 2,9 H 6 L 11,5 V 19 L 6,15 H 2 Z M 14,9 C 16,10 16,14 14,15"/>
+            </Button>
+            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="1" Value="1"
+                    VerticalAlignment="Center" Margin="4,0"
+                    Style="{StaticResource SeriesOnVolumeSlider}"
+                    PreviewMouseWheel="Volume_MouseWheel"
+                    ValueChanged="Volume_Changed"/>
+            <TextBlock x:Name="VolumePercent" Grid.Column="2" Text="100" Width="28" TextAlignment="Right"
+                       VerticalAlignment="Center" Margin="4,0,8,0"
+                       Foreground="#FFFFFFFF"
+                       FontFamily="Segoe UI Variable, Segoe UI"
+                       FontSize="12" FontWeight="Regular"/>
+          </Grid>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
+          <TextBlock x:Name="OverlayTime" Text="00:00:00 / 00:00:00"
+                     VerticalAlignment="Center" Margin="8,0"
+                     Foreground="{StaticResource SeriesOnAccentBrush}"
+                     FontFamily="Segoe UI Variable, Segoe UI"
+                     FontSize="12" FontWeight="Regular"
+                     IsHitTestVisible="False"/>
+          <Rectangle Style="{StaticResource SeriesOnDivider}"/>
+          <Button x:Name="HamburgerButton" Click="Hamburger_Click" ToolTip="보기" Style="{StaticResource SeriesOnIconButton}">
+            <Button.ContextMenu>
+              <ContextMenu Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+                <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="saveAs" Header="다른 이름으로 저장" Click="SaveAs_Click" IsEnabled="False"
+                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="종료" Click="Exit_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <Separator/>
+                <MenuItem Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="prev" Header="이전 화" Click="Prev_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <Separator/>
+                <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
+                          Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="전체화면" Click="Fullscreen_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="autoNext" Header="다음 화 자동 재생" IsCheckable="True" IsChecked="True"
+                          Click="AutoNext_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <Separator/>
+                <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
+                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="clip" Header="구간 저장" Click="ClipSaveMenu_Click"
+                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+              </ContextMenu>
+            </Button.ContextMenu>
+            <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Data="M 4,6 H 20 M 4,12 H 20 M 4,18 H 20"/>
+          </Button>
+        </StackPanel>
+        <Grid x:Name="SeekHost" Height="8" VerticalAlignment="Top" Margin="8,1,8,0"
+              SizeChanged="SeekHost_SizeChanged">
+          <Slider x:Name="SeekSlider" Minimum="0" Maximum="1" Value="0"
+                  VerticalAlignment="Center" Style="{StaticResource SeriesOnSeekSlider}"
+                  PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
+          <Canvas x:Name="MarkCanvas" IsHitTestVisible="False" Height="8" VerticalAlignment="Center">
+            <Rectangle x:Name="InTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
+            <Rectangle x:Name="OutTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
+          </Canvas>
+        </Grid>
+      </Grid>
+    </Border>
+
+  </Grid>
 </Window>

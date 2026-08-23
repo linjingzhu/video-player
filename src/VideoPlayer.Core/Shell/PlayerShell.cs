@@ -226,6 +226,11 @@ public sealed class FullscreenChrome
     public bool CenterPlayIcon { get; } = false;
     public bool NextEpisodeTextOnBar { get; } = false;
     public bool EndCtaIsOverlay { get; } = true;
+    public bool TransportIsFloatingOverlay { get; } = true;
+    public bool WindowedTransportIsDocked { get; } = true;
+    public double TransportOverlayOpacity { get; } = SeriesOn.FullscreenTransportOpacity;
+    public IReadOnlyList<string> ToggleKeys { get; } = ["Enter", "F11"];
+    public int IdleHideSeconds { get; } = SeriesOn.FullscreenIdleHideSeconds;
 }
 
 public sealed class NextEpisodeChrome
