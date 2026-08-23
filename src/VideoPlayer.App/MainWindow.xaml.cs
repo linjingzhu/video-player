@@ -1,0 +1,396 @@
+using System.ComponentModel;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
+using Microsoft.Win32;
+using VideoPlayer.App.Playback;
+using VideoPlayer.Core.Library;
+using VideoPlayer.Core.Playback;
+using VideoPlayer.Core.Shell;
+
+namespace VideoPlayer.App;
+
+public partial class MainWindow : Window
+{
+    private readonly PlaybackSession _session;
+    private readonly DispatcherTimer _timer;
+    private readonly MpvMediaEngine _engine;
+    private bool _fullscreen;
+    private WindowState _windowedState = WindowState.Normal;
+    private WindowStyle _windowedStyle = WindowStyle.SingleBorderWindow;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        var data = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "VideoPlayer");
+        _engine = new MpvMediaEngine();
+        _session = new PlaybackSession(_engine, data);
+        ApplyWindowMemory(_session.Window.Bounds);
+        PlayerHost.Child = _engine.Host;
+        ApplySidebar();
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _timer.Tick += (_, _) => OnTick();
+        _timer.Start();
+        RefreshShell();
+    }
+
+    public void OpenFromCommandLine(IEnumerable<string> paths)
+    {
+        Activate();
+        _session.Drop(paths);
+        RefreshShell();
+    }
+
+    private void OnTick()
+    {
+        _session.Tick(DateTimeOffset.UtcNow);
+        RefreshShell();
+        if (_fullscreen)
+        {
+            ApplyFullscreenChrome(_session.Shell.ChromeVisible);
+        }
+    }
+
+    private void RefreshShell()
+    {
+        var shell = _session.Shell;
+        Title = _session.Current is { } cur
+            ? $"{UiCopy.AppTitle} — {Path.GetFileName(cur.Path)}"
+            : UiCopy.AppTitle;
+        StatusText.Text = shell.Status.Text;
+        StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
+        PositionText.Text = shell.Transport.PositionText;
+        DurationText.Text = shell.Transport.DurationText;
+        OverlayTime.Text = shell.OverlayTime;
+        OverlaySubtitle.Text = shell.OverlaySubtitle;
+        PlayButton.Content = shell.IsPaused ? "▶" : "❚❚";
+        SpeedButton.Content = shell.Transport.SpeedText;
+        FsSpeed.Content = shell.Transport.SpeedText;
+        FsTitle.Text = shell.Fullscreen.Title;
+        FsPosition.Text = shell.Transport.PositionText;
+        FsDuration.Text = shell.Transport.DurationText;
+        NextCtaPanel.Visibility = shell.NextEpisode.ShowCta ? Visibility.Visible : Visibility.Collapsed;
+        CancelAutoNextButton.Visibility = shell.NextEpisode.AutoNextPending ? Visibility.Visible : Visibility.Collapsed;
+        if (shell.Transport.Duration > 0)
+        {
+            SeekSlider.Maximum = shell.Transport.Duration;
+            SeekSlider.Value = shell.Transport.Position;
+            FsSeek.Maximum = shell.Transport.Duration;
+            FsSeek.Value = shell.Transport.Position;
+        }
+
+        BindSidebar();
+        SeriesHeading.Text = shell.Series.Heading;
+        SeriesGrid.ItemsSource = shell.Series.Items;
+        ApplySidebar();
+    }
+
+    private void BindSidebar()
+    {
+        SidebarList.Items.Clear();
+        if (_session.Shell.Sidebar.Resume is { } resume)
+        {
+            SidebarList.Items.Add(new ListBoxItem { Content = $"{UiCopy.ContinueWatching} · {resume.Label}", Tag = resume });
+        }
+        else
+        {
+            SidebarList.Items.Add(new ListBoxItem { Content = UiCopy.ContinueWatching, Tag = "resume-empty" });
+        }
+
+        foreach (var series in _session.Shell.Sidebar.RecentSeries)
+        {
+            SidebarList.Items.Add(new ListBoxItem { Content = series.Title, Tag = series });
+        }
+    }
+
+    private void ApplyWindowMemory(WindowBounds bounds)
+    {
+        Left = bounds.X;
+        Top = bounds.Y;
+        Width = bounds.Width;
+        Height = bounds.Height;
+        WindowState = WindowState.Normal;
+    }
+
+    private void ApplySidebar()
+    {
+        var open = _session.Shell.Sidebar.Open && !_fullscreen;
+        SidebarColumn.Width = open ? new GridLength(240) : new GridLength(0);
+        SidebarPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OpenFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Videos|*.mp4;*.mkv;*.avi;*.wmv;*.mov|All files|*.*",
+            Multiselect = true
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            _session.Drop(dialog.FileNames);
+            ShowMainPage();
+            RefreshShell();
+        }
+    }
+
+    private void OpenFolder_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog();
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            _session.OpenSeriesFolder(dialog.SelectedPath);
+            ShowSeriesPage();
+        }
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void PlayPause_Click(object sender, RoutedEventArgs e) => _session.PlayPause();
+
+    private void Next_Click(object sender, RoutedEventArgs e) => _session.PlayNextEpisode();
+
+    private void CancelAutoNext_Click(object sender, RoutedEventArgs e) => _session.CancelAutoNext();
+
+    private void SkipBack_Click(object sender, RoutedEventArgs e) => _session.SkipBack();
+
+    private void SkipForward_Click(object sender, RoutedEventArgs e) => _session.SkipForward();
+
+    private void CycleSpeed_Click(object sender, RoutedEventArgs e)
+    {
+        var presets = PlaybackSpeed.Presets;
+        var index = 0;
+        for (var i = 0; i < presets.Count; i++)
+        {
+            if (Math.Abs(presets[i] - _session.Speed) < 0.01)
+            {
+                index = (i + 1) % presets.Count;
+                break;
+            }
+        }
+
+        _session.SetSpeed(presets[index]);
+        RefreshShell();
+    }
+
+    private void Captions_Click(object sender, RoutedEventArgs e) => _session.ToggleCaptions();
+
+    private void ShowSeries_Click(object sender, RoutedEventArgs e) => ShowSeriesPage();
+
+    private void ShowMain_Click(object sender, RoutedEventArgs e) => ShowMainPage();
+
+    private void AutoNext_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem item)
+        {
+            _session.AutoNext = item.IsChecked;
+        }
+    }
+
+    private void Fullscreen_Click(object sender, RoutedEventArgs e) => ToggleFullscreen();
+
+    private void ToggleSidebar_Click(object sender, RoutedEventArgs e)
+    {
+        _session.ToggleSidebar();
+        ApplySidebar();
+    }
+
+    private void Sidebar_Activate(object sender, MouseButtonEventArgs e)
+    {
+        if (SidebarList.SelectedItem is not ListBoxItem item)
+        {
+            return;
+        }
+
+        if (item.Tag is SidebarResumeItem resume)
+        {
+            _session.ContinueWatching();
+            ShowMainPage();
+        }
+        else if (item.Tag is SidebarSeriesItem series)
+        {
+            _session.OpenSeriesFolder(series.FolderPath);
+            ShowSeriesPage();
+        }
+    }
+
+    private void Video_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount >= 2)
+        {
+            ToggleFullscreen();
+        }
+        else
+        {
+            _session.PlayPause();
+        }
+    }
+
+    private void SeekSlider_Committed(object sender, MouseButtonEventArgs e)
+        => _session.SeekAbsolute(SeekSlider.Value);
+
+    private void Volume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_session is null)
+        {
+            return;
+        }
+
+        _session.AdjustVolume(e.NewValue - _session.Engine.Volume);
+    }
+
+    private void SeriesGrid_Activate(object sender, MouseButtonEventArgs e)
+    {
+        if (SeriesGrid.SelectedItem is SeriesListItem item)
+        {
+            _session.DrillInto(item);
+            if (_session.Shell.Screen == ShellScreen.Main)
+            {
+                ShowMainPage();
+            }
+            else
+            {
+                RefreshShell();
+            }
+        }
+    }
+
+    private void SeriesBack_Click(object sender, RoutedEventArgs e)
+    {
+        _session.SeriesBack();
+        RefreshShell();
+    }
+
+    private void ShowSeriesPage()
+    {
+        SeriesPage.Visibility = Visibility.Visible;
+        VideoPage.Visibility = Visibility.Collapsed;
+        _session.Shell.ShowSeries();
+        RefreshShell();
+    }
+
+    private void ShowMainPage()
+    {
+        SeriesPage.Visibility = Visibility.Collapsed;
+        VideoPage.Visibility = Visibility.Visible;
+        _session.Shell.Screen = ShellScreen.Main;
+        RefreshShell();
+    }
+
+    private void ToggleFullscreen()
+    {
+        if (_fullscreen)
+        {
+            ExitFullscreen();
+        }
+        else
+        {
+            EnterFullscreen();
+        }
+    }
+
+    private void EnterFullscreen()
+    {
+        _windowedState = WindowState;
+        _windowedStyle = WindowStyle;
+        WindowStyle = WindowStyle.None;
+        WindowState = WindowState.Normal;
+        WindowState = WindowState.Maximized;
+        MainMenu.Visibility = Visibility.Collapsed;
+        StatusBar.Visibility = Visibility.Collapsed;
+        TransportBar.Visibility = Visibility.Collapsed;
+        _fullscreen = true;
+        ApplySidebar();
+        FullscreenChrome.Visibility = Visibility.Visible;
+        FullscreenChrome.IsHitTestVisible = true;
+        _session.EnterFullscreen();
+        _session.NoteActivity(DateTimeOffset.UtcNow);
+    }
+
+    private void ExitFullscreen()
+    {
+        WindowStyle = _windowedStyle;
+        WindowState = WindowState.Normal;
+        if (_windowedState != WindowState.Minimized)
+        {
+            WindowState = _windowedState == WindowState.Maximized ? WindowState.Normal : _windowedState;
+        }
+
+        MainMenu.Visibility = Visibility.Visible;
+        TransportBar.Visibility = Visibility.Visible;
+        FullscreenChrome.Visibility = Visibility.Collapsed;
+        _fullscreen = false;
+        _session.ExitFullscreen();
+        ApplySidebar();
+        RefreshShell();
+    }
+
+    private void ApplyFullscreenChrome(bool visible)
+    {
+        FullscreenChrome.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        FullscreenChrome.IsHitTestVisible = visible;
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        _session.NoteActivity(DateTimeOffset.UtcNow);
+        switch (e.Key)
+        {
+            case Key.Space:
+                _session.PlayPause();
+                e.Handled = true;
+                break;
+            case Key.Left:
+                _session.SkipBack();
+                e.Handled = true;
+                break;
+            case Key.Right:
+                _session.SkipForward();
+                e.Handled = true;
+                break;
+            case Key.Escape when _fullscreen:
+                ExitFullscreen();
+                e.Handled = true;
+                break;
+            case Key.F11:
+                ToggleFullscreen();
+                e.Handled = true;
+                break;
+            case Key.C:
+                _session.ToggleCaptions();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    private void OnPreviewMouseMove(object sender, MouseEventArgs e)
+        => _session.NoteActivity(DateTimeOffset.UtcNow);
+
+    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        _session.AdjustVolume(e.Delta > 0 ? 0.05 : -0.05);
+        VolumeSlider.Value = _session.Engine.Volume;
+        e.Handled = true;
+    }
+
+    protected override void OnDrop(DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop)
+            && e.Data.GetData(DataFormats.FileDrop) is string[] files)
+        {
+            _session.Drop(files);
+            RefreshShell();
+        }
+    }
+
+    private void OnClosing(object? sender, CancelEventArgs e)
+    {
+        _session.Checkpoint("exit");
+        _session.RememberWindow(new WindowBounds(Left, Top, Width, Height));
+        _engine.Dispose();
+    }
+}

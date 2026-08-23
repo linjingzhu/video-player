@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>VideoPlayer.App</RootNamespace>
+    <AssemblyName>VideoPlayer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon />
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Product>영상 플레이어</Product>
+    <Description>Windows local series video player (libmpv / FFmpeg).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VideoPlayer.Core\VideoPlayer.Core.csproj" />
+  </ItemGroup>
+</Project>

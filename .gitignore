@@ -1,0 +1,49 @@
+# Build
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+[Bb]ld/
+[Oo]ut/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vspscc
+*.vssscc
+.vs/
+.vscode/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test / coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# OS / tooling
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Native player binaries (downloaded locally, not committed)
+src/VideoPlayer.App/runtimes/
+*.dll
+!src/**/*.dll
+libmpv*.dll
+mpv-2.dll
+libmpv-2.dll
+
+# Local settings / user data
+*.local.json
+AppData/
