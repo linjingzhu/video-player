@@ -2,7 +2,6 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using VideoPlayer.Core.Playback;
-using Panel = System.Windows.Forms.Panel;
 using Path = System.IO.Path;
 
 namespace VideoPlayer.App.Playback;
@@ -14,7 +13,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
 
     public MpvMediaEngine()
     {
-        Host = new Panel
+        Host = new System.Windows.Forms.Panel
         {
             Dock = DockStyle.Fill,
             BackColor = System.Drawing.Color.Black
@@ -22,7 +21,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         TryCreate();
     }
 
-    public Panel Host { get; }
+    public System.Windows.Forms.Panel Host { get; }
     public bool IsOpen { get; private set; }
     public bool IsPaused { get; private set; } = true;
     public double Position => ReadDouble("time-pos");
