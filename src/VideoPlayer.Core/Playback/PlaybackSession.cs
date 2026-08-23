@@ -4,6 +4,7 @@ using VideoPlayer.Core.Media;
 using VideoPlayer.Core.Safety;
 using VideoPlayer.Core.Series;
 using VideoPlayer.Core.Shell;
+using VideoPlayer.Core.Skip;
 using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.Core.Playback;
@@ -13,6 +14,10 @@ public sealed class PlaybackSession
     private readonly HardwareDecodePolicy _hw = new();
     private readonly SeriesDrillDown _drill = new();
     private IReadOnlyList<SeriesEpisode> _flatEpisodes = [];
+    private IReadOnlyList<SkipSegment> _skipSegments = [];
+    private readonly HashSet<SkipKind> _dismissedSkips = [];
+    private readonly SkipAutoOffer _skipAuto = new();
+    private double _skipBoundDuration;
     private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
     private bool _endedHandled;
     private bool _capturing;
@@ -37,9 +42,12 @@ public sealed class PlaybackSession
     public WindowMemory Window { get; private set; } = new();
     public AppSettings Settings { get; private set; } = new();
     public AutoNextOffer AutoNextOffer { get; } = new();
+    public SkipAutoOffer SkipAuto => _skipAuto;
     public int JumpSeconds => Settings.JumpSeconds;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
+    public IReadOnlyList<SubtitleCue> SecondaryCues { get; private set; } = [];
+    public IReadOnlyList<SkipSegment> SkipSegments => _skipSegments;
     public double Speed { get; private set; }
     public bool AutoNext { get; set; } = true;
     public bool IsCapturing => _capturing;
@@ -89,6 +97,7 @@ public sealed class PlaybackSession
         Current = identity;
         _endedHandled = false;
         AutoNextOffer.ResetForNewTitle();
+        ResetSkipForNewTitle();
 
         if (!opened.HardwareActive)
         {
@@ -107,6 +116,7 @@ public sealed class PlaybackSession
 
         Engine.Speed = Speed;
         LoadSidecarSubtitles(identity.Path);
+        LoadSkipSegments(identity.Path);
         Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
         RefreshSidebar();
         RefreshSeriesPanel();
@@ -175,7 +185,9 @@ public sealed class PlaybackSession
         Engine.Seek(SeekCommands.ApplyRelative(Engine.Position, Engine.Duration, seconds));
         _endedHandled = false;
         SyncTransport();
-        UpdateNextEpisodeChrome(DateTimeOffset.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+        UpdateNextEpisodeChrome(now);
+        UpdateSkipCapsule(now);
     }
 
     public void SkipBack() => SeekRelative(-JumpSeconds);
@@ -199,7 +211,9 @@ public sealed class PlaybackSession
         Engine.Seek(Math.Max(0, seconds));
         _endedHandled = false;
         SyncTransport();
-        UpdateNextEpisodeChrome(DateTimeOffset.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+        UpdateNextEpisodeChrome(now);
+        UpdateSkipCapsule(now);
     }
 
     public void SetSpeed(double speed)
@@ -298,6 +312,69 @@ public sealed class PlaybackSession
 
     public void CancelAutoNext() => AutoNextOffer.Cancel();
 
+    public void OpenSubtitleSheet()
+    {
+        if (Current is { } current)
+        {
+            BindSubtitleSheet(current.Path);
+        }
+
+        Shell.Subtitles.Open = true;
+    }
+
+    public void CloseSubtitleSheet() => Shell.Subtitles.Close();
+
+    public void SelectPrimarySubtitle(string? path)
+    {
+        Shell.Subtitles.SelectPrimary(path);
+        Cues = LoadCues(Shell.Subtitles.PrimaryPath);
+        if (!Shell.Transport.CaptionsOn || Cues.Count == 0)
+        {
+            Shell.OverlaySubtitle = "";
+        }
+    }
+
+    public void SelectSecondarySubtitle(string? path)
+    {
+        Shell.Subtitles.SelectSecondary(path);
+        SecondaryCues = LoadCues(Shell.Subtitles.SecondaryPath);
+        if (SecondaryCues.Count == 0)
+        {
+            Shell.OverlaySecondarySubtitle = "";
+        }
+    }
+
+    public void SkipActiveSegment()
+    {
+        if (!Shell.Skip.Visible || Shell.Skip.Kind is not { } kind)
+        {
+            return;
+        }
+
+        var target = Shell.Skip.SkipTo;
+        _dismissedSkips.Add(kind);
+        _skipAuto.LeaveRegion();
+        Shell.Skip.Hide();
+        SeekAbsolute(target);
+    }
+
+    public void CancelSkipAuto()
+    {
+        _skipAuto.Cancel();
+        if (Shell.Skip.Visible && Shell.Skip.Kind is { } kind)
+        {
+            var segment = _skipSegments.FirstOrDefault(item => item.Kind == kind);
+            if (segment is not null)
+            {
+                Shell.Skip.Show(segment, autoPending: false, 0);
+                return;
+            }
+        }
+
+        Shell.Skip.AutoPending = false;
+        Shell.Skip.AutoSeconds = 0;
+    }
+
     public void Tick(DateTimeOffset now)
     {
         SyncTransport();
@@ -306,14 +383,30 @@ public sealed class PlaybackSession
             return;
         }
 
+        RefreshSkipSegmentsIfNeeded();
         if (Shell.Transport.CaptionsOn && Cues.Count > 0)
         {
             var text = SubtitleParser.CueAt(Cues, TimeSpan.FromSeconds(Engine.Position));
             Shell.OverlaySubtitle = string.IsNullOrEmpty(text) ? "" : text;
         }
+        else if (!Shell.Transport.CaptionsOn)
+        {
+            Shell.OverlaySubtitle = "";
+        }
+
+        if (SecondaryCues.Count > 0)
+        {
+            var secondary = SubtitleParser.CueAt(SecondaryCues, TimeSpan.FromSeconds(Engine.Position));
+            Shell.OverlaySecondarySubtitle = string.IsNullOrEmpty(secondary) ? "" : secondary;
+        }
+        else
+        {
+            Shell.OverlaySecondarySubtitle = "";
+        }
 
         UpdateChromeVisibility(now);
         UpdateNextEpisodeChrome(now);
+        UpdateSkipCapsule(now);
 
         if (Engine.IsOpen && Engine.Duration > 0 && Engine.Position >= Engine.Duration - 0.25)
         {
@@ -491,16 +584,117 @@ public sealed class PlaybackSession
 
     private void LoadSidecarSubtitles(string mediaPath)
     {
+        BindSubtitleSheet(mediaPath);
         Cues = [];
+        SecondaryCues = [];
+        Shell.OverlaySubtitle = "";
+        Shell.OverlaySecondarySubtitle = "";
+
         foreach (var sidecar in SubtitleLocator.FindSidecars(mediaPath))
         {
             var parsed = SubtitleParser.ParseFile(sidecar);
             if (parsed.Cues.Count > 0)
             {
+                Shell.Subtitles.SelectPrimary(sidecar);
                 Cues = parsed.Cues;
                 break;
             }
         }
+
+        SecondaryCues = LoadCues(Shell.Subtitles.SecondaryPath);
+    }
+
+    private void BindSubtitleSheet(string mediaPath)
+    {
+        var tracks = SubtitleLocator.FindAllTracks(mediaPath);
+        Shell.Subtitles.Bind(tracks, SubtitleLocator.SuggestSecondary(tracks));
+    }
+
+    private static IReadOnlyList<SubtitleCue> LoadCues(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return [];
+        }
+
+        var parsed = SubtitleParser.ParseFile(path);
+        return parsed.Cues.Count > 0 ? parsed.Cues : [];
+    }
+
+    private void ResetSkipForNewTitle()
+    {
+        _skipSegments = [];
+        _skipBoundDuration = 0;
+        _dismissedSkips.Clear();
+        _skipAuto.ResetForNewTitle();
+        Shell.Skip.Hide();
+    }
+
+    private void LoadSkipSegments(string mediaPath)
+    {
+        var markers = SeasonSkipMarkers.Load(mediaPath);
+        _skipSegments = SkipDetector.Detect(Engine.Chapters, markers, Engine.Duration);
+        _skipBoundDuration = Engine.Duration;
+        UpdateSkipCapsule(DateTimeOffset.UtcNow);
+    }
+
+    private void RefreshSkipSegmentsIfNeeded()
+    {
+        if (!Engine.IsOpen || Current is null)
+        {
+            return;
+        }
+
+        var durationReady = _skipBoundDuration <= 0 && Engine.Duration > 0;
+        var chaptersArrived = Engine.Chapters.Count > 0 && _skipSegments.All(segment => segment.Source != SkipSource.Chapter);
+        if (!durationReady && !chaptersArrived)
+        {
+            return;
+        }
+
+        LoadSkipSegments(Current.Value.Path);
+    }
+
+    private void UpdateSkipCapsule(DateTimeOffset now)
+    {
+        if (!Engine.IsOpen)
+        {
+            Shell.Skip.Hide();
+            return;
+        }
+
+        var active = SkipDetector.Active(_skipSegments, Engine.Position, _dismissedSkips);
+        if (active is null)
+        {
+            _skipAuto.LeaveRegion();
+            Shell.Skip.Hide();
+            return;
+        }
+
+        var auto = active.Source == SkipSource.Marker && !_skipAuto.WasCancelled(active.Kind);
+        if (auto)
+        {
+            if (!_skipAuto.Pending || _skipAuto.Kind != active.Kind)
+            {
+                _skipAuto.LeaveRegion();
+                _skipAuto.Begin(active.Kind, now);
+            }
+
+            Shell.Skip.Show(active, true, (int)Math.Ceiling(_skipAuto.Remaining(now).TotalSeconds));
+            if (_skipAuto.ShouldApply(now))
+            {
+                SkipActiveSegment();
+            }
+
+            return;
+        }
+
+        if (_skipAuto.Kind == active.Kind)
+        {
+            _skipAuto.LeaveRegion();
+        }
+
+        Shell.Skip.Show(active, autoPending: false, 0);
     }
 
     private void SyncTransport()

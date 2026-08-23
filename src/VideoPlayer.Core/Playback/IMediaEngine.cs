@@ -1,5 +1,7 @@
 namespace VideoPlayer.Core.Playback;
 
+public sealed record MediaChapter(string Title, double Start, double End);
+
 public interface IMediaEngine
 {
     bool IsOpen { get; }
@@ -12,6 +14,7 @@ public interface IMediaEngine
     string? AudioCodec { get; }
     bool HardwareActive { get; }
     string? LastError { get; }
+    IReadOnlyList<MediaChapter> Chapters { get; }
 
     OpenMediaResult Open(string path, bool preferHardware);
     void Play();
@@ -38,6 +41,9 @@ public sealed class FakeMediaEngine : IMediaEngine
     public bool FailOpen { get; set; }
     public string? ForcedUnsupportedCodec { get; set; }
     public string? LastError { get; private set; }
+    public List<MediaChapter> Chapters { get; set; } = [];
+
+    IReadOnlyList<MediaChapter> IMediaEngine.Chapters => Chapters;
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {

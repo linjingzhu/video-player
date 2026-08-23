@@ -57,6 +57,107 @@ public static class SubtitleLocator
             stem + ".ko.srt"
         ];
 
+    public static IReadOnlyList<string> FindAllTracks(string mediaPath)
+    {
+        var found = new List<string>(FindSidecars(mediaPath));
+        foreach (var extra in EnumerateLanguageSidecars(mediaPath))
+        {
+            if (!found.Contains(extra, StringComparer.OrdinalIgnoreCase))
+            {
+                found.Add(extra);
+            }
+        }
+
+        return found;
+    }
+
+    public static string? SuggestSecondary(IReadOnlyList<string> tracks)
+        => tracks.FirstOrDefault(IsEnglishSidecar);
+
+    public static bool IsEnglishSidecar(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var name = Path.GetFileName(path);
+        return name.EndsWith(".en.srt", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".en.smi", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".en.sami", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".eng.srt", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".eng.smi", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IReadOnlyList<string> EnumerateLanguageSidecars(string mediaPath)
+    {
+        var media = PathValidator.ValidateLocalFilePath(mediaPath);
+        if (!media.Success || media.FullPath is null)
+        {
+            return [];
+        }
+
+        var directory = Path.GetDirectoryName(media.FullPath);
+        var stem = Path.GetFileNameWithoutExtension(media.FullPath);
+        if (directory is null || string.IsNullOrEmpty(stem) || !Directory.Exists(directory))
+        {
+            return [];
+        }
+
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.EnumerateFiles(directory);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+
+        var found = new List<string>();
+        foreach (var file in files)
+        {
+            var name = Path.GetFileName(file);
+            if (FileNameSanitizer.LooksMalicious(name) || !IsLanguageSidecar(stem, name))
+            {
+                continue;
+            }
+
+            var resolved = PathValidator.ValidateLocalFilePath(file);
+            if (!resolved.Success || resolved.FullPath is null)
+            {
+                continue;
+            }
+
+            if (!PathValidator.IsSameDirectory(media.FullPath, resolved.FullPath))
+            {
+                continue;
+            }
+
+            found.Add(resolved.FullPath);
+        }
+
+        return found;
+    }
+
+    private static bool IsLanguageSidecar(string stem, string fileName)
+    {
+        if (!fileName.StartsWith(stem + ".", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var ext = SupportedFormats.NormalizeExtension(fileName);
+        if (ext is null || !SupportedFormats.SubtitleExtensions.Contains(ext))
+        {
+            return false;
+        }
+
+        var rest = fileName[(stem.Length + 1)..];
+        var tag = Path.GetFileNameWithoutExtension(rest);
+        return tag.Length is > 0 and <= 8 && tag.All(ch => char.IsLetterOrDigit(ch) || ch == '-');
+    }
+
     public static ValidationResult AcceptExternalSubtitle(string mediaPath, string subtitlePath)
     {
         var media = PathValidator.ValidateLocalFilePath(mediaPath);

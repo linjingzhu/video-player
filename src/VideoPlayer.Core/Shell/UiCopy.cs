@@ -55,6 +55,18 @@ public static class UiCopy
     public const string CaptureEofBanner = "{0}장 중 {1}장";
     public const string CapturePartialFailBanner = "캡처 실패 · {0}장 저장됨 (요청 {1}장)";
 
+    public const string Subtitles = "자막";
+    public const string SecondarySubtitles = "보조 자막 (상단)";
+    public const string PrimarySubtitles = "주 자막 (하단)";
+    public const string SubtitleOff = "꺼짐";
+    public const string SubtitleFooter = "주 · 상단에 보조";
+
+    public const string SkipIntro = "인트로 건너뛰기";
+    public const string SkipRecap = "리캡 건너뛰기";
+    public const string SkipCredits = "크레딧 건너뛰기";
+    public const string SkipCancel = "취소";
+    public const string SkipCancelCountdown = "취소 ({0})";
+
     public static IReadOnlyList<string> MainMenus { get; } = [FileMenu, ViewMenu];
 }
 
