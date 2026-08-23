@@ -88,7 +88,7 @@
     <Style x:Key="SkinABodyText" TargetType="TextBlock">
       <Setter Property="Foreground" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
     </Style>
     <Style x:Key="SkinAMetaText" TargetType="TextBlock">
@@ -132,7 +132,7 @@
       <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="4,0"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
@@ -198,7 +198,7 @@
       <Setter Property="BorderBrush" Value="{StaticResource SkinATextBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Padding" Value="16,8"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -228,7 +228,7 @@
       <Setter Property="Padding" Value="10,6"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FontFamily" Value="{StaticResource CaptureFont}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
@@ -294,7 +294,7 @@
       <Setter Property="Padding" Value="16,8"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="FontFamily" Value="{StaticResource ClipFont}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
@@ -380,7 +380,7 @@
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Foreground" Value="{StaticResource PackTextBrush}"/>
       <Setter Property="FontFamily" Value="{StaticResource PackFont}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="Padding" Value="0"/>
       <Setter Property="Margin" Value="0"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -399,7 +399,7 @@
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Foreground" Value="{StaticResource PackTextBrush}"/>
       <Setter Property="FontFamily" Value="{StaticResource PackFont}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="Padding" Value="12,8"/>
       <Setter Property="Margin" Value="0,0,0,6"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

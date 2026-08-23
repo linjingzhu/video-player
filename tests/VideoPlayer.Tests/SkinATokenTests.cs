@@ -52,14 +52,17 @@ public class SkinATokenTests
         Assert.Equal(999, SkinA.RadiusPill);
         Assert.Equal(12, SkinA.RadiusPanel);
         Assert.Equal(10, SkinA.RadiusControl);
-        Assert.Equal(new[] { 4, 8, 12, 16, 20 }, SkinA.SpacingScale);
+        Assert.Equal(new[] { 4, 8, 12, 16 }, SkinA.SpacingScale);
+        Assert.DoesNotContain(20, SkinA.SpacingScale);
         Assert.DoesNotContain(24, SkinA.SpacingScale);
         Assert.Equal(4, SkinA.SpacingMin);
-        Assert.Equal(20, SkinA.SpacingMax);
-        Assert.NotEqual(24, SkinA.SpacingMax);
+        Assert.Equal(16, SkinA.SpacingMax);
         Assert.Equal(40, SkinA.TransportHeightPx);
         Assert.Equal(28, SkinA.SidebarRailWidthPx);
         Assert.Equal(ShellLayout.SidebarRailWidthPx, SkinA.SidebarRailWidthPx);
+        Assert.Equal(40, ShellLayout.TransportHeightPx);
+        Assert.True(SkinA.VideoIsFullBleed);
+        Assert.True(SkinA.NoLetterboxChrome);
     }
 
     [Fact]
@@ -70,6 +73,8 @@ public class SkinATokenTests
         Assert.True(SkinA.NoBlueThumbs);
         Assert.True(SkinA.BorderlessIcons);
         Assert.True(SkinA.CircularIconHover);
+        Assert.True(SkinA.HoverIsCircularEightPercent);
+        Assert.Equal("#14FFFFFF", SkinA.HoverWhite);
         Assert.True(SkinA.PlayIsCircularCapsule);
         Assert.True(SkinA.CtaIsCapsuleOverlay);
         Assert.True(SkinA.FailureIsBannerSlot);
@@ -85,6 +90,8 @@ public class SkinATokenTests
         Assert.Equal(new[] { "파일", "보기" }, shell.Menus);
         Assert.Equal(28, shell.Sidebar.RailWidthPx);
         Assert.False(shell.CenterPlayIcon);
+        Assert.True(shell.VideoFullBleed);
+        Assert.True(shell.NoLetterboxChrome);
         Assert.True(shell.NextEpisode.EndRegionOnly);
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.Equal("다음 화 >", shell.NextEpisode.Label);

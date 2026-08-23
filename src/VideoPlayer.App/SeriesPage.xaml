@@ -4,12 +4,12 @@
              xmlns:local="clr-namespace:VideoPlayer.App"
              Background="#0B0B0D"
              Foreground="#F5F5F7"
-             FontSize="13"
+             FontSize="12"
              FontWeight="Regular"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True">
   <!--
-    Skin Pack C token lock. Type 20/600, 13/400, 11/400.
+    Skin Pack C token lock. Type 20/600, 12/400, 11/400. Same density as A.
     Selection #141418 + hairline. Episode=E03, title=stem.
     Keep C header Back. No mock captions as chrome.
   -->
@@ -25,7 +25,7 @@
 
     <Style TargetType="TextBlock">
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
     </Style>
 
@@ -41,7 +41,7 @@
     </Style>
 
     <Style x:Key="SkinC.CellText" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
     </Style>
@@ -51,7 +51,7 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="8,4"/>
       <Setter Property="Margin" Value="0"/>
@@ -60,9 +60,14 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+            <Border x:Name="bd" Background="Transparent" CornerRadius="999" Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#14FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
@@ -73,7 +78,7 @@
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderBrush" Value="{StaticResource SkinC.Line}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="14,6"/>
       <Setter Property="Margin" Value="0"/>
@@ -90,6 +95,11 @@
                     Padding="{TemplateBinding Padding}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="bd" Property="Background" Value="#14FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
@@ -98,7 +108,7 @@
     <Style TargetType="TreeView">
       <Setter Property="Background" Value="{StaticResource SkinC.Bg}"/>
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="6,8"/>
@@ -122,7 +132,7 @@
     <Style TargetType="TreeViewItem">
       <Setter Property="Foreground" Value="{StaticResource SkinC.Text}"/>
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Regular"/>
       <Setter Property="Padding" Value="10,5"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -235,7 +245,7 @@
                   StrokeEndLineCap="Round"
                   VerticalAlignment="Center"
                   Margin="0,0,8,0"/>
-            <TextBlock Text="폴더 열기" FontSize="13" FontWeight="Regular" Foreground="{StaticResource SkinC.Text}"/>
+            <TextBlock Text="폴더 열기" FontSize="12" FontWeight="Regular" Foreground="{StaticResource SkinC.Text}"/>
           </StackPanel>
         </Button>
       </Grid>
@@ -292,7 +302,7 @@
                   AlternatingRowBackground="Transparent"
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
-                  FontSize="13"
+                  FontSize="12"
                   FontWeight="Regular"
                   MouseDoubleClick="SeriesGrid_Activate">
           <DataGrid.Columns>

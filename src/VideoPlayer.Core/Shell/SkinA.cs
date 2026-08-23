@@ -3,8 +3,8 @@ namespace VideoPlayer.Core.Shell;
 /// <summary>
 /// Confirmed Skin Pack A visual tokens. Apply to MainWindow chrome,
 /// and to this pack's skip capsule and subtitle sheet only.
-/// Compact density: 40px transport, 28px rail, body 12. Spacing scale drops 24.
-/// Does not change A v2 / C structure (File|View, overlay CTA, no center play).
+/// Compact density: 40px transport, 28px rail, body 12. Spacing is 4 8 12 16.
+/// Video is full-bleed. Hover is circular 8% only. No center play circle.
 /// Capture and clip-save sheet chrome also use these values.
 /// </summary>
 public static class SkinA
@@ -37,16 +37,19 @@ public static class SkinA
     public const int RadiusPill = 999;
     public const int RadiusPanel = 12;
     public const int RadiusControl = 10;
-    public static readonly int[] SpacingScale = [4, 8, 12, 16, 20];
+    public static readonly int[] SpacingScale = [4, 8, 12, 16];
     public const int SpacingMin = 4;
-    public const int SpacingMax = 20;
+    public const int SpacingMax = 16;
     public const int TransportHeightPx = 40;
     public const int SidebarRailWidthPx = ShellLayout.SidebarRailWidthPx;
 
+    public const bool VideoIsFullBleed = true;
+    public const bool NoLetterboxChrome = true;
     public const bool AccentOnTracksOnly = true;
     public const bool WhiteThumbs = true;
     public const bool BorderlessIcons = true;
     public const bool CircularIconHover = true;
+    public const bool HoverIsCircularEightPercent = true;
     public const bool PlayIsCircularCapsule = true;
     public const bool CtaIsCapsuleOverlay = true;
     public const bool FailureIsBannerSlot = true;

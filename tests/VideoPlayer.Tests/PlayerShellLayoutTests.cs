@@ -15,7 +15,11 @@ public class PlayerShellLayoutTests
         Assert.Equal(28, ShellLayout.SidebarRailWidthPx);
         Assert.Equal(0, shell.Sidebar.ContentWidthPx);
         Assert.True(shell.VideoFullWidth);
+        Assert.True(shell.VideoFullBleed);
+        Assert.True(shell.NoLetterboxChrome);
         Assert.False(shell.CenterPlayIcon);
+        Assert.Equal(40, ShellLayout.TransportHeightPx);
+        Assert.Equal(SkinA.TransportHeightPx, ShellLayout.TransportHeightPx);
 
         shell.Sidebar.Open = true;
         Assert.Equal(240, shell.Sidebar.ContentWidthPx);
@@ -138,6 +142,8 @@ public class PlayerShellLayoutTests
         Assert.True(shell.NextEpisode.OverlayOnly);
         Assert.False(shell.NextEpisode.OnTransport);
         Assert.False(shell.CenterPlayIcon);
+        Assert.True(shell.VideoFullBleed);
+        Assert.True(shell.NoLetterboxChrome);
     }
 
     [Fact]
