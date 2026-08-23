@@ -71,7 +71,7 @@
                      VerticalAlignment="Center"/>
         </Grid>
         <TextBlock Text="예: https://example.com/video.mp4" Style="{StaticResource SkinAMetaText}" Margin="0,8,0,0"/>
-        <TextBlock Text="http(s)만" Style="{StaticResource SkinAMetaText}" Margin="0,2,0,0"/>
+        <TextBlock Text="http(s) 파일 주소만" Style="{StaticResource SkinAMetaText}" Margin="0,2,0,0"/>
       </StackPanel>
     </DockPanel>
   </Border>
