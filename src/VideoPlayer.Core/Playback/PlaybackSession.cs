@@ -69,6 +69,14 @@ public sealed class PlaybackSession
     public bool CanAutoNext => AutoNext && FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.AutoNext);
     public bool CanCapture => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.Capture) && Engine.IsOpen;
     public bool CanClipSave => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.ClipSave) && Engine.IsOpen;
+    public IReadOnlyList<MediaChapter> Chapters { get; private set; } = [];
+    public IReadOnlyList<MediaSubtitleTrack> EmbeddedSubtitleTracks { get; private set; } = [];
+    public string? UserSubtitlePath { get; private set; }
+    public bool CanChapterSkip => UrlSkipPolicy.CanChapterSkip(Chapters);
+    public bool UsesIntroDb => UrlSkipPolicy.UsesIntroDb;
+    public bool InventsSkipMarkers => UrlSkipPolicy.AllowsInventedMarkers(SourceKind);
+    public bool CanAutoloadSidecars => SubtitleLocator.AutoloadSidecars(SourceKind);
+    public bool CanSuggestSecondaryEnglish => SubtitleLocator.SuggestSecondaryEnglish(SourceKind);
 
     public OpenMediaResult Open(string path)
     {
@@ -108,6 +116,43 @@ public sealed class PlaybackSession
         }
 
         return PlayOpened(accepted, MediaIdentity.FromUrl(accepted), addToRecent: false, loadSidecars: false);
+    }
+
+    public bool AttachUserSubtitle(string subtitlePath)
+    {
+        var check = SubtitleLocator.AcceptUserPickedSubtitle(SourceKind, Current?.Path, subtitlePath);
+        if (!check.Success || check.FullPath is null)
+        {
+            Shell.Status.Fail(check.Error ?? "자막을 열 수 없습니다.");
+            return false;
+        }
+
+        var parsed = SubtitleParser.ParseFile(check.FullPath);
+        Cues = parsed.Cues;
+        UserSubtitlePath = check.FullPath;
+        return true;
+    }
+
+    public bool SkipToNextChapter()
+    {
+        if (!CanChapterSkip || UrlSkipPolicy.NextChapter(Chapters, Engine.Position) is not { } next)
+        {
+            return false;
+        }
+
+        SeekAbsolute(next.Start);
+        return true;
+    }
+
+    public bool SkipToPreviousChapter()
+    {
+        if (!CanChapterSkip || UrlSkipPolicy.PreviousChapter(Chapters, Engine.Position) is not { } previous)
+        {
+            return false;
+        }
+
+        SeekAbsolute(previous.Start);
+        return true;
     }
 
     public IReadOnlyList<OpenMediaResult> Drop(IEnumerable<string> paths)
@@ -150,8 +195,13 @@ public sealed class PlaybackSession
         if (!opened.Success)
         {
             LastUnsupportedCodec = opened.UnsupportedCodecName;
-            Shell.Status.Fail(opened.Status);
-            return opened with { AddedToRecent = false };
+            var message = opened.UnsupportedCodecName is not null
+                ? opened.Status
+                : identity.Kind == MediaSourceKind.HttpUrl
+                    ? StatusText.PlaybackFailed()
+                    : opened.Status;
+            Shell.Status.Fail(message);
+            return opened with { AddedToRecent = false, Status = Shell.Status.Text };
         }
 
         if (opened.VideoCodec is not null &&
@@ -160,12 +210,17 @@ public sealed class PlaybackSession
             LastUnsupportedCodec = SupportedFormats.DisplayCodecName(opened.VideoCodec);
             Engine.Close();
             Current = null;
+            Chapters = [];
+            EmbeddedSubtitleTracks = [];
+            UserSubtitlePath = null;
             SyncFileOnlyFeatures();
             Shell.Status.Fail(StatusText.Unsupported(opened.VideoCodec));
             return OpenMediaResult.Unsupported(enginePath, opened.VideoCodec);
         }
 
         Current = identity;
+        UserSubtitlePath = null;
+        RefreshStreamTracks();
         _endedHandled = false;
         AutoNextOffer.ResetForNewTitle();
         ResetSkipForNewTitle();
@@ -189,10 +244,9 @@ public sealed class PlaybackSession
         }
 
         Engine.Speed = Speed;
-        if (loadSidecars && identity.Kind == MediaSourceKind.LocalFile)
+        if (loadSidecars && SubtitleLocator.AutoloadSidecars(identity.Kind))
         {
             LoadSidecarSubtitles(identity.Path);
-            LoadSkipSegments(identity.Path);
         }
         else
         {
@@ -200,6 +254,11 @@ public sealed class PlaybackSession
             SecondaryCues = [];
             Shell.OverlaySubtitle = "";
             Shell.OverlaySecondarySubtitle = "";
+        }
+
+        if (identity.Kind == MediaSourceKind.LocalFile)
+        {
+            LoadSkipSegments(identity.Path);
         }
 
         var added = false;
@@ -435,7 +494,7 @@ public sealed class PlaybackSession
 
     public SkipSegment? MarkSkipToHere()
     {
-        if (!Engine.IsOpen || Current is not { } current)
+        if (!Engine.IsOpen || Current is not { Kind: MediaSourceKind.LocalFile } current)
         {
             return null;
         }
@@ -475,6 +534,7 @@ public sealed class PlaybackSession
 
     public void Tick(DateTimeOffset now)
     {
+        RefreshStreamTracks();
         SyncTransport();
         if (_capturing)
         {
@@ -857,6 +917,16 @@ public sealed class PlaybackSession
             ? OpenUrlRules.DisplayName(identity.Path)
             : FileNameSanitizer.ForDisplay(Path.GetFileNameWithoutExtension(identity.Path));
 
+    private void RefreshStreamTracks()
+    {
+        Chapters = Engine.IsOpen
+            ? UrlSkipPolicy.ChaptersForSkip(SourceKind, Engine.Chapters)
+            : [];
+        EmbeddedSubtitleTracks = Engine.IsOpen
+            ? Engine.SubtitleTracks.Where(track => track.Embedded).ToList()
+            : [];
+    }
+
     private void LoadSidecarSubtitles(string mediaPath)
     {
         BindSubtitleSheet(mediaPath);
@@ -886,8 +956,14 @@ public sealed class PlaybackSession
 
     private void BindSubtitleSheet(string mediaPath)
     {
-        var tracks = SubtitleLocator.FindAllTracks(mediaPath);
-        Shell.Subtitles.Bind(tracks, SubtitleLocator.SuggestSecondary(tracks));
+        var tracks = SubtitleLocator.FindAllTracks(mediaPath).ToList();
+        if (UserSubtitlePath is { } picked
+            && !tracks.Contains(picked, StringComparer.OrdinalIgnoreCase))
+        {
+            tracks.Add(picked);
+        }
+
+        Shell.Subtitles.Bind(tracks, SubtitleLocator.SuggestSecondary(SourceKind, tracks));
     }
 
     private static IReadOnlyList<SubtitleCue> LoadCues(string? path)

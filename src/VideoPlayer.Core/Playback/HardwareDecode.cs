@@ -50,10 +50,14 @@ public static class StatusText
     public static string Unsupported(string? codecName)
         => $"{UiCopy.Unsupported} · {SupportedFormats.DisplayCodecName(codecName)}";
 
+    public static string PlaybackFailed(string? reason = null)
+        => $"{UiCopy.PlaybackFailed} · {(string.IsNullOrWhiteSpace(reason) ? UiCopy.NetworkFailed : reason.Trim())}";
+
     public static bool IsConfirmedFailureLine(string? text)
         => !string.IsNullOrWhiteSpace(text)
            && (text.StartsWith(UiCopy.Unsupported, StringComparison.Ordinal)
-               || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal));
+               || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal)
+               || text.StartsWith(UiCopy.PlaybackFailed, StringComparison.Ordinal));
 }
 
 public sealed record OpenMediaResult

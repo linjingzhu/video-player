@@ -47,6 +47,8 @@ public static class UiCopy
 
     public const string Unsupported = "미지원";
     public const string SoftwareFallback = "SW 폴백";
+    public const string PlaybackFailed = "재생 실패";
+    public const string NetworkFailed = "연결할 수 없습니다.";
 
     public const string Capture = "캡처";
     public const string CaptureSheetTitle = Capture;

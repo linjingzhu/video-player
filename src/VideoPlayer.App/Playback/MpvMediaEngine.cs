@@ -54,6 +54,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
                                   && !string.IsNullOrEmpty(MpvNative.ReadString(_mpv, "hwdec-current"));
     public string? LastError { get; private set; }
     public IReadOnlyList<MediaChapter> Chapters => ReadChapters();
+    public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks => ReadSubtitleTracks();
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
@@ -71,7 +72,9 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         var code = MpvNative.Command(_mpv, "loadfile", path, "replace");
         if (code < 0)
         {
-            LastError = "파일을 열 수 없습니다.";
+            LastError = OpenUrlRules.IsAcceptedHttpUrl(path)
+                ? StatusText.PlaybackFailed()
+                : "파일을 열 수 없습니다.";
             IsOpen = false;
             return new OpenMediaResult { Success = false, Path = path, Error = LastError, Status = LastError };
         }
@@ -255,6 +258,66 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         {
             LastError = "libmpv-2.dll 아키텍처가 맞지 않습니다.";
         }
+    }
+
+    private IReadOnlyList<MediaChapter> ReadChapters()
+    {
+        if (!_available || !IsOpen)
+        {
+            return [];
+        }
+
+        var countText = MpvNative.ReadString(_mpv, "chapter-list/count");
+        if (!int.TryParse(countText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count <= 0)
+        {
+            return [];
+        }
+
+        var chapters = new List<MediaChapter>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var title = MpvNative.ReadString(_mpv, $"chapter-list/{i}/title") ?? "";
+            var start = ReadDouble($"chapter-list/{i}/time");
+            var end = i + 1 < count ? ReadDouble($"chapter-list/{i + 1}/time") : Duration;
+            chapters.Add(new MediaChapter(title, start, end > start ? end : start));
+        }
+
+        return chapters;
+    }
+
+    private IReadOnlyList<MediaSubtitleTrack> ReadSubtitleTracks()
+    {
+        if (!_available || !IsOpen)
+        {
+            return [];
+        }
+
+        var countText = MpvNative.ReadString(_mpv, "track-list/count");
+        if (!int.TryParse(countText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count <= 0)
+        {
+            return [];
+        }
+
+        var tracks = new List<MediaSubtitleTrack>();
+        for (var i = 0; i < count; i++)
+        {
+            var type = MpvNative.ReadString(_mpv, $"track-list/{i}/type");
+            if (!string.Equals(type, "sub", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var idText = MpvNative.ReadString(_mpv, $"track-list/{i}/id");
+            _ = int.TryParse(idText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id);
+            var external = string.Equals(MpvNative.ReadString(_mpv, $"track-list/{i}/external"), "yes", StringComparison.OrdinalIgnoreCase);
+            tracks.Add(new MediaSubtitleTrack(
+                id,
+                MpvNative.ReadString(_mpv, $"track-list/{i}/lang"),
+                MpvNative.ReadString(_mpv, $"track-list/{i}/title"),
+                Embedded: !external));
+        }
+
+        return tracks;
     }
 
     private double ReadDouble(string name)

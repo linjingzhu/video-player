@@ -12,7 +12,10 @@ public enum FileOnlyFeature
     SeriesTree,
     AutoNext,
     Capture,
-    ClipSave
+    ClipSave,
+    SidecarAutoload,
+    SecondaryEnglishSuggest,
+    InventedSkipMarkers
 }
 
 /// <summary>
@@ -43,6 +46,9 @@ public static class FileOnlyFeatures
         state.AutoNext = Allows(source, FileOnlyFeature.AutoNext);
         state.Capture = file && mediaOpen && Allows(source, FileOnlyFeature.Capture);
         state.ClipSave = file && mediaOpen && Allows(source, FileOnlyFeature.ClipSave);
+        state.SidecarAutoload = Allows(source, FileOnlyFeature.SidecarAutoload);
+        state.SecondaryEnglishSuggest = Allows(source, FileOnlyFeature.SecondaryEnglishSuggest);
+        state.InventedSkipMarkers = Allows(source, FileOnlyFeature.InventedSkipMarkers);
     }
 }
 
@@ -52,4 +58,7 @@ public sealed class FileOnlyFeatureState
     public bool AutoNext { get; set; } = true;
     public bool Capture { get; set; }
     public bool ClipSave { get; set; }
+    public bool SidecarAutoload { get; set; } = true;
+    public bool SecondaryEnglishSuggest { get; set; } = true;
+    public bool InventedSkipMarkers { get; set; }
 }

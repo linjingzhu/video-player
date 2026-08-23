@@ -1,5 +1,6 @@
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
+using VideoPlayer.Core.Subtitles;
 
 namespace VideoPlayer.Tests;
 
@@ -178,6 +179,13 @@ public class OpenUrlTests
         Assert.False(session.Shell.FileOnly.AutoNext);
         Assert.False(session.Shell.FileOnly.Capture);
         Assert.False(session.Shell.FileOnly.ClipSave);
+        Assert.False(session.Shell.FileOnly.SidecarAutoload);
+        Assert.False(session.Shell.FileOnly.SecondaryEnglishSuggest);
+        Assert.False(session.Shell.FileOnly.InventedSkipMarkers);
+        Assert.False(session.CanAutoloadSidecars);
+        Assert.False(session.CanSuggestSecondaryEnglish);
+        Assert.False(session.InventsSkipMarkers);
+        Assert.False(session.UsesIntroDb);
         Assert.False(FileOnlyFeatures.Allows(session.SourceKind, FileOnlyFeature.SeriesTree));
         Assert.False(FileOnlyFeatures.Allows(session.SourceKind, FileOnlyFeature.AutoNext));
         Assert.False(FileOnlyFeatures.Allows(session.SourceKind, FileOnlyFeature.Capture));
@@ -237,5 +245,144 @@ public class OpenUrlTests
         Assert.DoesNotContain(
             PlayerShell.Boot().Transport.Order,
             control => control.ToString().Contains("Url", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("https://")]
+    [InlineData("not-a-url")]
+    [InlineData("file:///C:/video.mp4")]
+    [InlineData("rtmp://live.example/app")]
+    [InlineData("ftp://example.com/a.mp4")]
+    public void Invalid_url_disables_open_and_does_not_call_mpv(string? url)
+    {
+        var dialog = new OpenUrlDialogState();
+        dialog.SetText(url);
+        Assert.False(dialog.CanOpen);
+
+        using var workspace = new TempWorkspace();
+        var engine = new FakeMediaEngine();
+        var session = new PlaybackSession(engine, workspace.Data);
+        var opened = session.OpenUrl(url);
+        Assert.False(opened.Success);
+        Assert.Equal(0, engine.OpenCallCount);
+        Assert.Null(session.Current);
+    }
+
+    [Fact]
+    public void Valid_http_url_enables_open_button_state()
+    {
+        var dialog = new OpenUrlDialogState();
+        Assert.False(dialog.CanOpen);
+        Assert.Equal("URL 열기", dialog.Title);
+        Assert.Equal("https://", dialog.Placeholder);
+        Assert.Equal("예: https://example.com/video.mp4", dialog.Example);
+        Assert.Equal("http(s)만", dialog.HttpOnly);
+        Assert.False(dialog.HasCookieAuthUi);
+        Assert.False(dialog.HasDrmUi);
+        Assert.False(dialog.HasPaidUnlockUi);
+        Assert.False(dialog.HasHeaderUi);
+
+        dialog.SetText("https://example.com/video.mp4");
+        Assert.True(dialog.CanOpen);
+        Assert.Equal("https://example.com/video.mp4", dialog.Text.Trim());
+    }
+
+    [Fact]
+    public void Playback_network_failure_uses_dashed_banner_without_cookie_auth_ui()
+    {
+        using var workspace = new TempWorkspace();
+        var engine = new FakeMediaEngine { FailOpen = true };
+        var session = new PlaybackSession(engine, workspace.Data);
+        var opened = session.OpenUrl("https://example.com/video.mp4");
+
+        Assert.False(opened.Success);
+        Assert.Equal(1, engine.OpenCallCount);
+        Assert.True(session.Shell.Status.Visible);
+        Assert.True(session.Shell.Status.DashedSlot);
+        Assert.True(StatusText.IsConfirmedFailureLine(session.Shell.Status.Text));
+        Assert.StartsWith("재생 실패", session.Shell.Status.Text);
+        Assert.Contains("연결할 수 없습니다.", session.Shell.Status.Text);
+        Assert.False(session.Shell.HasCookieAuthUi);
+        Assert.False(session.Shell.HasDrmUi);
+        Assert.False(session.Shell.HasPaidUnlockUi);
+        Assert.False(session.Shell.HasHeaderUi);
+        Assert.Empty(session.Recent.Items);
+    }
+
+    [Fact]
+    public void Chapter_skip_uses_only_stream_chapters_and_never_invents_url_markers()
+    {
+        using var workspace = new TempWorkspace();
+        var engine = new FakeMediaEngine { Duration = 120 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenUrl("https://example.com/video.mp4");
+
+        Assert.False(session.CanChapterSkip);
+        Assert.False(session.SkipToNextChapter());
+        Assert.False(session.UsesIntroDb);
+        Assert.False(session.InventsSkipMarkers);
+        Assert.False(UrlSkipPolicy.UsesIntroDb);
+        Assert.False(UrlSkipPolicy.AllowsInventedMarkers(MediaSourceKind.HttpUrl));
+        Assert.Empty(UrlSkipPolicy.ChaptersForSkip(MediaSourceKind.HttpUrl, []));
+
+        engine.Chapters =
+        [
+            new MediaChapter("Intro", 0, 12),
+            new MediaChapter("Main", 12, 100)
+        ];
+        session.Tick(DateTimeOffset.UtcNow);
+        Assert.True(session.CanChapterSkip);
+        Assert.True(session.SkipToNextChapter());
+        Assert.Equal(12, engine.Position);
+        Assert.True(session.SkipToPreviousChapter());
+        Assert.Equal(0, engine.Position);
+    }
+
+    [Fact]
+    public void Url_subtitles_are_embedded_or_user_picked_never_autoload_or_suggest_en()
+    {
+        using var workspace = new TempWorkspace();
+        var sidecarDir = Path.Combine(workspace.Root, "beside");
+        Directory.CreateDirectory(sidecarDir);
+        File.WriteAllText(Path.Combine(sidecarDir, "video.en.srt"), """
+            1
+            00:00:00,000 --> 00:00:01,000
+            English
+            """);
+        var picked = Path.Combine(workspace.Root, "picked.srt");
+        File.WriteAllText(picked, """
+            1
+            00:00:00,000 --> 00:00:02,000
+            사용자 자막
+            """);
+
+        var engine = new FakeMediaEngine
+        {
+            SubtitleTracks =
+            [
+                new MediaSubtitleTrack(1, "ko", "Korean", Embedded: true),
+                new MediaSubtitleTrack(2, "en", "English", Embedded: false)
+            ]
+        };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.OpenUrl("https://example.com/show/video.mp4");
+
+        Assert.Empty(session.Cues);
+        Assert.Empty(SubtitleLocator.FindSidecars("https://example.com/show/video.mp4"));
+        Assert.False(session.CanAutoloadSidecars);
+        Assert.False(session.CanSuggestSecondaryEnglish);
+        Assert.Null(SubtitleLocator.SuggestSecondary(MediaSourceKind.HttpUrl, [Path.Combine(sidecarDir, "video.en.srt")]));
+        Assert.Equal(
+            Path.Combine(sidecarDir, "video.en.srt"),
+            SubtitleLocator.SuggestSecondary(MediaSourceKind.LocalFile, [Path.Combine(sidecarDir, "video.en.srt")]));
+        Assert.Single(session.EmbeddedSubtitleTracks);
+        Assert.Equal("ko", session.EmbeddedSubtitleTracks[0].Language);
+
+        Assert.True(session.AttachUserSubtitle(picked));
+        Assert.Equal(picked, session.UserSubtitlePath);
+        Assert.NotEmpty(session.Cues);
+        Assert.Equal("사용자 자막", session.Cues[0].Text);
     }
 }

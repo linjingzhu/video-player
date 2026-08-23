@@ -203,7 +203,7 @@ public partial class MainWindow : Window
     private void OpenUrl_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenUrlDialog { Owner = this };
-        if (dialog.ShowDialog() == true)
+        if (dialog.ShowDialog() == true && dialog.State.CanOpen)
         {
             _session.OpenUrl(dialog.Url);
             ShowMainPage();

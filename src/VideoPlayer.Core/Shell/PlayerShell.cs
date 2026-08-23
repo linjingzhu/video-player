@@ -36,6 +36,10 @@ public sealed class PlayerShell
     public bool VideoFullWidth { get; } = true;
     public bool VideoFullBleed { get; } = true;
     public bool NoLetterboxChrome { get; } = true;
+    public bool HasCookieAuthUi { get; } = false;
+    public bool HasDrmUi { get; } = false;
+    public bool HasPaidUnlockUi { get; } = false;
+    public bool HasHeaderUi { get; } = false;
 
     public static PlayerShell Boot() => new();
 

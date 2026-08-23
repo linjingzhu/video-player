@@ -16,7 +16,7 @@
     <DockPanel>
       <TextBlock DockPanel.Dock="Top" Text="URL 열기" Style="{StaticResource SkinATitleText}" Margin="0,0,0,16"/>
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-        <Button x:Name="OpenButton" Content="열기" IsDefault="True" Click="Open_Click"
+        <Button x:Name="OpenButton" Content="열기" IsDefault="True" IsEnabled="False" Click="Open_Click"
                 MinWidth="72" Margin="0,0,8,0" Foreground="#FFFFFFFF" FontSize="13"
                 FocusVisualStyle="{x:Null}">
           <Button.Template>
@@ -27,6 +27,10 @@
               <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                   <Setter TargetName="bd" Property="Background" Value="#FF409CFF"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="bd" Property="Background" Value="#FF3A3A3E"/>
+                  <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
                 </Trigger>
               </ControlTemplate.Triggers>
             </ControlTemplate>
