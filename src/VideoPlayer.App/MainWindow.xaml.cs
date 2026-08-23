@@ -76,8 +76,7 @@ public partial class MainWindow : Window
         }
 
         BindSidebar();
-        SeriesHeading.Text = shell.Series.Heading;
-        SeriesGrid.ItemsSource = shell.Series.Items;
+        SeriesPage.Bind(_session.Series, _session.Resume, _session.Current?.Path);
         ApplySidebar();
         ApplyChromeVisibility();
     }
@@ -196,8 +195,6 @@ public partial class MainWindow : Window
 
     private void ShowSeries_Click(object sender, RoutedEventArgs e) => ShowSeriesPage();
 
-    private void ShowMain_Click(object sender, RoutedEventArgs e) => ShowMainPage();
-
     private void AutoNext_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuItem item)
@@ -258,27 +255,20 @@ public partial class MainWindow : Window
         _session.AdjustVolume(e.NewValue - _session.Engine.Volume);
     }
 
-    private void SeriesGrid_Activate(object sender, MouseButtonEventArgs e)
+    private void SeriesPage_EpisodeActivated(object sender, SeriesListItem item)
     {
-        if (SeriesGrid.SelectedItem is SeriesListItem item)
+        _session.DrillInto(item);
+        if (_session.Shell.Screen == ShellScreen.Main)
         {
-            _session.DrillInto(item);
-            if (_session.Shell.Screen == ShellScreen.Main)
-            {
-                ShowMainPage();
-            }
-            else
-            {
-                RefreshShell();
-            }
+            ShowMainPage();
+        }
+        else
+        {
+            RefreshShell();
         }
     }
 
-    private void SeriesBack_Click(object sender, RoutedEventArgs e)
-    {
-        _session.SeriesBack();
-        RefreshShell();
-    }
+    private void SeriesBack_Click(object sender, RoutedEventArgs e) => ShowMainPage();
 
     private void ShowSeriesPage()
     {

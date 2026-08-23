@@ -15,10 +15,35 @@ public sealed record SeriesSeason(string FolderPath, string Name, int SeasonNumb
 
 public sealed record SeriesShow(string RootPath, string Name, IReadOnlyList<SeriesSeason> Seasons);
 
+/// <summary>C v2 series scan: 작품 folder → S01/S02 seasons. Episode sort is fixed.</summary>
 public static class SeriesScanner
 {
+    public const string SortLockedLabel = "정렬 회차 고정";
+
     public static IReadOnlyList<SeriesEpisode> SortEpisodes(IEnumerable<SeriesEpisode> episodes)
         => episodes.OrderBy(e => e.SortKey).ToList();
+
+    public static string SeasonLabel(int seasonNumber)
+        => $"S{Math.Max(0, seasonNumber):00}";
+
+    /// <summary>
+    /// C v2 제목 is the filename stem only. Do not call
+    /// <see cref="EpisodeParser.TitleFromFileName"/> — that strips SxxExx.
+    /// </summary>
+    public static string EpisodeTitle(string fileName)
+        => Path.GetFileNameWithoutExtension(fileName);
+
+    public static string ProgressMark(ResumeEntry? saved)
+        => saved switch
+        {
+            { Completed: true } => "✓",
+            { DurationSeconds: > 0 } entry
+                => $"▶ {Math.Clamp(entry.PositionSeconds / entry.DurationSeconds * 100, 0, 100):0}%",
+            _ => "-"
+        };
+
+    public static string FooterSeason(string seasonName, int episodeCount)
+        => $"{seasonName} {episodeCount}화";
 
     public static SeriesShow Scan(string folderPath, Func<string, long>? sizeProvider = null)
     {
@@ -31,12 +56,6 @@ public static class SeriesScanner
         var root = validated.FullPath;
         var rootName = FileNameSanitizer.ForDisplay(Path.GetFileName(root.TrimEnd(Path.DirectorySeparatorChar)));
         var seasons = new List<SeriesSeason>();
-
-        var rootVideos = EnumerateVideos(root, sizeProvider, EpisodeParser.ParseSeasonFolder(Path.GetFileName(root)));
-        if (rootVideos.Count > 0)
-        {
-            seasons.Add(new SeriesSeason(root, Path.GetFileName(root), EpisodeParser.ParseSeasonFolder(Path.GetFileName(root)), SortEpisodes(rootVideos)));
-        }
 
         IEnumerable<string> subdirs;
         try
@@ -61,9 +80,23 @@ public static class SeriesScanner
 
             seasons.Add(new SeriesSeason(
                 dir,
-                FileNameSanitizer.ForDisplay(Path.GetFileName(dir)),
+                SeasonLabel(seasonNumber),
                 seasonNumber,
                 SortEpisodes(episodes)));
+        }
+
+        if (seasons.Count == 0)
+        {
+            var rootSeasonNumber = EpisodeParser.ParseSeasonFolder(Path.GetFileName(root));
+            var rootVideos = EnumerateVideos(root, sizeProvider, rootSeasonNumber);
+            if (rootVideos.Count > 0)
+            {
+                seasons.Add(new SeriesSeason(
+                    root,
+                    SeasonLabel(rootSeasonNumber),
+                    rootSeasonNumber,
+                    SortEpisodes(rootVideos)));
+            }
         }
 
         seasons = [.. seasons.OrderBy(s => s.SeasonNumber).ThenBy(s => s.Name, StringComparer.OrdinalIgnoreCase)];
@@ -150,7 +183,7 @@ public static class SeriesScanner
                 size,
                 FileNameSanitizer.ForDisplay(name),
                 EpisodeParser.Parse(name, season),
-                Path.GetFileName(folder)));
+                SeasonLabel(season)));
         }
 
         return list;
