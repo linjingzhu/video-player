@@ -27,6 +27,7 @@ public sealed class PlayerShell
     public SubtitleSheetState Subtitles { get; } = new();
     public ClipSheetState Clip { get; } = new();
     public ClipBannerState ClipBanner { get; } = new();
+    public VolumeChrome Volume { get; } = new();
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
     public string OverlaySubtitle { get; set; } = "";
     public string OverlaySecondarySubtitle { get; set; } = "";
@@ -123,6 +124,7 @@ public sealed class TransportState
     public bool NextEpisodeIconOnly { get; } = true;
     public bool TimeOnBar { get; } = false;
     public bool HasRecordButton { get; } = false;
+    public bool HorizontalVolumeSlider { get; } = false;
     public bool HasPrevious { get; set; }
     public bool HasNext { get; set; }
     public double Position { get; set; }
