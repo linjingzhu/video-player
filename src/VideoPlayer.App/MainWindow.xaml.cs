@@ -921,7 +921,7 @@ public partial class MainWindow : Window
         PlaceTick(OutTick, clip.ShowOutTick, ClipSave.TickRatio(clip.OutMark, duration));
     }
 
-    private void PlaceTick(System.Windows.Shapes.Ellipse tick, bool show, double ratio)
+    private void PlaceTick(System.Windows.Shapes.Rectangle tick, bool show, double ratio)
     {
         tick.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         if (!show || SeekHost.ActualWidth <= 0)

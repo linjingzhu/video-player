@@ -17,9 +17,9 @@
         PreviewMouseDown="OnPreviewMouseDown"
         Closing="OnClosing">
   <DockPanel>
-    <Menu x:Name="MainMenu" DockPanel.Dock="Top" Background="#14FFFFFF" Foreground="#FFFFFFFF"
+    <Menu x:Name="MainMenu" DockPanel.Dock="Top" Background="#FF050505" Foreground="#FFFFFFFF"
           FontFamily="Segoe UI Variable, Segoe UI" FontSize="12" FontWeight="Regular">
-      <MenuItem Header="파일" Background="#14FFFFFF" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Regular">
+      <MenuItem Header="파일" Background="#FF050505" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Regular">
         <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"
                   FontSize="12" FontWeight="Regular"/>
         <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"
@@ -33,8 +33,7 @@
         <MenuItem Header="종료" Click="Exit_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"
                   FontSize="12" FontWeight="Regular"/>
       </MenuItem>
-      <TextBlock Text="|" Margin="4,0" VerticalAlignment="Center" Style="{StaticResource SkinAMetaText}" IsHitTestVisible="False"/>
-      <MenuItem Header="보기" Background="#14FFFFFF" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Regular">
+      <MenuItem Header="보기" Background="#FF050505" Foreground="#FFFFFFFF" FontSize="12" FontWeight="Regular">
         <MenuItem x:Name="ShowSeriesItem" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"
                   FontSize="12" FontWeight="Regular"/>
         <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"
@@ -61,25 +60,22 @@
       </MenuItem>
     </Menu>
 
-    <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Background="Transparent"
+    <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Background="#FF050505"
             BorderBrush="#66222222" BorderThickness="0,1,0,0" Padding="12,4" Height="28"
-            ClipToBounds="True" Visibility="Collapsed">
+            Visibility="Collapsed">
       <Grid>
-        <Border Background="#14FFFFFF" IsHitTestVisible="False" Effect="{StaticResource SkinAChromeBlur}"/>
         <TextBlock x:Name="StatusText" Style="{StaticResource SkinAMetaText}" VerticalAlignment="Center"/>
       </Grid>
     </Border>
 
-    <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="Transparent"
-            BorderBrush="#66222222" BorderThickness="0,1,0,0" Height="40" Padding="12,0"
-            ClipToBounds="True">
+    <Border x:Name="TransportBar" DockPanel.Dock="Bottom" Background="#FF050505"
+            BorderBrush="#66222222" BorderThickness="0,1,0,0" Height="40" Padding="12,0">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Border Background="#14FFFFFF" IsHitTestVisible="False" Effect="{StaticResource SkinAChromeBlur}"/>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Button x:Name="PrevButton" Click="Prev_Click" ToolTip="이전 화" Style="{StaticResource IconButton}">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -105,8 +101,8 @@
                   VerticalAlignment="Center" Style="{StaticResource ChromeSlider}"
                   PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
           <Canvas x:Name="MarkCanvas" IsHitTestVisible="False" Height="16" VerticalAlignment="Center">
-            <Ellipse x:Name="InTick" Width="8" Height="8" Fill="#FFFFFFFF" Visibility="Collapsed"/>
-            <Ellipse x:Name="OutTick" Width="8" Height="8" Fill="#FFFFFFFF" Visibility="Collapsed"/>
+            <Rectangle x:Name="InTick" Width="2" Height="2" Fill="#FFFFFFFF" Visibility="Collapsed"/>
+            <Rectangle x:Name="OutTick" Width="2" Height="2" Fill="#FFFFFFFF" Visibility="Collapsed"/>
           </Canvas>
         </Grid>
         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -161,10 +157,8 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <Border x:Name="SidebarRail" Grid.Column="0" Background="Transparent" BorderBrush="#66222222" BorderThickness="0,0,1,0"
-              ClipToBounds="True">
+      <Border x:Name="SidebarRail" Grid.Column="0" Background="#FF050505" BorderBrush="#66222222" BorderThickness="0,0,1,0">
         <Grid>
-          <Border Background="#14FFFFFF" IsHitTestVisible="False" Effect="{StaticResource SkinAChromeBlur}"/>
           <Button x:Name="SidebarToggle" Click="ToggleSidebar_Click" Style="{StaticResource RailButton}"
                   ToolTip="사이드바" VerticalAlignment="Top" Margin="0,4,0,0">
             <Path Stroke="#FFFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -441,7 +435,7 @@
                              Foreground="{StaticResource ClipTextBrush}" FontFamily="{StaticResource ClipFont}"/>
                   <Button x:Name="ClipPingPongToggle" Click="ClipPingPong_Click"
                           HorizontalAlignment="Left" Style="{StaticResource ClipSheetButton}"
-                          Padding="18,5" MinWidth="52"/>
+                          Padding="4" MinWidth="28"/>
                 </Grid>
                 <Grid x:Name="ClipPaletteRow" Margin="0,0,0,10" Visibility="Collapsed">
                   <Grid.ColumnDefinitions>

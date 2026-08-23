@@ -19,7 +19,7 @@ public enum ClipBannerKind
 
 public enum ClipTickKind
 {
-    Circle
+    Square
 }
 
 public static class ClipFormats
@@ -123,7 +123,8 @@ public static class ClipSave
     public const string DefaultFolderLeaf = "구간";
     public const ClipFormat DefaultFormat = ClipFormat.StreamCopy;
     public const bool DefaultPingPong = false;
-    public const ClipTickKind TickKind = ClipTickKind.Circle;
+    public const ClipTickKind TickKind = ClipTickKind.Square;
+    public const int TickSizePx = SkinA.IoTickSizePx;
     public const bool RenderIoLetters = false;
     public const bool HasPaletteControl = false;
     public const bool HasRecordButton = false;
@@ -488,6 +489,7 @@ public sealed class ClipSheetState
     public bool HasRecordButton { get; } = ClipSave.HasRecordButton;
     public bool RenderIoLetters { get; } = ClipSave.RenderIoLetters;
     public ClipTickKind TickKind { get; } = ClipSave.TickKind;
+    public int TickSizePx { get; } = ClipSave.TickSizePx;
     public string InLetter => "";
     public string OutLetter => "";
     public string TickColor => SkinA.Thumb;
