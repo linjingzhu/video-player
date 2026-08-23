@@ -100,7 +100,9 @@ public sealed class ResumeStore
                 continue;
             }
 
-            if (PathValidator.IsRemoteUri(entry.Path) || PathValidator.LooksLikeUnc(entry.Path))
+            if (LooksLikeNonFileUri(entry.Path)
+                || PathValidator.IsRemoteUri(entry.Path)
+                || PathValidator.LooksLikeUnc(entry.Path))
             {
                 continue;
             }
@@ -114,6 +116,23 @@ public sealed class ResumeStore
         }
 
         return store;
+    }
+
+    private static bool LooksLikeNonFileUri(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var trimmed = path.Trim();
+        if (trimmed.Contains("://", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var colon = trimmed.IndexOf(':');
+        return colon > 1 && Uri.CheckSchemeName(trimmed[..colon]);
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
