@@ -19,7 +19,7 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 
 ## Confirmed P0 shell
 
-- Caption: left title **영상 플레이어** in lime `#C6FF00`. Right: **퀵메뉴** (this is View) and window min/max/close. No visible **파일 | 보기** bar. File commands live under the transport hamburger
+- Caption: left title **이어서** in lime `#C6FF00`. Right: **퀵메뉴** (this is View) and window min/max/close. No visible **파일 | 보기** bar. File commands live under the transport hamburger
 - Sidebar **closed by default** as a **28px** toggle rail. When open: one resume item + recent series
 - Video uses remaining width. No large centered play icon. Click the video surface to toggle play/pause
 - Transport groups (1px separators): rewind · play · **stop** · fast-forward | speaker + **horizontal** volume slider + numeric | lime timecode | **CC** · fullscreen · hamburger. No ±10 on the bar — ±10 lives in **퀵메뉴**. No Cast / HDR / Eject

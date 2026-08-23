@@ -49,7 +49,9 @@ public class SeriesOnTokenTests
     {
         var shell = PlayerShell.Boot();
         Assert.True(shell.HasHeaderUi);
-        Assert.Equal("영상 플레이어", shell.Header.Title);
+        Assert.Equal("이어서", shell.Header.Title);
+        Assert.Equal("이어서", shell.Title);
+        Assert.Equal("이어서", UiCopy.AppTitle);
         Assert.Equal("퀵메뉴", shell.Header.QuickMenuLabel);
         Assert.True(shell.Header.QuickMenuIsView);
         Assert.True(shell.Header.HasWindowControls);
@@ -116,7 +118,10 @@ public class SeriesOnTokenTests
         var mainXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml"));
         var appXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml"));
 
-        Assert.Contains("영상 플레이어", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Title=\"이어서\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"이어서\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("이어서", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("영상 플레이어", mainXaml, StringComparison.Ordinal);
         Assert.Contains("퀵메뉴", mainXaml, StringComparison.Ordinal);
         Assert.Contains("SeriesOnAccentBrush", mainXaml, StringComparison.Ordinal);
         Assert.Contains("C6FF00", appXaml, StringComparison.OrdinalIgnoreCase);
