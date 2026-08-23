@@ -62,7 +62,8 @@ public partial class MainWindow : Window
         OverlayTime.Text = shell.OverlayTime;
         OverlayTime.Visibility = !_fullscreen || shell.ChromeVisible ? Visibility.Visible : Visibility.Collapsed;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
-        PlayButton.Content = shell.IsPaused ? "▶" : "❚❚";
+        PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
+        PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
         SpeedButton.Content = shell.Transport.SpeedText;
         PrevButton.IsEnabled = shell.Transport.HasPrevious;
         NextButton.IsEnabled = shell.Transport.HasNext;
