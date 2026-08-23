@@ -29,6 +29,8 @@ public class SeriesSortTests
         Assert.Equal(1, EpisodeParser.ParseSeasonFolder("S01"));
         Assert.Equal(2, EpisodeParser.ParseSeasonFolder("Season 02"));
         Assert.Equal(3, EpisodeParser.ParseSeasonFolder("시즌 3"));
+        Assert.Equal("S01", SeriesScanner.SeasonLabel(1));
+        Assert.Equal("S02", SeriesScanner.SeasonLabel(2));
     }
 
     [Fact]
@@ -63,6 +65,7 @@ public class SeriesSortTests
             File.WriteAllBytes(Path.Combine(root.FullName, "readme.txt"), [1]);
             var show = SeriesScanner.Scan(root.FullName);
             Assert.Single(show.Seasons);
+            Assert.Equal("S01", show.Seasons[0].Name);
             Assert.Equal(new[] { 2, 10 }, show.Seasons[0].Episodes.Select(e => e.SortKey.Episode));
         }
         finally
@@ -72,32 +75,117 @@ public class SeriesSortTests
     }
 
     [Fact]
-    public void Drill_down_is_show_then_season_then_episode_sorted_by_episode()
+    public void Scanner_tree_is_work_then_sxx_seasons()
     {
-        var root = Directory.CreateTempSubdirectory("series-drill-");
+        var root = Directory.CreateTempSubdirectory("드라마-");
         try
         {
-            var s01 = Path.Combine(root.FullName, "S01");
-            Directory.CreateDirectory(s01);
-            File.WriteAllBytes(Path.Combine(s01, "Show.S01E10.Title.Ten.mkv"), [1]);
-            File.WriteAllBytes(Path.Combine(s01, "Show.S01E02.Title.Two.mkv"), [1]);
+            WriteSeason(root.FullName, "S01", 2);
+            WriteSeason(root.FullName, "Season 02", 8);
+            File.WriteAllBytes(Path.Combine(root.FullName, "trailer.mkv"), [1]);
+
             var show = SeriesScanner.Scan(root.FullName);
-            var drill = new SeriesDrillDown();
-            drill.ReplaceShows([show]);
-            Assert.Equal(SeriesDrillLevel.Shows, drill.Level);
-            drill.OpenShow(show);
-            Assert.Equal(SeriesDrillLevel.Seasons, drill.Level);
-            drill.OpenSeason(show.Seasons[0]);
-            var items = drill.ListItems(new ResumeStore(), null);
-            Assert.Equal(new[] { "E02", "E10" }, items.Select(i => i.Episode));
-            Assert.Equal("회차", UiCopy.ColumnEpisode);
-            Assert.Equal("제목", UiCopy.ColumnTitle);
-            Assert.Equal("진행", UiCopy.ColumnProgress);
-            Assert.DoesNotContain(items, i => i.Title.Contains("S01E", StringComparison.Ordinal));
+            Assert.Equal(2, show.Seasons.Count);
+            Assert.Equal(new[] { "S01", "S02" }, show.Seasons.Select(s => s.Name));
+            Assert.Equal(8, show.Seasons[1].Episodes.Count);
+            Assert.All(show.Seasons[1].Episodes, e => Assert.DoesNotContain(".mkv", SeriesScanner.EpisodeTitle(e.FileName)));
+            Assert.Equal("S02E01", SeriesScanner.EpisodeTitle("S02E01.mkv"));
+            Assert.Equal("S02E01", SeriesScanner.EpisodeTitle("S02E01"));
         }
         finally
         {
             root.Delete(true);
         }
+    }
+
+    [Fact]
+    public void C_v2_tree_and_table_are_fixed_by_episode()
+    {
+        var root = Directory.CreateTempSubdirectory("드라마-");
+        try
+        {
+            WriteSeason(root.FullName, "S01", 2);
+            WriteSeason(root.FullName, "S02", 8);
+            var show = SeriesScanner.Scan(root.FullName);
+            var drill = new SeriesDrillDown();
+            drill.ReplaceShows([show]);
+
+            Assert.Equal(UiCopy.SeriesPanel, drill.Heading());
+            Assert.Equal(SeriesDrillLevel.Episodes, drill.Level);
+            Assert.Equal("S01", drill.Season?.Name);
+
+            var tree = drill.Tree();
+            Assert.Single(tree);
+            Assert.Equal("show", tree[0].Kind);
+            Assert.Contains("드라마", tree[0].Label, StringComparison.Ordinal);
+            Assert.Equal(new[] { "S01", "S02" }, tree[0].Children.Select(c => c.Label));
+            Assert.True(tree[0].Children[0].Selected);
+
+            drill.OpenSeason(show.Seasons[1]);
+            Assert.Equal("S02", drill.Season?.Name);
+            Assert.Equal("S02 8화", drill.FooterLeft());
+            Assert.Equal("정렬 회차 고정", drill.FooterRight());
+            Assert.False(drill.Back());
+
+            var resume = new ResumeStore();
+            var first = show.Seasons[1].Episodes[0];
+            var third = show.Seasons[1].Episodes[2];
+            resume.Apply(CompletionPolicy.Checkpoint(new MediaIdentity(first.Path, first.Size), 99, 100));
+            resume.Apply(CompletionPolicy.Checkpoint(new MediaIdentity(third.Path, third.Size), 58, 100));
+
+            var items = drill.ListItems(resume, null);
+            Assert.Equal(8, items.Count);
+            Assert.Equal(Enumerable.Range(1, 8).Select(i => $"E{i:00}"), items.Select(i => i.Episode));
+            Assert.Equal(Enumerable.Range(1, 8).Select(i => $"S02E{i:00}"), items.Select(i => i.Title));
+            Assert.All(items, i => Assert.False(i.Title.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase)));
+            Assert.Equal("✓", items[0].Progress);
+            Assert.Equal("-", items[1].Progress);
+            Assert.Equal("▶ 58%", items[2].Progress);
+            Assert.All(items, i => Assert.Equal("episode", i.Kind));
+            Assert.Equal("회차", UiCopy.ColumnEpisode);
+            Assert.Equal("제목", UiCopy.ColumnTitle);
+            Assert.Equal("진행", UiCopy.ColumnProgress);
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
+
+    [Fact]
+    public void Progress_mark_is_check_play_percent_or_dash()
+    {
+        Assert.Equal("✓", SeriesScanner.ProgressMark(new ResumeEntry
+        {
+            Key = "k",
+            Path = "/a",
+            Size = 1,
+            Completed = true,
+            DurationSeconds = 100,
+            PositionSeconds = 0
+        }));
+        Assert.Equal("▶ 58%", SeriesScanner.ProgressMark(new ResumeEntry
+        {
+            Key = "k",
+            Path = "/a",
+            Size = 1,
+            Completed = false,
+            DurationSeconds = 100,
+            PositionSeconds = 58
+        }));
+        Assert.Equal("-", SeriesScanner.ProgressMark(null));
+    }
+
+    private static string WriteSeason(string root, string folder, int count)
+    {
+        var dir = Path.Combine(root, folder);
+        Directory.CreateDirectory(dir);
+        var season = EpisodeParser.ParseSeasonFolder(folder);
+        for (var i = 1; i <= count; i++)
+        {
+            File.WriteAllBytes(Path.Combine(dir, $"S{season:00}E{i:00}.mkv"), [(byte)i]);
+        }
+
+        return dir;
     }
 }
