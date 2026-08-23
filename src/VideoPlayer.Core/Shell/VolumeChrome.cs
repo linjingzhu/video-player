@@ -22,6 +22,7 @@ public sealed class VolumeChrome
     public bool VerticalPopover { get; } = true;
     public bool PercentOnTop { get; } = true;
     public bool WhiteThumb { get; } = true;
+    public bool SquareThumb { get; } = true;
     public bool AccentOnFilledTrackOnly { get; } = true;
     public bool WheelOverSpeakerChangesVolume { get; } = true;
     public bool WheelOverPopoverChangesVolume { get; } = true;

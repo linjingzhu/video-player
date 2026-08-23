@@ -2,7 +2,7 @@ namespace VideoPlayer.Core.Shell;
 
 /// <summary>
 /// Confirmed Skin Pack C tokens. Same density as Skin A: body 12, spacing 4 8 12 16.
-/// Series page only. Colors and type scale match the shared lock.
+/// Series page only. Colors, tight radii, and type scale match the shared lock.
 /// </summary>
 public static class SkinC
 {

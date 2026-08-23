@@ -37,8 +37,8 @@ public class ClipSaveTests
         Assert.Equal("취소", sheet.CancelLabel);
         Assert.Equal(@"Videos\구간", sheet.FolderLabel);
         Assert.Equal(@"Videos\구간", ClipSave.DefaultFolderLabel);
-        Assert.Equal("#141418", sheet.PanelColor);
-        Assert.Equal("#0A84FF", sheet.SaveColor);
+        Assert.Equal("#0E0E0E", sheet.PanelColor);
+        Assert.Equal("#FFFFFF", sheet.SaveColor);
         Assert.Equal(SkinA.Panel, sheet.PanelColor);
         Assert.Equal(SkinA.Accent, sheet.SaveColor);
         Assert.Equal("#FFFFFF", sheet.TickColor);

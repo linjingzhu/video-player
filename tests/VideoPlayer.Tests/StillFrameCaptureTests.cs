@@ -28,12 +28,12 @@ public class StillFrameCaptureTests
         Assert.Equal("시작", sheet.StartLabel);
         Assert.Equal("취소", sheet.CancelLabel);
         Assert.Equal("변경", sheet.ChangeFolderLabel);
-        Assert.Equal("#141418", sheet.PanelColor);
-        Assert.Equal("#0A84FF", sheet.StartColor);
+        Assert.Equal("#0E0E0E", sheet.PanelColor);
+        Assert.Equal("#FFFFFF", sheet.StartColor);
         Assert.Equal(SkinA.Panel, sheet.PanelColor);
         Assert.Equal(SkinA.Accent, sheet.StartColor);
-        Assert.Equal(12, sheet.PanelRadius);
-        Assert.Equal(999, sheet.StartRadius);
+        Assert.Equal(4, sheet.PanelRadius);
+        Assert.Equal(2, sheet.StartRadius);
         Assert.True(sheet.StillFramesOnly);
         Assert.False(sheet.HasCameraOnTransport);
         Assert.True(SkinA.NoEmoji);

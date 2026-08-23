@@ -7,15 +7,20 @@ public class SkinATokenTests
     [Fact]
     public void Colors_match_confirmed_skin_a()
     {
-        Assert.Equal("#0B0B0D", SkinA.Background);
-        Assert.Equal("#141418", SkinA.Panel);
-        Assert.Equal("#2C2C2E", SkinA.Border);
-        Assert.Equal(0.20, SkinA.BorderOpacity);
-        Assert.Equal("#F5F5F7", SkinA.Text);
-        Assert.Equal("#8E8E93", SkinA.Secondary);
-        Assert.Equal("#0A84FF", SkinA.Accent);
+        Assert.Equal("#050505", SkinA.Background);
+        Assert.Equal("#0E0E0E", SkinA.Elevated);
+        Assert.Equal("#0E0E0E", SkinA.Panel);
+        Assert.Equal("#222222", SkinA.Border);
+        Assert.Equal(0.40, SkinA.BorderOpacity);
+        Assert.Equal("#FFFFFF", SkinA.Text);
+        Assert.Equal("#8A8A8A", SkinA.Secondary);
+        Assert.Equal("#FFFFFF", SkinA.Accent);
+        Assert.Equal("#E10600", SkinA.PlayTriangle);
+        Assert.Equal("#050505", SkinA.OnAccent);
         Assert.Equal("#FFFFFF", SkinA.Thumb);
         Assert.Equal("#14FFFFFF", SkinA.HoverWhite);
+        Assert.NotEqual("#0A84FF", SkinA.Accent);
+        Assert.NotEqual("#0A84FF", SkinA.PlayTriangle);
     }
 
     [Fact]
@@ -49,9 +54,9 @@ public class SkinATokenTests
     {
         Assert.Equal("Segoe UI Variable", SkinA.FontFamily);
         Assert.Equal("Segoe UI", SkinA.FontFallback);
-        Assert.Equal(999, SkinA.RadiusPill);
-        Assert.Equal(12, SkinA.RadiusPanel);
-        Assert.Equal(10, SkinA.RadiusControl);
+        Assert.Equal(2, SkinA.RadiusPill);
+        Assert.Equal(4, SkinA.RadiusPanel);
+        Assert.Equal(2, SkinA.RadiusControl);
         Assert.Equal(new[] { 4, 8, 12, 16 }, SkinA.SpacingScale);
         Assert.DoesNotContain(20, SkinA.SpacingScale);
         Assert.DoesNotContain(24, SkinA.SpacingScale);
@@ -66,21 +71,53 @@ public class SkinATokenTests
     }
 
     [Fact]
-    public void Accent_is_tracks_only_with_white_thumbs_and_capsule_chrome()
+    public void Accent_is_white_with_square_thumbs_and_red_play_triangle_only()
     {
+        Assert.True(SkinA.AccentIsWhite);
         Assert.True(SkinA.AccentOnTracksOnly);
         Assert.True(SkinA.WhiteThumbs);
+        Assert.True(SkinA.SquareThumbs);
+        Assert.True(SkinA.NoRoundThumbs);
+        Assert.True(SkinA.NoBlueAccent);
         Assert.True(SkinA.NoBlueThumbs);
-        Assert.True(SkinA.BorderlessIcons);
-        Assert.True(SkinA.CircularIconHover);
-        Assert.True(SkinA.HoverIsCircularEightPercent);
+        Assert.True(SkinA.PlayTriangleIsOnlyRed);
+        Assert.Equal("#E10600", SkinA.PlayTriangle);
+        Assert.NotEqual(SkinA.PlayTriangle, SkinA.Accent);
+        Assert.False(SkinA.CircularIconHover);
+        Assert.False(SkinA.HoverIsCircularEightPercent);
+        Assert.True(SkinA.HoverIsEightPercentWhite);
         Assert.Equal("#14FFFFFF", SkinA.HoverWhite);
-        Assert.True(SkinA.PlayIsCircularCapsule);
+        Assert.False(SkinA.PlayIsCircularCapsule);
         Assert.True(SkinA.CtaIsCapsuleOverlay);
         Assert.True(SkinA.FailureIsBannerSlot);
         Assert.True(SkinA.NoGlow);
         Assert.True(SkinA.NoBoxyButtons);
         Assert.True(SkinA.NoEmoji);
+        Assert.True(SkinA.BorderlessIcons);
+    }
+
+    [Fact]
+    public void App_resources_drop_blue_accent_and_round_thumbs()
+    {
+        var appXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml"));
+        var mainXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml"));
+        var seriesXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "SeriesPage.xaml"));
+        var urlXaml = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "OpenUrlDialog.xaml"));
+        var converter = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "SkinCProgressBrushConverter.cs"));
+        var codeBehind = ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "MainWindow.xaml.cs"));
+
+        Assert.DoesNotContain("0A84FF", appXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("0A84FF", mainXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("0A84FF", seriesXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("0A84FF", urlXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("0A84FF", converter, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("0A84FF", codeBehind, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<Ellipse", appXaml, StringComparison.Ordinal);
+        Assert.Contains("<Rectangle Width=\"12\" Height=\"12\" Fill=\"{StaticResource SkinAThumbBrush}\"/>", appXaml, StringComparison.Ordinal);
+        Assert.Contains("SkinAPlayTriangleBrush", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("E10600", appXaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Stop", Enum.GetNames<TransportControl>());
+        Assert.DoesNotContain("Hamburger", Enum.GetNames<TransportControl>());
     }
 
     [Fact]
@@ -113,5 +150,22 @@ public class SkinATokenTests
                 TransportControl.Fullscreen
             },
             shell.Transport.Order);
+    }
+
+    private static string ReadRepoFile(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, relative);
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new FileNotFoundException(relative);
     }
 }

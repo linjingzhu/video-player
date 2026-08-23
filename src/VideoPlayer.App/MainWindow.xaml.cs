@@ -131,7 +131,7 @@ public partial class MainWindow : Window
         CaptureBannerText.Text = banner.Text;
         CaptureBanner.Background = banner.Kind == CaptureBannerKind.Failure
             ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xE6, 0x3A, 0x14, 0x18))
-            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xE6, 0x14, 0x14, 0x18));
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0xE6, 0x0E, 0x0E, 0x0E));
     }
 
     private void ApplyFormatSelection(CaptureFormat format)
@@ -146,6 +146,9 @@ public partial class MainWindow : Window
         button.Background = selected
             ? (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("CaptureAccentBrush")
             : System.Windows.Media.Brushes.Transparent;
+        button.Foreground = selected
+            ? (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("CaptureOnAccentBrush")
+            : (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("CaptureTextBrush");
         button.BorderThickness = selected ? new Thickness(0) : new Thickness(1);
     }
 
@@ -887,7 +890,7 @@ public partial class MainWindow : Window
         ClipPingPongRow.Opacity = clip.PingPongEnabled ? 1 : 0.45;
         ClipPingPongToggle.Background = clip.PingPong && clip.PingPongEnabled
             ? (Brush)FindResource("ClipAccentBrush")
-            : new SolidColorBrush(Color.FromRgb(0x2C, 0x2C, 0x2E));
+            : new SolidColorBrush(Color.FromRgb(0x0E, 0x0E, 0x0E));
         ClipPingPongToggle.Content = "";
         ClipPaletteRow.Visibility = clip.PaletteNoticeVisible ? Visibility.Visible : Visibility.Collapsed;
         ClipEncodingHint.Visibility = clip.EncodingLockHintVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -904,9 +907,9 @@ public partial class MainWindow : Window
     private static void ApplyFormatButton(Button button, bool selected)
     {
         button.BorderBrush = selected
-            ? new SolidColorBrush(Color.FromRgb(0x0A, 0x84, 0xFF))
-            : new SolidColorBrush(Color.FromArgb(0x33, 0x2C, 0x2C, 0x2E));
-        button.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7));
+            ? new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF))
+            : new SolidColorBrush(Color.FromArgb(0x66, 0x22, 0x22, 0x22));
+        button.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF));
     }
 
     private void PlaceClipTicks()

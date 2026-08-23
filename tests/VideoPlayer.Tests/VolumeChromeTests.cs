@@ -15,6 +15,7 @@ public class VolumeChromeTests
         Assert.True(shell.Volume.VerticalPopover);
         Assert.True(shell.Volume.PercentOnTop);
         Assert.True(shell.Volume.WhiteThumb);
+        Assert.True(shell.Volume.SquareThumb);
         Assert.True(shell.Volume.AccentOnFilledTrackOnly);
         Assert.True(shell.Volume.WheelOverSpeakerChangesVolume);
         Assert.True(shell.Volume.WheelOverPopoverChangesVolume);
@@ -26,7 +27,7 @@ public class VolumeChromeTests
         Assert.Equal(12, VolumeChrome.PercentSize);
         Assert.Equal(SkinA.BodySize, VolumeChrome.PercentSize);
         Assert.Equal(8, VolumeChrome.PanelPadding);
-        Assert.Equal(12, VolumeChrome.PanelRadius);
+        Assert.Equal(4, VolumeChrome.PanelRadius);
         Assert.Equal(48, VolumeChrome.PanelWidth);
         Assert.Equal(80, VolumeChrome.SliderHeight);
         Assert.Equal(new[] { 4, 8, 12, 16 }, VolumeChrome.SpacingScale);

@@ -23,9 +23,9 @@ public class SkipCapsuleTests
         Assert.True(PlayerShell.Boot().NextEpisode.SharesSkipCorner);
         Assert.Equal(OverlayAnchor.BottomRight, PlayerShell.Boot().NextEpisode.Anchor);
         Assert.False(skip.AutoEnabled);
-        Assert.Equal("#141418", skip.PanelColor);
-        Assert.Equal("#0B0B0D", skip.BackgroundColor);
-        Assert.Equal("#0A84FF", skip.AccentColor);
+        Assert.Equal("#0E0E0E", skip.PanelColor);
+        Assert.Equal("#050505", skip.BackgroundColor);
+        Assert.Equal("#FFFFFF", skip.AccentColor);
         Assert.Equal("인트로 건너뛰기", UiCopy.SkipIntro);
         Assert.Equal("리캡 건너뛰기", UiCopy.SkipRecap);
         Assert.Equal("크레딧 건너뛰기", UiCopy.SkipCredits);

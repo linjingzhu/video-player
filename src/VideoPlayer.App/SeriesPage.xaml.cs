@@ -140,7 +140,7 @@ public partial class SeriesPage : UserControl
         row.Children.Add(new Path
         {
             Data = Geometry.Parse("M3.2,6.4 H8.1 L9.7,8.2 H20.8 V17.2 H3.2 Z"),
-            Stroke = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7)),
+            Stroke = new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF)),
             StrokeThickness = 1.15,
             Fill = Brushes.Transparent,
             Width = 15,
@@ -157,7 +157,7 @@ public partial class SeriesPage : UserControl
             Text = label,
             FontSize = 12,
             FontWeight = FontWeights.Regular,
-            Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF7)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF)),
             VerticalAlignment = VerticalAlignment.Center
         });
         return row;
