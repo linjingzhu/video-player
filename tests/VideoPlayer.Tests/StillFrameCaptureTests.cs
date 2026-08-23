@@ -1,4 +1,5 @@
 using VideoPlayer.Core.Capture;
+using VideoPlayer.Core.Library;
 using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Shell;
 
@@ -19,7 +20,10 @@ public class StillFrameCaptureTests
         Assert.Equal("Pictures", sheet.FolderLabel);
         Assert.Equal("1-999", sheet.CountRange);
         Assert.Equal("1프레임", sheet.IntervalText);
-        Assert.Equal("캡처 (still frames, not video)", sheet.Title);
+        Assert.Equal("캡처", sheet.Title);
+        Assert.Equal(UiCopy.Capture, sheet.Title);
+        Assert.DoesNotContain("still frames", sheet.Title, StringComparison.OrdinalIgnoreCase);
+        Assert.False(sheet.HasQualityControls);
         Assert.Equal("현재 위치부터 · 캡처 중 일시정지", sheet.Footer);
         Assert.Equal("시작", sheet.StartLabel);
         Assert.Equal("취소", sheet.CancelLabel);
@@ -37,6 +41,8 @@ public class StillFrameCaptureTests
         Assert.Equal("Ctrl+Shift+C", UiCopy.CaptureShortcut);
         Assert.Equal(90, StillFrameCapture.JpegQuality);
         Assert.Equal(80, StillFrameCapture.WebpQuality);
+        Assert.Equal("8장 중 3장", StillFrameCapture.EofBanner(8, 3));
+        Assert.Equal("{0}장 중 {1}장", UiCopy.CaptureEofBanner);
     }
 
     [Fact]
@@ -188,10 +194,11 @@ public class StillFrameCaptureTests
         Assert.True(result.Saved < 8);
         Assert.True(result.Saved >= 1);
         Assert.Equal(CaptureBannerKind.Info, result.BannerKind);
-        Assert.Equal(string.Format(UiCopy.CaptureEofBanner, result.Saved, 8), result.Banner);
+        Assert.Equal(StillFrameCapture.EofBanner(8, result.Saved), result.Banner);
+        Assert.Equal($"{8}장 중 {result.Saved}장", result.Banner);
         Assert.True(session.Shell.CaptureBanner.Visible);
         Assert.Equal(CaptureBannerKind.Info, session.Shell.CaptureBanner.Kind);
-        Assert.Contains("파일 끝", session.Shell.CaptureBanner.Text, StringComparison.Ordinal);
+        Assert.Equal(result.Banner, session.Shell.CaptureBanner.Text);
         Assert.False(session.Shell.Capture.Open);
         Assert.True(engine.IsPaused);
     }
@@ -238,6 +245,34 @@ public class StillFrameCaptureTests
         var session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
         Assert.False(session.SetCaptureFolder("https://example.com/stills"));
         Assert.Equal("Pictures", session.Shell.Capture.FolderLabel);
+    }
+
+    [Fact]
+    public void Folder_defaults_to_last_used_or_pictures()
+    {
+        using var workspace = new TempWorkspace();
+        var video = workspace.File("clip.mkv", [1]);
+        var dest = Path.Combine(workspace.Root, "Stills");
+        Directory.CreateDirectory(dest);
+        var engine = new FakeMediaEngine { Duration = 40 };
+        var session = new PlaybackSession(engine, workspace.Data);
+        session.Open(video);
+        Assert.Equal("Pictures", session.Shell.Capture.FolderLabel);
+
+        Assert.True(session.SetCaptureFolder(dest));
+        var settingsPath = Path.Combine(workspace.Data, AppSettings.FileName);
+        Assert.True(File.Exists(settingsPath));
+        Assert.Contains("captureFolder", File.ReadAllText(settingsPath), StringComparison.Ordinal);
+        Assert.Equal("Stills", session.Shell.Capture.FolderLabel);
+
+        var reopened = new PlaybackSession(new FakeMediaEngine { Duration = 40 }, workspace.Data);
+        Assert.Equal(Path.GetFullPath(dest), Path.GetFullPath(reopened.Shell.Capture.FolderPath));
+        Assert.Equal("Stills", reopened.Shell.Capture.FolderLabel);
+
+        Directory.Delete(dest);
+        var missing = new PlaybackSession(new FakeMediaEngine { Duration = 40 }, workspace.Data);
+        Assert.Equal("Pictures", missing.Shell.Capture.FolderLabel);
+        Assert.Equal(StillFrameCapture.DefaultFolderPath(), missing.Shell.Capture.FolderPath);
     }
 
     [Fact]

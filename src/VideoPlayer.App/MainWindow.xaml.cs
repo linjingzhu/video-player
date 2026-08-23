@@ -87,6 +87,7 @@ public partial class MainWindow : Window
     private void ApplyCaptureChrome()
     {
         var sheet = _session.Shell.Capture;
+        CaptureSheetTitle.Text = sheet.Title;
         CaptureSheet.Visibility = sheet.Open ? Visibility.Visible : Visibility.Collapsed;
         CaptureCountText.Text = sheet.Count.ToString();
         CaptureIntervalText.Text = sheet.IntervalText;

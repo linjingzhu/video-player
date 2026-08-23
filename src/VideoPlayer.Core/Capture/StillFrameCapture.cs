@@ -94,6 +94,25 @@ public static class StillFrameCapture
 
     public static int ClampInterval(int interval) => Math.Clamp(interval, MinInterval, MaxInterval);
 
+    public static string EofBanner(int requested, int saved)
+        => string.Format(UiCopy.CaptureEofBanner, ClampCount(requested), Math.Max(0, saved));
+
+    public static string ResolveFolder(string? lastUsed)
+    {
+        if (string.IsNullOrWhiteSpace(lastUsed))
+        {
+            return DefaultFolderPath();
+        }
+
+        var check = PathValidator.ValidateLocalFilePath(lastUsed);
+        if (!check.Success || check.FullPath is null || !Directory.Exists(check.FullPath))
+        {
+            return DefaultFolderPath();
+        }
+
+        return check.FullPath;
+    }
+
     public static string DefaultFolderPath()
     {
         var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
@@ -255,10 +274,10 @@ public static class StillFrameCapture
                 true,
                 false,
                 files.Count == 0 ? CaptureBannerKind.Failure : CaptureBannerKind.Info,
-                files.Count == 0
-                    ? UiCopy.CaptureSaveFailed
-                    : string.Format(UiCopy.CaptureEofBanner, files.Count, requested),
-                files);
+                    files.Count == 0
+                        ? UiCopy.CaptureSaveFailed
+                        : EofBanner(requested, files.Count),
+                    files);
         }
 
         return new CaptureRunResult(requested, files.Count, hitEnd, true, false, CaptureBannerKind.None, "", files);
@@ -286,6 +305,7 @@ public sealed class CaptureSheetState
     public string FolderPath { get; set; } = StillFrameCapture.DefaultFolderPath();
     public bool HasCameraOnTransport { get; } = false;
     public bool StillFramesOnly { get; } = true;
+    public bool HasQualityControls { get; } = false;
 
     public string FolderLabel => StillFrameCapture.FolderLabel(FolderPath);
     public string IntervalText => $"{IntervalFrames}프레임";

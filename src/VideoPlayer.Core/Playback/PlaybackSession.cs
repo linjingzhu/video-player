@@ -360,11 +360,10 @@ public sealed class PlaybackSession
 
     public void OpenCaptureSheet()
     {
-        if (string.IsNullOrWhiteSpace(Shell.Capture.FolderPath))
-        {
-            Shell.Capture.FolderPath = StillFrameCapture.DefaultFolderPath();
-        }
-
+        Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(
+            string.IsNullOrWhiteSpace(Shell.Capture.FolderPath)
+                ? Settings.CaptureFolder
+                : Shell.Capture.FolderPath);
         Shell.Capture.Open = true;
     }
 
@@ -384,7 +383,7 @@ public sealed class PlaybackSession
             return false;
         }
 
-        Shell.Capture.FolderPath = check.FullPath;
+        RememberCaptureFolder(check.FullPath);
         return true;
     }
 
@@ -419,6 +418,11 @@ public sealed class PlaybackSession
                     Shell.Capture.IntervalFrames,
                     Shell.Capture.Format));
             ApplyCaptureBanner(result);
+            if (result.Saved > 0)
+            {
+                RememberCaptureFolder(Shell.Capture.FolderPath);
+            }
+
             Shell.Capture.Open = false;
             SyncTransport();
             return result;
@@ -547,7 +551,21 @@ public sealed class PlaybackSession
         RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
         Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
+        Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
         RefreshSidebar();
+    }
+
+    private void RememberCaptureFolder(string path)
+    {
+        var check = PathValidator.ValidateLocalFilePath(path);
+        if (!check.Success || check.FullPath is null)
+        {
+            return;
+        }
+
+        Shell.Capture.FolderPath = check.FullPath;
+        Settings.SetCaptureFolder(check.FullPath);
+        Persist();
     }
 
     private void Persist()

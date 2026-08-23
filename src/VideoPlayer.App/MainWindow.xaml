@@ -163,7 +163,7 @@
                       Effect="{StaticResource CaptureSheetShadow}"
                       Visibility="Collapsed">
                 <DockPanel>
-                  <TextBlock DockPanel.Dock="Top" Text="캡처 (still frames, not video)"
+                  <TextBlock x:Name="CaptureSheetTitle" DockPanel.Dock="Top" Text="캡처"
                              FontFamily="{StaticResource CaptureFont}" FontSize="20" FontWeight="SemiBold"
                              Foreground="{StaticResource CaptureTextBrush}" Margin="0,0,0,14"/>
                   <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0">
