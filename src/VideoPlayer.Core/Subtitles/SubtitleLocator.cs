@@ -1,12 +1,42 @@
 using VideoPlayer.Core.Media;
+using VideoPlayer.Core.Playback;
 using VideoPlayer.Core.Safety;
 
 namespace VideoPlayer.Core.Subtitles;
 
 public static class SubtitleLocator
 {
+    public static bool AutoloadSidecars(MediaSourceKind source)
+        => source == MediaSourceKind.LocalFile;
+
+    public static bool SuggestSecondaryEnglish(MediaSourceKind source)
+        => source == MediaSourceKind.LocalFile;
+
+    public static string? SuggestSecondary(MediaSourceKind source, IReadOnlyList<string> tracks)
+        => SuggestSecondaryEnglish(source) ? tracks.FirstOrDefault(IsEnglishSidecar) : null;
+
+    public static bool IsEnglishSidecar(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var name = Path.GetFileName(path);
+        return name.EndsWith(".en.srt", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".en.smi", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".en.sami", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".eng.srt", StringComparison.OrdinalIgnoreCase)
+               || name.EndsWith(".eng.smi", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static IReadOnlyList<string> FindSidecars(string mediaPath)
     {
+        if (OpenUrlRules.IsAcceptedHttpUrl(mediaPath))
+        {
+            return [];
+        }
+
         var media = PathValidator.ValidateLocalFilePath(mediaPath);
         if (!media.Success || media.FullPath is null)
         {
@@ -85,21 +115,6 @@ public static class SubtitleLocator
     public static string? SuggestSecondary(IReadOnlyList<string> tracks)
         => tracks.FirstOrDefault(IsEnglishSidecar);
 
-    public static bool IsEnglishSidecar(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return false;
-        }
-
-        var name = Path.GetFileName(path);
-        return name.EndsWith(".en.srt", StringComparison.OrdinalIgnoreCase)
-               || name.EndsWith(".en.smi", StringComparison.OrdinalIgnoreCase)
-               || name.EndsWith(".en.sami", StringComparison.OrdinalIgnoreCase)
-               || name.EndsWith(".eng.srt", StringComparison.OrdinalIgnoreCase)
-               || name.EndsWith(".eng.smi", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static IReadOnlyList<string> EnumerateLanguageSidecars(string mediaPath)
     {
         var media = PathValidator.ValidateLocalFilePath(mediaPath);
@@ -170,13 +185,13 @@ public static class SubtitleLocator
     }
 
     public static ValidationResult AcceptExternalSubtitle(string mediaPath, string subtitlePath)
-    {
-        var media = PathValidator.ValidateLocalFilePath(mediaPath);
-        if (!media.Success)
-        {
-            return media;
-        }
+        => AcceptUserPickedSubtitle(MediaSourceKind.LocalFile, mediaPath, subtitlePath);
 
+    public static ValidationResult AcceptUserPickedSubtitle(
+        MediaSourceKind source,
+        string? mediaPath,
+        string subtitlePath)
+    {
         var sub = PathValidator.ValidateLocalFilePath(subtitlePath);
         if (!sub.Success)
         {
@@ -187,6 +202,17 @@ public static class SubtitleLocator
         if (ext is null || !SupportedFormats.SubtitleExtensions.Contains(ext))
         {
             return ValidationResult.Fail("SRT 또는 SMI 자막만 사용할 수 있습니다.");
+        }
+
+        if (source == MediaSourceKind.HttpUrl)
+        {
+            return sub;
+        }
+
+        var media = PathValidator.ValidateLocalFilePath(mediaPath);
+        if (!media.Success)
+        {
+            return media;
         }
 
         if (!PathValidator.IsSameDirectory(media.FullPath!, sub.FullPath!))

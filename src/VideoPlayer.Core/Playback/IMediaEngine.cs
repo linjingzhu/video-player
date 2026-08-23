@@ -15,6 +15,7 @@ public interface IMediaEngine
     bool HardwareActive { get; }
     string? LastError { get; }
     IReadOnlyList<MediaChapter> Chapters { get; }
+    IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; }
 
     OpenMediaResult Open(string path, bool preferHardware);
     void Play();
@@ -41,12 +42,14 @@ public sealed class FakeMediaEngine : IMediaEngine
     public bool FailOpen { get; set; }
     public string? ForcedUnsupportedCodec { get; set; }
     public string? LastError { get; private set; }
+    public int OpenCallCount { get; private set; }
     public List<MediaChapter> Chapters { get; set; } = [];
-
     IReadOnlyList<MediaChapter> IMediaEngine.Chapters => Chapters;
+    public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; set; } = [];
 
     public OpenMediaResult Open(string path, bool preferHardware)
     {
+        OpenCallCount++;
         if (FailOpen)
         {
             LastError = "열 수 없습니다.";

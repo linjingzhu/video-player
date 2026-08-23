@@ -61,7 +61,7 @@ public partial class MainWindow : Window
     {
         var shell = _session.Shell;
         Title = _session.Current is { } cur
-            ? $"{UiCopy.AppTitle} — {Path.GetFileName(cur.Path)}"
+            ? $"{UiCopy.AppTitle} — {(_session.IsUrlSource ? OpenUrlRules.DisplayName(cur.Path) : Path.GetFileName(cur.Path))}"
             : UiCopy.AppTitle;
         StatusText.Text = shell.Status.Text;
         StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
@@ -96,7 +96,18 @@ public partial class MainWindow : Window
         }
 
         BindSidebar();
-        SeriesPage.Bind(_session.Series, _session.Resume, _session.Current?.Path);
+        SeriesPage.IsEnabled = shell.Series.Enabled;
+        ShowSeriesItem.IsEnabled = shell.Series.Enabled;
+        AutoNextItem.IsEnabled = !_session.IsUrlSource;
+        CaptureMenuItem.IsEnabled = !_session.IsUrlSource;
+        ClipSaveMenuItem.IsEnabled = !_session.IsUrlSource;
+        SaveAsMenuItem.IsEnabled = _session.CanSaveAs;
+        SeriesPage.Bind(
+            _session.Series,
+            _session.Resume,
+            _session.Current is { Kind: MediaSourceKind.LocalFile } file
+                ? file.Path
+                : null);
         ApplySidebar();
         ApplyChromeVisibility();
         ApplyCaptureChrome();
@@ -190,6 +201,17 @@ public partial class MainWindow : Window
         MainMenu.Visibility = _fullscreen ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    private void OpenUrl_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenUrlDialog { Owner = this };
+        if (dialog.ShowDialog() == true && dialog.State.CanOpen)
+        {
+            _session.OpenUrl(dialog.Url);
+            ShowMainPage();
+            RefreshShell();
+        }
+    }
+
     private void OpenFile_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
@@ -203,6 +225,28 @@ public partial class MainWindow : Window
             ShowMainPage();
             RefreshShell();
         }
+    }
+
+    private void SaveAs_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_session.CanSaveAs || _session.Current is not { } current)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = UiCopy.SaveAs,
+            FileName = UrlSaveAs.SuggestedFileName(current.Path),
+            Filter = "Videos|*.mp4;*.mkv;*.avi;*.wmv;*.mov|All files|*.*"
+        };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        _session.SaveAs(dialog.FileName);
+        RefreshShell();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -297,6 +341,11 @@ public partial class MainWindow : Window
 
     private void ClipSaveMenu_Click(object sender, RoutedEventArgs e)
     {
+        if (_session.IsUrlSource)
+        {
+            return;
+        }
+
         ShowMainPage();
         _session.OpenClipSheet();
         RefreshShell();
@@ -369,7 +418,15 @@ public partial class MainWindow : Window
     private void SeekHost_SizeChanged(object sender, SizeChangedEventArgs e)
         => PlaceClipTicks();
 
-    private void ShowSeries_Click(object sender, RoutedEventArgs e) => ShowSeriesPage();
+    private void ShowSeries_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_session.CanUseSeriesTree)
+        {
+            return;
+        }
+
+        ShowSeriesPage();
+    }
 
     private void AutoNext_Click(object sender, RoutedEventArgs e)
     {
@@ -383,6 +440,11 @@ public partial class MainWindow : Window
 
     private void OpenCaptureSheet()
     {
+        if (_session.IsUrlSource)
+        {
+            return;
+        }
+
         ShowMainPage();
         _session.OpenCaptureSheet();
         RefreshShell();
