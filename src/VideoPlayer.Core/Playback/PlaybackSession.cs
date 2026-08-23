@@ -29,6 +29,8 @@ public sealed class PlaybackSession
     public RecentStore Recent { get; private set; } = new();
     public PlaylistStore Playlist { get; } = new();
     public WindowMemory Window { get; private set; } = new();
+    public AppSettings Settings { get; private set; } = new();
+    public int JumpSeconds => Settings.JumpSeconds;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
     public double Speed { get; private set; }
@@ -161,6 +163,18 @@ public sealed class PlaybackSession
 
         Engine.Seek(SeekCommands.ApplyRelative(Engine.Position, Engine.Duration, seconds));
         SyncTransport();
+    }
+
+    public void SkipBack() => SeekRelative(-JumpSeconds);
+
+    public void SkipForward() => SeekRelative(JumpSeconds);
+
+    /// <summary>v1.5 live apply. Persists globally; next skip uses the new value.</summary>
+    public int SetJumpSeconds(int seconds)
+    {
+        var applied = Settings.SetJumpSeconds(seconds);
+        Persist();
+        return applied;
     }
 
     public void SeekAbsolute(double seconds)
@@ -385,6 +399,7 @@ public sealed class PlaybackSession
         Resume = ResumeStore.FromJson(ReadOptional("resume.json"));
         Recent = RecentStore.FromJson(ReadOptional("recent.json"));
         Window = WindowMemory.FromJson(ReadOptional("window.json"));
+        Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
         FitMode = Window.FitMode;
         RefreshSidebar();
     }
@@ -394,6 +409,7 @@ public sealed class PlaybackSession
         WriteOptional("resume.json", Resume.ToJson());
         WriteOptional("recent.json", Recent.ToJson());
         WriteOptional("window.json", Window.ToJson());
+        WriteOptional(AppSettings.FileName, Settings.ToJson());
     }
 
     private string? ReadOptional(string name)

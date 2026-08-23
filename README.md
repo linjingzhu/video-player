@@ -17,7 +17,8 @@ Unsupported files show the codec/container name and are **not** added to Recent.
 ## Playback and series
 
 - Speed 0.5–2.0x (global; resets to 1.0 on restart)
-- ±10s, frame step, wheel volume, contain/cover
+- ±10s (v1 default and button copy ±10초). Global AppData key `jumpSeconds` (1–60, same back/forward) is reserved for v1.5; no settings UI in P0
+- Frame step, wheel volume, contain/cover
 - Folder = season; episode sort by `SxxExx` or numeric filename; auto next
 - Resume key = **path + size**. Saved on exit, pause, and episode change
 - Last 10 seconds of an episode records the **next episode at 0s** (confirmed)

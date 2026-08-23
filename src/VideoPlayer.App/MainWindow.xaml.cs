@@ -171,9 +171,9 @@ public partial class MainWindow : Window
 
     private void Next_Click(object sender, RoutedEventArgs e) => _session.PlayNextEpisode();
 
-    private void SkipBack_Click(object sender, RoutedEventArgs e) => _session.SeekRelative(-10);
+    private void SkipBack_Click(object sender, RoutedEventArgs e) => _session.SkipBack();
 
-    private void SkipForward_Click(object sender, RoutedEventArgs e) => _session.SeekRelative(10);
+    private void SkipForward_Click(object sender, RoutedEventArgs e) => _session.SkipForward();
 
     private void FrameForward_Click(object sender, RoutedEventArgs e) => _session.FrameStep(1);
 
@@ -434,11 +434,11 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case Key.Left:
-                _session.SeekRelative(-10);
+                _session.SkipBack();
                 e.Handled = true;
                 break;
             case Key.Right:
-                _session.SeekRelative(10);
+                _session.SkipForward();
                 e.Handled = true;
                 break;
             case Key.Up:
@@ -536,9 +536,9 @@ public partial class MainWindow : Window
     private void SetupTaskbar()
     {
         var chrome = new TaskbarItemInfo();
-        chrome.ThumbButtonInfos.Add(Thumb("−10", () => _session.SeekRelative(-10)));
+        chrome.ThumbButtonInfos.Add(Thumb("−10", () => _session.SkipBack()));
         chrome.ThumbButtonInfos.Add(Thumb("▶", () => _session.PlayPause()));
-        chrome.ThumbButtonInfos.Add(Thumb("+10", () => _session.SeekRelative(10)));
+        chrome.ThumbButtonInfos.Add(Thumb("+10", () => _session.SkipForward()));
         TaskbarItemInfo = chrome;
     }
 

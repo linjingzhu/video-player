@@ -1,3 +1,5 @@
+using VideoPlayer.Core.Library;
+
 namespace VideoPlayer.Core.Playback;
 
 public static class PlaybackSpeed
@@ -23,7 +25,7 @@ public static class PlaybackSpeed
 
 public static class SeekCommands
 {
-    public const double SkipSeconds = 10;
+    public const double SkipSeconds = JumpInterval.DefaultSeconds;
 
     public static double ApplyRelative(double position, double duration, double delta)
     {
