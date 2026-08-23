@@ -7,8 +7,8 @@ namespace VideoPlayer.App;
 
 public partial class App : System.Windows.Application
 {
-    public const string MutexName = @"Local\VideoPlayer.SeriesOn.SingleInstance";
-    public const string PipeName = "VideoPlayer.SeriesOn.HandOff";
+    public const string MutexName = @"Local\Ieseo.SingleInstance";
+    public const string PipeName = "Ieseo.HandOff";
 
     private Mutex? _mutex;
     private MainWindow? _main;
