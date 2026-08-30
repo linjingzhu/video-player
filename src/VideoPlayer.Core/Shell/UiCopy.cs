@@ -1,6 +1,8 @@
+using VideoPlayer.Core.Library;
+
 namespace VideoPlayer.Core.Shell;
 
-/// <summary>SeriesOn chrome copy. 퀵메뉴 holds File and ±10; transport hamburger is View.</summary>
+/// <summary>SeriesOn chrome copy. 퀵메뉴 holds File and ±N; transport hamburger is View.</summary>
 public static class UiCopy
 {
     public const string AppTitle = "이어서";
@@ -22,6 +24,14 @@ public static class UiCopy
     public const string RecentSeries = "최근 시리즈";
     public const string SkipBack = "-10초";
     public const string SkipForward = "+10초";
+    public const string JumpSeconds = "점프 초";
+    public const string JumpSecondsSameValue = "앞뒤 같은 값";
+    public const string JumpSecondsHint = "1–60 정수";
+    public const string JumpSecondsFooter = "기본 10 · 전역 · AppData";
+    public const string JumpSecondsCancel = "취소";
+    public const string JumpSecondsConfirm = "확인";
+    public const string JumpSecondsMinus = "−";
+    public const string JumpSecondsPlus = "+";
     public const string NextEpisode = "다음 화";
     public const string NextEpisodeCta = "다음 화 >";
     public const string NextEpisodeCancel = "취소";
@@ -134,27 +144,40 @@ public static class UiCopy
 
     public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, SaveAs, Exit];
 
-    public static IReadOnlyList<string> ViewMenuItems { get; } =
-    [
-        SkipBack,
-        SkipForward,
-        PreviousEpisode,
-        NextEpisode,
-        SeriesPanel,
-        ToggleSidebar,
-        Subtitles,
-        SkipToHere,
-        SkipAuto,
-        Captions,
-        Fullscreen,
-        AutoNext,
-        HdrAuto,
-        HdrOff,
-        CastPlayTo,
-        SpeedDefault,
-        Capture,
-        ClipSave
-    ];
+    public static IReadOnlyList<string> ViewMenuItems { get; } = ViewMenuItemsFor(JumpInterval.DefaultSeconds);
+
+    public static IReadOnlyList<string> ViewMenuItemsFor(int jumpSeconds)
+        =>
+        [
+            JumpInterval.FormatSkipBack(jumpSeconds),
+            JumpInterval.FormatSkipForward(jumpSeconds),
+            JumpSeconds,
+            PreviousEpisode,
+            NextEpisode,
+            SeriesPanel,
+            ToggleSidebar,
+            Subtitles,
+            SkipToHere,
+            SkipAuto,
+            Captions,
+            Fullscreen,
+            AutoNext,
+            HdrAuto,
+            HdrOff,
+            CastPlayTo,
+            SpeedDefault,
+            Capture,
+            ClipSave
+        ];
+
+    public static string JumpSecondsQuickMenuPreview(int seconds)
+        => $"퀵메뉴 {JumpInterval.FormatPlusMinus(seconds)}";
+
+    public static string JumpSecondsOsdPreview(int seconds)
+        => $"OSD {JumpInterval.FormatPlusMinus(seconds)}";
+
+    public static string JumpSecondsArrowPreview(int seconds)
+        => $"화살표 {JumpInterval.FormatPlusMinus(seconds)}";
 }
 
 public enum ShellScreen

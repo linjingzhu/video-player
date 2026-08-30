@@ -48,8 +48,9 @@
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="종료" Click="Exit_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
-                <MenuItem Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="skipBack" Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="skipForward" Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="점프 초" Click="JumpSecondsMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="prev" Header="이전 화" Click="Prev_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
@@ -159,6 +160,10 @@
               <TextBlock x:Name="OverlaySubtitle" Text="" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                          Margin="16,0,16,40" FontSize="20" TextAlignment="Center"
                          Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"/>
+              <TextBlock x:Name="OverlaySkip" Text="" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         FontSize="28" FontWeight="SemiBold" Foreground="#FFFFFFFF"
+                         Effect="{StaticResource OverlayShadow}" IsHitTestVisible="False"
+                         Visibility="Collapsed"/>
               <StackPanel x:Name="VideoOverlayStack" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16">
                 <Border x:Name="SkipCapsule" HorizontalAlignment="Right" Margin="0,0,0,10"
                         Padding="16,8" CornerRadius="2"
@@ -268,6 +273,69 @@
                     </Grid>
                   </StackPanel>
                 </DockPanel>
+              </Border>
+              <Border x:Name="JumpSecondsOverlay" Visibility="Collapsed" Background="#66000000"
+                      MouseLeftButtonDown="JumpSecondsOverlay_Click">
+                <Border x:Name="JumpSecondsSheet" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Padding="20,18" CornerRadius="4"
+                        Background="{StaticResource JumpSheetBrush}"
+                        BorderBrush="{StaticResource JumpSheetBorderBrush}" BorderThickness="1"
+                        Effect="{StaticResource JumpSheetShadow}"
+                        MouseLeftButtonDown="JumpSecondsSheet_EatClick">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="점프 초"
+                               FontFamily="{StaticResource JumpFont}" FontSize="20" FontWeight="SemiBold"
+                               Foreground="{StaticResource JumpTextBrush}" Margin="0,0,0,14"/>
+                    <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0">
+                      <Button Content="취소" HorizontalAlignment="Left" Click="JumpSecondsCancel_Click"
+                              Style="{StaticResource JumpSheetButton}"/>
+                      <Button Content="확인" HorizontalAlignment="Right" Click="JumpSecondsConfirm_Click"
+                              Style="{StaticResource JumpConfirmButton}"/>
+                    </Grid>
+                    <StackPanel>
+                      <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="앞뒤 같은 값" VerticalAlignment="Center"
+                                   Foreground="{StaticResource JumpTextBrush}"
+                                   FontFamily="{StaticResource JumpFont}" FontSize="12"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                          <Button Content="−" Click="JumpSecondsMinus_Click" Style="{StaticResource JumpStepperButton}"/>
+                          <Border Style="{StaticResource JumpValueBorder}">
+                            <TextBlock x:Name="JumpSecondsValue" Text="10" Width="40" TextAlignment="Center"
+                                       VerticalAlignment="Center" FontFamily="{StaticResource JumpFont}" FontSize="12"
+                                       Foreground="{StaticResource JumpTextBrush}"/>
+                          </Border>
+                          <Button Content="+" Click="JumpSecondsPlus_Click" Style="{StaticResource JumpStepperButton}"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="1–60 정수" VerticalAlignment="Center"
+                                   Foreground="{StaticResource JumpMutedBrush}" FontSize="11"
+                                   FontFamily="{StaticResource JumpFont}"/>
+                      </Grid>
+                      <TextBlock Text="기본 10 · 전역 · AppData"
+                                 FontFamily="{StaticResource JumpFont}" FontSize="11"
+                                 Foreground="{StaticResource JumpMutedBrush}" Margin="0,0,0,12"/>
+                      <Border BorderBrush="{StaticResource JumpSheetBorderBrush}" BorderThickness="1"
+                              CornerRadius="2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                          <TextBlock x:Name="JumpPreviewQuick" Text="퀵메뉴 ±10"
+                                     FontFamily="{StaticResource JumpFont}" FontSize="11"
+                                     Foreground="{StaticResource JumpMutedBrush}" Margin="0,0,16,0"/>
+                          <TextBlock x:Name="JumpPreviewOsd" Text="OSD ±10"
+                                     FontFamily="{StaticResource JumpFont}" FontSize="11"
+                                     Foreground="{StaticResource JumpMutedBrush}" Margin="0,0,16,0"/>
+                          <TextBlock x:Name="JumpPreviewArrow" Text="화살표 ±10"
+                                     FontFamily="{StaticResource JumpFont}" FontSize="11"
+                                     Foreground="{StaticResource JumpMutedBrush}"/>
+                        </StackPanel>
+                      </Border>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
               </Border>
               <Border x:Name="SubtitleSheet" Width="320" HorizontalAlignment="Right" VerticalAlignment="Center"
                       Margin="0,16,16,16" Padding="16,14" CornerRadius="4"
@@ -522,8 +590,9 @@
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="종료" Click="Exit_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
-                <MenuItem Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="skipBack" Header="-10초" Click="SkipBack_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="skipForward" Header="+10초" Click="SkipForward_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="점프 초" Click="JumpSecondsMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="prev" Header="이전 화" Click="Prev_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>

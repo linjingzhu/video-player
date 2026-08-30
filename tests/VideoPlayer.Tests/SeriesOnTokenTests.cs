@@ -28,6 +28,7 @@ public class SeriesOnTokenTests
         Assert.True(SeriesOn.ClearAppliesToUrl);
         Assert.Equal("지우기", UiCopy.Clear);
         Assert.False(SeriesOn.SkipPlusMinusOnTransport);
+        Assert.False(SeriesOn.JumpSecondsOnTransport);
         Assert.True(SeriesOn.HorizontalVolumeSlider);
         Assert.False(SeriesOn.VerticalVolumePopover);
         Assert.False(SeriesOn.HasFileViewMenuBar);
@@ -103,6 +104,7 @@ public class SeriesOnTokenTests
         {
             "-10초",
             "+10초",
+            "점프 초",
             "이전 화",
             "다음 화",
             "시리즈",
@@ -247,6 +249,14 @@ public class SeriesOnTokenTests
         Assert.DoesNotContain("Content=\"+10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"-10초\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"+10초\"", mainXaml, StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(mainXaml, "Header=\"점프 초\""));
+        Assert.Contains("x:Name=\"JumpSecondsSheet\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"앞뒤 같은 값\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"1–60 정수\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"기본 10 · 전역 · AppData\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"확인\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"점프 초\"", mainXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("전송줄에 설정 칸 없음", mainXaml, StringComparison.Ordinal);
         Assert.Contains("x:Key=\"SeriesOnChromeBrush\" Color=\"#FF050505\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("x:Key=\"SeriesOnDividerBrush\" Color=\"#66222222\"", appXaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"CaptionBar\"", mainXaml, StringComparison.Ordinal);

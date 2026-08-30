@@ -62,6 +62,7 @@ public static class SeriesOn
     public const bool ClearSavesCurrentPosition = true;
     public const bool ClearAppliesToUrl = true;
     public const bool SkipPlusMinusOnTransport = false;
+    public const bool JumpSecondsOnTransport = false;
     public const bool HorizontalVolumeSlider = true;
     public const bool VerticalVolumePopover = false;
     public const bool HasFileViewMenuBar = false;

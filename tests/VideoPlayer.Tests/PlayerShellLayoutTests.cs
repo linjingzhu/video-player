@@ -39,6 +39,7 @@ public class PlayerShellLayoutTests
         Assert.Contains("다른 이름으로 저장", UiCopy.FileMenuItems);
         Assert.Contains("-10초", UiCopy.ViewMenuItems);
         Assert.Contains("+10초", UiCopy.ViewMenuItems);
+        Assert.Contains("점프 초", UiCopy.ViewMenuItems);
         Assert.Contains("연결 장치로 재생", UiCopy.ViewMenuItems);
         Assert.Contains("연결 끄기", UiCopy.CastLabels);
     }
