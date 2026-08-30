@@ -74,6 +74,11 @@ public partial class MainWindow : Window
         OverlayTime.Text = shell.OverlayTime;
         OverlaySubtitle.Text = shell.OverlaySubtitle;
         OverlaySecondarySubtitle.Text = shell.OverlaySecondarySubtitle;
+        OverlaySkip.Text = shell.OverlaySkip;
+        OverlaySkip.Visibility = string.IsNullOrWhiteSpace(shell.OverlaySkip)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        ApplyJumpSecondsChrome();
         EmptyStageCover.Visibility = shell.StageEmpty ? Visibility.Visible : Visibility.Collapsed;
         PlayIcon.Visibility = shell.IsPaused ? Visibility.Visible : Visibility.Collapsed;
         PauseIcon.Visibility = shell.IsPaused ? Visibility.Collapsed : Visibility.Visible;
@@ -203,6 +208,8 @@ public partial class MainWindow : Window
     {
         foreach (var menu in new[] { QuickMenuButton.ContextMenu, HamburgerButton.ContextMenu })
         {
+            SetMenuHeader(menu, "skipBack", shell.Transport.SkipBackLabel);
+            SetMenuHeader(menu, "skipForward", shell.Transport.SkipForwardLabel);
             SetMenuHeader(menu, "speed", shell.Transport.SpeedText);
             SetMenuEnabled(menu, "prev", shell.Transport.HasPrevious);
             SetMenuEnabled(menu, "next", shell.Transport.HasNext);
@@ -421,6 +428,61 @@ public partial class MainWindow : Window
     private void SkipBack_Click(object sender, RoutedEventArgs e) => _session.SkipBack();
 
     private void SkipForward_Click(object sender, RoutedEventArgs e) => _session.SkipForward();
+
+    private void JumpSecondsMenu_Click(object sender, RoutedEventArgs e)
+    {
+        ShowMainPage();
+        _session.OpenJumpSecondsSheet();
+        RefreshShell();
+    }
+
+    private void JumpSecondsCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _session.CloseJumpSecondsSheet();
+        RefreshShell();
+    }
+
+    private void JumpSecondsConfirm_Click(object sender, RoutedEventArgs e)
+    {
+        _session.ConfirmJumpSeconds();
+        RefreshShell();
+    }
+
+    private void JumpSecondsMinus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeJumpSecondsDraft(-1);
+        RefreshShell();
+    }
+
+    private void JumpSecondsPlus_Click(object sender, RoutedEventArgs e)
+    {
+        _session.NudgeJumpSecondsDraft(1);
+        RefreshShell();
+    }
+
+    private void JumpSecondsOverlay_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (!ReferenceEquals(e.OriginalSource, JumpSecondsOverlay))
+        {
+            return;
+        }
+
+        _session.CloseJumpSecondsSheet();
+        RefreshShell();
+    }
+
+    private void JumpSecondsSheet_EatClick(object sender, MouseButtonEventArgs e)
+        => e.Handled = true;
+
+    private void ApplyJumpSecondsChrome()
+    {
+        var sheet = _session.Shell.Jump;
+        JumpSecondsOverlay.Visibility = sheet.Open ? Visibility.Visible : Visibility.Collapsed;
+        JumpSecondsValue.Text = sheet.ValueText;
+        JumpPreviewQuick.Text = sheet.QuickMenuPreview;
+        JumpPreviewOsd.Text = sheet.OsdPreview;
+        JumpPreviewArrow.Text = sheet.ArrowPreview;
+    }
 
     private void CycleSpeed_Click(object sender, RoutedEventArgs e)
     {
@@ -1014,6 +1076,11 @@ public partial class MainWindow : Window
                 break;
             case Key.Escape when _session.Shell.Capture.Open:
                 _session.CloseCaptureSheet();
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.Escape when _session.Shell.Jump.Open:
+                _session.CloseJumpSecondsSheet();
                 RefreshShell();
                 e.Handled = true;
                 break;

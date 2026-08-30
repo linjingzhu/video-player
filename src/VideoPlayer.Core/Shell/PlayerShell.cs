@@ -31,6 +31,10 @@ public sealed class PlayerShell
     public VolumeChrome Volume { get; } = new();
     public HdrChrome Hdr { get; } = new();
     public PlayToChrome PlayTo { get; } = new();
+    public JumpSecondsSheetState Jump { get; } = new();
+    public string OverlaySkip { get; set; } = "";
+    public string OsdSkipBackLabel { get; set; } = UiCopy.SkipBack;
+    public string OsdSkipForwardLabel { get; set; } = UiCopy.SkipForward;
     public bool HasCast { get; } = false;
     public bool HasMiracast { get; } = false;
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";
@@ -145,8 +149,8 @@ public sealed record SidebarSeriesItem(string Title, string FolderPath);
 public sealed class TransportState
 {
     public IReadOnlyList<TransportControl> Order { get; } = ShellLayout.TransportOrder;
-    public string SkipBackLabel { get; } = UiCopy.SkipBack;
-    public string SkipForwardLabel { get; } = UiCopy.SkipForward;
+    public string SkipBackLabel { get; set; } = UiCopy.SkipBack;
+    public string SkipForwardLabel { get; set; } = UiCopy.SkipForward;
     public string PreviousIcon { get; } = UiCopy.PreviousEpisodeIcon;
     public string NextIcon { get; } = UiCopy.NextEpisodeIcon;
     public bool NextEpisodeTextOnBar { get; } = false;

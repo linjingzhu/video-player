@@ -26,6 +26,7 @@ public sealed class PlaybackSession
     private bool _muted;
     private double _unmutedVolume = 1;
     private readonly IWirelessDisplayHost _wirelessDisplay;
+    private DateTimeOffset? _skipOsdUntil;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null, IWirelessDisplayHost? wirelessDisplay = null)
     {
@@ -42,6 +43,7 @@ public sealed class PlaybackSession
         SyncClipSheet();
         SyncVolumeChrome();
         SyncPlayTo();
+        SyncJumpLabels();
     }
 
     public IMediaEngine Engine { get; }
@@ -394,6 +396,7 @@ public sealed class PlaybackSession
         Shell.Clip.Open = false;
         Shell.Subtitles.Close();
         Shell.Capture.Open = false;
+        CloseJumpSecondsSheet();
         AutoNextOffer.ResetForNewTitle();
         ResetSkipForNewTitle();
         _endedHandled = false;
@@ -425,14 +428,45 @@ public sealed class PlaybackSession
         ResolveExclusiveCornerCapsule();
     }
 
-    public void SkipBack() => SeekRelative(-JumpSeconds);
+    public void SkipBack()
+    {
+        SeekRelative(-JumpSeconds);
+        ShowSkipOsd(JumpInterval.FormatSkipBack(JumpSeconds));
+    }
 
-    public void SkipForward() => SeekRelative(JumpSeconds);
+    public void SkipForward()
+    {
+        SeekRelative(JumpSeconds);
+        ShowSkipOsd(JumpInterval.FormatSkipForward(JumpSeconds));
+    }
 
     public int SetJumpSeconds(int seconds)
     {
         var applied = Settings.SetJumpSeconds(seconds);
         Persist();
+        SyncJumpLabels();
+        return applied;
+    }
+
+    public void OpenJumpSecondsSheet()
+    {
+        Shell.Jump.Bind(JumpSeconds);
+        Shell.Jump.Open = true;
+    }
+
+    public void CloseJumpSecondsSheet()
+    {
+        Shell.Jump.Close();
+        Shell.Jump.Bind(JumpSeconds);
+    }
+
+    public void NudgeJumpSecondsDraft(int delta)
+        => Shell.Jump.Nudge(delta);
+
+    public int ConfirmJumpSeconds()
+    {
+        var applied = SetJumpSeconds(Shell.Jump.Draft);
+        CloseJumpSecondsSheet();
         return applied;
     }
 
@@ -782,6 +816,7 @@ public sealed class PlaybackSession
         UpdateSkipCapsule(now);
         ResolveExclusiveCornerCapsule();
         SyncPlayTo();
+        ExpireSkipOsd(now);
         if (Shell.Clip.Open)
         {
             SyncClipSheet();
@@ -1395,6 +1430,33 @@ public sealed class PlaybackSession
     {
         Shell.Transport.Volume = Engine.Volume;
         Shell.Volume.Sync(Engine.Volume, _muted);
+    }
+
+    private void SyncJumpLabels()
+    {
+        var seconds = JumpSeconds;
+        Shell.Transport.SkipBackLabel = JumpInterval.FormatSkipBack(seconds);
+        Shell.Transport.SkipForwardLabel = JumpInterval.FormatSkipForward(seconds);
+        Shell.OsdSkipBackLabel = JumpInterval.FormatSkipBack(seconds);
+        Shell.OsdSkipForwardLabel = JumpInterval.FormatSkipForward(seconds);
+        Shell.Jump.Bind(seconds);
+    }
+
+    private void ShowSkipOsd(string label)
+    {
+        Shell.OverlaySkip = label;
+        _skipOsdUntil = DateTimeOffset.UtcNow.AddSeconds(1.2);
+    }
+
+    private void ExpireSkipOsd(DateTimeOffset now)
+    {
+        if (_skipOsdUntil is not { } until || now < until)
+        {
+            return;
+        }
+
+        Shell.OverlaySkip = "";
+        _skipOsdUntil = null;
     }
 
     private void RefreshSidebar()

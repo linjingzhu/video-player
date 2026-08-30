@@ -6,8 +6,8 @@ namespace VideoPlayer.Core.Library;
 
 /// <summary>
 /// Global player settings (AppData). Not per-title.
-/// <see cref="JumpSeconds"/> is reserved for v1.5 skip interval; v1 keeps default 10
-/// and wireframe copy ±10초. No settings UI in P0.
+/// <see cref="JumpSeconds"/> is one integer 1–60 (default 10). Forward and back
+/// share the value. 보기 / 퀵메뉴 &gt; 점프 초. No transport-bar control.
 /// Capture and clip-save keep last-used folders on separate keys.
 /// HDR is a global HDR 자동 / HDR 끄기 key (default 자동).
 /// Last volume (muted + level) is restored on launch. Speed is not stored.
@@ -30,7 +30,7 @@ public sealed class AppSettings
     public double Volume { get; private set; } = DefaultVolume;
     public bool Muted { get; private set; }
 
-    /// <summary>v1.5 live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
+    /// <summary>Live-apply hook. Clamps 1–60 and is used by the next skip immediately.</summary>
     public int SetJumpSeconds(int seconds)
     {
         JumpSeconds = JumpInterval.Clamp(seconds);
@@ -173,14 +173,23 @@ public static class JumpInterval
     public const int MinSeconds = 1;
     public const int MaxSeconds = 60;
 
+    public static bool IsInRange(int seconds)
+        => seconds is >= MinSeconds and <= MaxSeconds;
+
     public static int Clamp(int seconds)
-        => seconds is < MinSeconds or > MaxSeconds ? DefaultSeconds : seconds;
+        => IsInRange(seconds) ? seconds : DefaultSeconds;
 
     public static int Clamp(int? seconds)
         => seconds is { } value ? Clamp(value) : DefaultSeconds;
 
-    /// <summary>v1.5 OSD / button / taskbar copy. v1 chrome stays ±10초.</summary>
+    /// <summary>Sheet stepper: stay on the 1–60 edge instead of snapping to default.</summary>
+    public static int ClampDraft(int seconds)
+        => Math.Clamp(seconds, MinSeconds, MaxSeconds);
+
+    /// <summary>퀵메뉴 / OSD / arrow copy for the current N.</summary>
     public static string FormatSkipBack(int seconds) => $"-{Clamp(seconds)}초";
 
     public static string FormatSkipForward(int seconds) => $"+{Clamp(seconds)}초";
+
+    public static string FormatPlusMinus(int seconds) => $"±{ClampDraft(seconds)}";
 }
