@@ -115,6 +115,7 @@ public class SeriesOnTokenTests
             "다음 화 자동 재생",
             "HDR 자동",
             "HDR 끄기",
+            "연결 장치로 재생",
             "1.0x",
             "캡처",
             "구간 저장"
@@ -259,6 +260,8 @@ public class SeriesOnTokenTests
         Assert.DoesNotContain("Cast", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"HDR 자동\"", mainXaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"HDR 끄기\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"연결 장치로 재생\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("Tag=\"playTo\"", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("HdrBadge", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("HdrIcon", mainXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Eject", mainXaml, StringComparison.Ordinal);

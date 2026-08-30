@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using VideoPlayer.App.Clip;
 using VideoPlayer.App.Playback;
+using VideoPlayer.App.Projection;
 using VideoPlayer.Core.Capture;
 using VideoPlayer.Core.Clip;
 using VideoPlayer.Core.Library;
@@ -37,7 +38,7 @@ public partial class MainWindow : Window
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "VideoPlayer");
         _engine = new MpvMediaEngine();
-        _session = new PlaybackSession(_engine, data);
+        _session = new PlaybackSession(_engine, data, new WindowsProjectionHost());
         ApplyWindowMemory(_session.Window.Bounds);
         PlayerHost.Child = _engine.Host;
         _engine.Host.MouseDoubleClick += (_, _) => Dispatcher.BeginInvoke(new Action(ToggleFullscreen));
@@ -211,6 +212,7 @@ public partial class MainWindow : Window
             SetMenuChecked(menu, "skipAuto", _session.SkipAutoEnabled);
             SetMenuChecked(menu, "hdrAuto", _session.HdrMode == HdrMode.Auto);
             SetMenuChecked(menu, "hdrOff", _session.HdrMode == HdrMode.Off);
+            SetMenuHeader(menu, "playTo", shell.PlayTo.MenuLabel);
             SetMenuEnabled(menu, "capture", !_session.IsUrlSource);
             SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
             SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
@@ -282,6 +284,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        ApplyChromeMenus(_session.Shell);
         menu.PlacementTarget = button;
         menu.Placement = PlacementMode.Bottom;
         menu.IsOpen = true;
@@ -491,6 +494,12 @@ public partial class MainWindow : Window
     private void HdrOff_Click(object sender, RoutedEventArgs e)
     {
         _session.SetHdrMode(HdrMode.Off);
+        RefreshShell();
+    }
+
+    private void PlayTo_Click(object sender, RoutedEventArgs e)
+    {
+        _session.TogglePlayTo();
         RefreshShell();
     }
 

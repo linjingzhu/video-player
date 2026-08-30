@@ -25,12 +25,14 @@ public sealed class PlaybackSession
     private bool _capturing;
     private bool _muted;
     private double _unmutedVolume = 1;
+    private readonly IWirelessDisplayHost _wirelessDisplay;
 
-    public PlaybackSession(IMediaEngine engine, string? dataDirectory = null)
+    public PlaybackSession(IMediaEngine engine, string? dataDirectory = null, IWirelessDisplayHost? wirelessDisplay = null)
     {
         Engine = engine;
         DataDirectory = dataDirectory ?? Path.Combine(Path.GetTempPath(), "video-player-test");
         Directory.CreateDirectory(DataDirectory);
+        _wirelessDisplay = wirelessDisplay ?? IdleWirelessDisplayHost.Instance;
         LoadPersisted();
         Speed = PlaybackSpeed.Default;
         AutoNext = true;
@@ -39,6 +41,7 @@ public sealed class PlaybackSession
         RefreshSeriesPanel();
         SyncClipSheet();
         SyncVolumeChrome();
+        SyncPlayTo();
     }
 
     public IMediaEngine Engine { get; }
@@ -59,6 +62,8 @@ public sealed class PlaybackSession
     }
     public HdrMode HdrMode => Settings.Hdr;
     public int JumpSeconds => Settings.JumpSeconds;
+    public bool IsProjecting => Shell.PlayTo.IsConnected;
+    public string PlayToMenuLabel => Shell.PlayTo.MenuLabel;
     public MediaIdentity? Current { get; private set; }
     public IReadOnlyList<SubtitleCue> Cues { get; private set; } = [];
     public IReadOnlyList<SubtitleCue> SecondaryCues { get; private set; } = [];
@@ -439,6 +444,30 @@ public sealed class PlaybackSession
         return applied;
     }
 
+    public WirelessDisplayResult TogglePlayTo()
+    {
+        var result = MiracastProjection.Guarded(() =>
+            Shell.PlayTo.IsConnected ? _wirelessDisplay.Stop() : _wirelessDisplay.Start());
+        return ApplyPlayToResult(result);
+    }
+
+    public WirelessDisplayResult ApplyPlayToResult(WirelessDisplayResult result)
+    {
+        SyncPlayTo();
+        if (result.IsFailure)
+        {
+            Shell.Status.Fail(StatusText.CastFailed(result.Error));
+            return WirelessDisplayResult.Failed(Shell.Status.Text);
+        }
+
+        if (StatusText.IsCastFailure(Shell.Status.Text))
+        {
+            Shell.Status.Clear();
+        }
+
+        return result;
+    }
+
     public void SeekAbsolute(double seconds)
     {
         if (_capturing || !Engine.IsOpen)
@@ -752,6 +781,7 @@ public sealed class PlaybackSession
         UpdateNextEpisodeChrome(now);
         UpdateSkipCapsule(now);
         ResolveExclusiveCornerCapsule();
+        SyncPlayTo();
         if (Shell.Clip.Open)
         {
             SyncClipSheet();
@@ -1064,6 +1094,9 @@ public sealed class PlaybackSession
         Shell.Hdr.Mode = mode;
         Engine.SetHdrMode(mode);
     }
+
+    private void SyncPlayTo()
+        => Shell.PlayTo.IsConnected = _wirelessDisplay.IsProjecting;
 
     private void ApplyClipSheetOpenDefaults()
     {

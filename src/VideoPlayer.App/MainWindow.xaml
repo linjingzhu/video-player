@@ -67,6 +67,8 @@
                           Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
+                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
@@ -539,6 +541,8 @@
                           Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
+                          Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"

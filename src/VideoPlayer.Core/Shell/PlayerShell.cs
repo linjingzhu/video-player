@@ -30,6 +30,7 @@ public sealed class PlayerShell
     public ClipBannerState ClipBanner { get; } = new();
     public VolumeChrome Volume { get; } = new();
     public HdrChrome Hdr { get; } = new();
+    public PlayToChrome PlayTo { get; } = new();
     public bool HasCast { get; } = false;
     public bool HasMiracast { get; } = false;
     public string OverlayTime { get; set; } = "00:00:00 / 00:00:00";

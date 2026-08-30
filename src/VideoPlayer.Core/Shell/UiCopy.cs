@@ -124,8 +124,13 @@ public static class UiCopy
     public const string HdrAuto = "HDR 자동";
     public const string HdrOff = "HDR 끄기";
 
+    public const string CastPlayTo = "연결 장치로 재생";
+    public const string CastDisconnect = "연결 끄기";
+    public const string CastFailed = "장치에 연결할 수 없습니다.";
+
     public static IReadOnlyList<string> MainMenus { get; } = [QuickMenu];
     public static IReadOnlyList<string> HdrChoices { get; } = [HdrAuto, HdrOff];
+    public static IReadOnlyList<string> CastLabels { get; } = [CastPlayTo, CastDisconnect];
 
     public static IReadOnlyList<string> FileMenuItems { get; } = [OpenFile, OpenUrl, OpenFolder, SaveAs, Exit];
 
@@ -145,6 +150,7 @@ public static class UiCopy
         AutoNext,
         HdrAuto,
         HdrOff,
+        CastPlayTo,
         SpeedDefault,
         Capture,
         ClipSave
