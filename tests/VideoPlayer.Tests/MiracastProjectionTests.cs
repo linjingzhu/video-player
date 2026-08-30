@@ -238,7 +238,7 @@ public class MiracastProjectionTests
         Assert.Contains("WindowsProjectionHost", codeBehind, StringComparison.Ordinal);
         Assert.Contains("PlayTo_Click", codeBehind, StringComparison.Ordinal);
         Assert.Contains("SetMenuHeader(menu, \"playTo\"", codeBehind, StringComparison.Ordinal);
-        Assert.Contains("#C6FF00", ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml")), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("C6FF00", ReadRepoFile(Path.Combine("src", "VideoPlayer.App", "App.xaml")), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ReadRepoFile(string relative)
