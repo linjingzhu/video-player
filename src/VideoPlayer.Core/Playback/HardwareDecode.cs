@@ -56,12 +56,20 @@ public static class StatusText
     public static string SaveFailed(string? reason = null)
         => $"{UiCopy.SaveFailed} · {(string.IsNullOrWhiteSpace(reason) ? UiCopy.NetworkFailed : reason.Trim())}";
 
+    public static string CastFailed(string? reason = null)
+        => string.IsNullOrWhiteSpace(reason) ? UiCopy.CastFailed : $"{UiCopy.CastFailed} · {reason.Trim()}";
+
+    public static bool IsCastFailure(string? text)
+        => !string.IsNullOrWhiteSpace(text)
+           && text.StartsWith(UiCopy.CastFailed, StringComparison.Ordinal);
+
     public static bool IsConfirmedFailureLine(string? text)
         => !string.IsNullOrWhiteSpace(text)
            && (text.StartsWith(UiCopy.Unsupported, StringComparison.Ordinal)
                || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal)
                || text.StartsWith(UiCopy.PlaybackFailed, StringComparison.Ordinal)
-               || text.StartsWith(UiCopy.SaveFailed, StringComparison.Ordinal));
+               || text.StartsWith(UiCopy.SaveFailed, StringComparison.Ordinal)
+               || IsCastFailure(text));
 }
 
 public sealed record OpenMediaResult
