@@ -38,6 +38,7 @@ public static class UiCopy
     public const string PreviousEpisodeIcon = "⏮";
     public const string NextEpisodeIcon = "⏭";
     public const string Captions = "CC";
+    public const string CaptionsKey = "V";
     public const string SpeedDefault = "1.0x";
 
     public const string OpenFolder = "폴더 열기";

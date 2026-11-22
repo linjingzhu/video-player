@@ -57,7 +57,7 @@
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
                           Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -70,7 +70,18 @@
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="speed" Header="배속 1.0x" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+                  <MenuItem Tag="speed:0.5" Header="0.5" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1" Header="1.0" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1.25" Header="1.25" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1.5" Header="1.5" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:2" Header="2.0" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -602,7 +613,7 @@
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
                           Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -615,7 +626,18 @@
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Tag="speed" Header="1.0x" Click="CycleSpeed_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="speed" Header="배속 1.0x" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+                  <MenuItem Tag="speed:0.5" Header="0.5" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1" Header="1.0" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1.25" Header="1.25" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:1.5" Header="1.5" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="speed:2" Header="2.0" IsCheckable="True" Click="SpeedPreset_Click"
+                            Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>

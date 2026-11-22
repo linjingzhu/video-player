@@ -216,7 +216,7 @@ public partial class MainWindow : Window
         {
             SetMenuHeader(menu, "skipBack", shell.Transport.SkipBackLabel);
             SetMenuHeader(menu, "skipForward", shell.Transport.SkipForwardLabel);
-            SetMenuHeader(menu, "speed", shell.Transport.SpeedText);
+            SetMenuHeader(menu, "speed", PlaybackSpeed.MenuHeader(shell.Transport.Speed));
             SetMenuEnabled(menu, "prev", shell.Transport.HasPrevious);
             SetMenuEnabled(menu, "next", shell.Transport.HasNext);
             SetMenuEnabled(menu, "series", shell.Series.Enabled);
@@ -1112,8 +1112,27 @@ public partial class MainWindow : Window
                 RefreshShell();
                 e.Handled = true;
                 break;
-            case Key.C when Keyboard.Modifiers == ModifierKeys.None:
+            case Key.C when Keyboard.Modifiers == ModifierKeys.None
+                         && SpeedKeys.Resolve("C", false, false, false) == SpeedKeys.Binding.Faster:
+                _session.NudgeSpeed(1);
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.V when Keyboard.Modifiers == ModifierKeys.None
+                         && SpeedKeys.Resolve("V", false, false, false) == SpeedKeys.Binding.Captions:
                 _session.ToggleCaptions();
+                e.Handled = true;
+                break;
+            case Key.X when SpeedKeys.Resolve("X", false, false, false) == SpeedKeys.Binding.Slower
+                            && Keyboard.Modifiers == ModifierKeys.None:
+                _session.NudgeSpeed(-1);
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.Z when SpeedKeys.Resolve("Z", false, false, false) == SpeedKeys.Binding.Reset
+                            && Keyboard.Modifiers == ModifierKeys.None:
+                _session.ResetSpeed();
+                RefreshShell();
                 e.Handled = true;
                 break;
         }

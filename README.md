@@ -7,7 +7,7 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 - **Containers:** MP4, MKV, AVI, WMV, MOV
 - **Video:** H.264, HEVC, VP9, AV1, MPEG-4 ASP
 - **Audio:** AAC, AC-3, E-AC-3, MP3, FLAC, Opus, PCM
-- **Subtitles:** SRT, SMI, embedded in MKV/MOV. Primary autoload prefers `stem.ko.srt`, then `stem.srt` / `stem.smi`. `.en.srt` is suggested for secondary and never auto-on. **퀵메뉴 > 자막** opens the sheet. **CC** click toggles primary only.
+- **Subtitles:** SRT, SMI, embedded in MKV/MOV. Primary autoload prefers `stem.ko.srt`, then `stem.srt` / `stem.smi`. `.en.srt` is suggested for secondary and never auto-on. **퀵메뉴 > 자막** opens the sheet. **CC** click toggles primary only. Plain **V** is that same on/off toggle.
 - **Decoder:** libmpv (FFmpeg). Media Foundation alone is not used
 - **GPU:** D3D11VA, then DXVA, then software. libmpv file-loaded, end-file, and hwdec-current decide after open. An end-file error uses the existing failure slot. Hardware failure falls back to software, keeps playing, and uses that same slot.
 - **HDR:** automatic pass-through when the display supports it (libmpv / D3D11). **보기** items **HDR 자동** / **HDR 끄기**. Default 자동. No HDR badge on the transport bar. No two-column settings panel
