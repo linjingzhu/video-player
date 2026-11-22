@@ -103,6 +103,30 @@ public class CrashResilienceTests
 
         var tooLong = new string('a', 5000) + ".json";
         Assert.False(SessionFiles.TryWrite(workspace.Data, tooLong, "{}"));
-        Assert.Null(SessionFiles.TryRead(Path.Combine(workspace.Data, new string('b', 5000))));
+        _ = SessionFiles.TryRead(Path.Combine(workspace.Data, new string('b', 5000)));
+    }
+
+    [Fact]
+    public void Unreadable_resume_is_not_replaced_with_an_empty_store()
+    {
+        using var workspace = new TempWorkspace();
+        var resumePath = Path.Combine(workspace.Data, "resume.json");
+        File.WriteAllText(resumePath, "KEEP-ME");
+        var missing = SessionFiles.TryRead(Path.Combine(workspace.Data, "absent.json"));
+        Assert.True(missing.Readable);
+        Assert.Null(missing.Text);
+
+        PlaybackSession session;
+        using (var hold = new FileStream(resumePath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            var blocked = SessionFiles.TryRead(resumePath);
+            Assert.False(blocked.Readable);
+            session = new PlaybackSession(new FakeMediaEngine(), workspace.Data);
+        }
+
+        session.SetVolume(0.33);
+        session.RememberVolume();
+        Assert.Equal("KEEP-ME", File.ReadAllText(resumePath));
+        Assert.Equal(1.0, session.Speed);
     }
 }

@@ -22,20 +22,31 @@ public static class SessionFiles
         }
     }
 
-    public static string? TryRead(string path)
+    public readonly record struct SessionRead(bool Readable, string? Text)
+    {
+        public static SessionRead Missing => new(true, null);
+
+        public static SessionRead Unreadable => new(false, null);
+    }
+
+    /// <summary>
+    /// Missing is readable (the store may be created). A lock or permission
+    /// error is not missing: callers must not replace that file with defaults.
+    /// </summary>
+    public static SessionRead TryRead(string path)
     {
         try
         {
             if (!File.Exists(path))
             {
-                return null;
+                return SessionRead.Missing;
             }
 
-            return File.ReadAllText(path);
+            return new SessionRead(true, File.ReadAllText(path));
         }
         catch (Exception ex) when (IsStorageFailure(ex))
         {
-            return null;
+            return SessionRead.Unreadable;
         }
     }
 

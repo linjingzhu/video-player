@@ -28,6 +28,12 @@ public sealed class PlaybackSession
     private readonly IWirelessDisplayHost _wirelessDisplay;
     private DateTimeOffset? _skipOsdUntil;
     private DateTimeOffset? _volumeDueAt;
+    private bool _canWriteResume = true;
+    private bool _canWriteRecent = true;
+    private bool _canWriteRecentSeries = true;
+    private bool _canWriteWindow = true;
+    private bool _canWriteSettings = true;
+    private bool _canWriteSkips = true;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null, IWirelessDisplayHost? wirelessDisplay = null)
     {
@@ -1515,6 +1521,12 @@ public sealed class PlaybackSession
             return;
         }
 
+        if (!_canWriteSettings)
+        {
+            _volumeDueAt = null;
+            return;
+        }
+
         if (SessionFiles.TryWrite(DataDirectory, AppSettings.FileName, Settings.ToJson()))
         {
             _volumeDueAt = null;
@@ -1523,14 +1535,14 @@ public sealed class PlaybackSession
 
     private void LoadPersisted()
     {
-        Resume = ResumeStore.FromJson(ReadOptional("resume.json"));
-        Recent = RecentStore.FromJson(ReadOptional("recent.json"));
-        RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
-        Window = WindowMemory.FromJson(ReadOptional("window.json"));
-        Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
+        Resume = ResumeStore.FromJson(ReadOptional("resume.json", out _canWriteResume));
+        Recent = RecentStore.FromJson(ReadOptional("recent.json", out _canWriteRecent));
+        RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json", out _canWriteRecentSeries));
+        Window = WindowMemory.FromJson(ReadOptional("window.json", out _canWriteWindow));
+        Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName, out _canWriteSettings));
         ApplyPersistedVolume();
         Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
-        _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName));
+        _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName, out _canWriteSkips));
         RefreshSidebar();
     }
 
@@ -1558,20 +1570,44 @@ public sealed class PlaybackSession
 
     private void Persist()
     {
-        SessionFiles.TryWrite(DataDirectory, "resume.json", Resume.ToJson());
-        SessionFiles.TryWrite(DataDirectory, "recent.json", Recent.ToJson());
-        SessionFiles.TryWrite(DataDirectory, "recent-series.json", RecentSeries.ToJson());
-        SessionFiles.TryWrite(DataDirectory, "window.json", Window.ToJson());
-        if (SessionFiles.TryWrite(DataDirectory, AppSettings.FileName, Settings.ToJson()))
+        if (_canWriteResume)
+        {
+            SessionFiles.TryWrite(DataDirectory, "resume.json", Resume.ToJson());
+        }
+
+        if (_canWriteRecent)
+        {
+            SessionFiles.TryWrite(DataDirectory, "recent.json", Recent.ToJson());
+        }
+
+        if (_canWriteRecentSeries)
+        {
+            SessionFiles.TryWrite(DataDirectory, "recent-series.json", RecentSeries.ToJson());
+        }
+
+        if (_canWriteWindow)
+        {
+            SessionFiles.TryWrite(DataDirectory, "window.json", Window.ToJson());
+        }
+
+        if (_canWriteSettings
+            && SessionFiles.TryWrite(DataDirectory, AppSettings.FileName, Settings.ToJson()))
         {
             _volumeDueAt = null;
         }
 
-        SessionFiles.TryWrite(DataDirectory, SeasonSkipStore.FileName, _seasonSkips.ToJson());
+        if (_canWriteSkips)
+        {
+            SessionFiles.TryWrite(DataDirectory, SeasonSkipStore.FileName, _seasonSkips.ToJson());
+        }
     }
 
-    private string? ReadOptional(string name)
-        => SessionFiles.TryRead(Path.Combine(DataDirectory, name));
+    private string? ReadOptional(string name, out bool canWrite)
+    {
+        var read = SessionFiles.TryRead(Path.Combine(DataDirectory, name));
+        canWrite = read.Readable;
+        return read.Text;
+    }
 }
 
 public static class FullscreenChromeController
