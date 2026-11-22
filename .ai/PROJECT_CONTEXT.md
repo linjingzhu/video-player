@@ -63,3 +63,7 @@ A successful .NET build does not verify libmpv playback, device projection, GPU/
 ## Verification limits
 
 Policy structural checks and whitespace checks validate the policy update only. Application dependencies, builds, runtime behavior, visual behavior, external deployments, generated-output completeness, external scripts and public identifiers were not fully verified during adoption. Commands above are grounded in tracked README, package/build configuration or prior guidance; they have not been claimed to pass here.
+
+## Release packaging
+
+`scripts/package-release.ps1` publishes a self-contained win-x64 Release build and downloads `libmpv-2.dll`, `ffmpeg.exe`, and `vulkan-1.dll` from pinned SHA-256 URLs. The zip is `artifacts/Ieseo-win-x64.zip`, or `artifacts/Ieseo-<tag>-win-x64.zip` when `-Version` is set. `.github/workflows/release.yml` runs that script and uploads the zip. Native binaries are not committed.
