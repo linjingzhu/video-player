@@ -43,6 +43,7 @@
                            PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick">
                 <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="recent" Header="최근 파일" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="saveAs" Header="다른 이름으로 저장" Click="SaveAs_Click" IsEnabled="False"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -599,6 +600,7 @@
                            PreviewMouseLeftButtonDown="IgnoreChromeDoubleClick">
                 <MenuItem Header="열기..." Click="OpenFile_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="URL 열기" Click="OpenUrl_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="recent" Header="최근 파일" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="폴더 열기" Click="OpenFolder_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="saveAs" Header="다른 이름으로 저장" Click="SaveAs_Click" IsEnabled="False"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
