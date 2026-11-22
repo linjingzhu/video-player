@@ -57,7 +57,7 @@
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
                           Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -610,7 +610,7 @@
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
-                <MenuItem Header="CC" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="여기까지 스킵" Click="SkipToHere_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="skipAuto" Header="건너뛰기 자동" IsCheckable="True" IsChecked="False"
                           Click="SkipAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>

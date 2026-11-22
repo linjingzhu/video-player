@@ -1100,7 +1100,14 @@ public partial class MainWindow : Window
                 RefreshShell();
                 e.Handled = true;
                 break;
-            case Key.C when Keyboard.Modifiers == ModifierKeys.None:
+            case Key.C when Keyboard.Modifiers == ModifierKeys.None
+                         && SpeedKeys.Resolve("C", false, false, false) == SpeedKeys.Binding.Faster:
+                _session.NudgeSpeed(1);
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.V when Keyboard.Modifiers == ModifierKeys.None
+                         && SpeedKeys.Resolve("V", false, false, false) == SpeedKeys.Binding.Captions:
                 _session.ToggleCaptions();
                 e.Handled = true;
                 break;

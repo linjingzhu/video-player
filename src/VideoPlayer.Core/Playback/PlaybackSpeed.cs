@@ -57,24 +57,27 @@ public static class PlaybackSpeed
 }
 
 /// <summary>
-/// Plain C is already captions. Ctrl+Shift+C stays capture.
-/// Faster is not bound, so captions is not remapped.
+/// Plain C steps speed up. Ctrl+Shift+C stays capture.
+/// Plain V toggles captions. V was not bound before this move.
 /// </summary>
 public static class SpeedKeys
 {
     public const string Faster = "C";
     public const string Slower = "X";
     public const string Reset = "Z";
+    public const string Captions = "V";
 
-    public static readonly IReadOnlyList<string> Collisions = ["C"];
+    public static readonly IReadOnlyList<string> PreviouslyBound =
+        ["Space", "Left", "Right", "I", "O", "Escape", "Enter", "F11", "M", "C", "X", "Z"];
 
     public enum Binding
     {
         None,
         Capture,
-        Captions,
+        Faster,
         Slower,
-        Reset
+        Reset,
+        Captions
     }
 
     public static Binding Resolve(string key, bool control, bool shift, bool alt)
@@ -84,7 +87,7 @@ public static class SpeedKeys
             return Binding.None;
         }
 
-        if (control && shift && !alt && key.Equals("C", StringComparison.OrdinalIgnoreCase))
+        if (control && shift && !alt && key.Equals(Faster, StringComparison.OrdinalIgnoreCase))
         {
             return Binding.Capture;
         }
@@ -94,9 +97,9 @@ public static class SpeedKeys
             return Binding.None;
         }
 
-        if (key.Equals("C", StringComparison.OrdinalIgnoreCase))
+        if (key.Equals(Faster, StringComparison.OrdinalIgnoreCase))
         {
-            return Binding.Captions;
+            return Binding.Faster;
         }
 
         if (key.Equals(Slower, StringComparison.OrdinalIgnoreCase))
@@ -107,6 +110,11 @@ public static class SpeedKeys
         if (key.Equals(Reset, StringComparison.OrdinalIgnoreCase))
         {
             return Binding.Reset;
+        }
+
+        if (key.Equals(Captions, StringComparison.OrdinalIgnoreCase))
+        {
+            return Binding.Captions;
         }
 
         return Binding.None;
