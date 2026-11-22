@@ -237,18 +237,20 @@ internal static class Program
                 }
 
                 sawWindow = true;
-                app.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    try
+                app.Dispatcher.BeginInvoke(
+                    DispatcherPriority.ApplicationIdle,
+                    new Action(() =>
                     {
-                        window.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        error = ex;
-                        app.Shutdown();
-                    }
-                }), DispatcherPriority.ApplicationIdle);
+                        try
+                        {
+                            window.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex;
+                            app.Shutdown();
+                        }
+                    }));
             };
             app.Run();
         }
