@@ -224,6 +224,8 @@ public partial class MainWindow : Window
             SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
             SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
         }
+
+        ShellMenuHooks.Apply(this);
     }
 
     private void ApplyChromeVisibility()
