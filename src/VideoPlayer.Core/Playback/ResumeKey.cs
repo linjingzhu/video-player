@@ -3,7 +3,8 @@ using VideoPlayer.Core.Safety;
 namespace VideoPlayer.Core.Playback;
 
 /// <summary>
-/// Resume identity: local files are path + size. http(s) sources use the exact URL string and no size.
+/// Resume identity: local files are path + size. Plain http(s) sources use the exact URL string and no size.
+/// YouTube uses the 11-character video id so tracking query and list= do not split one video.
 /// </summary>
 public static class ResumeKey
 {
@@ -30,7 +31,7 @@ public static class ResumeKey
             throw new ArgumentException(check.Error ?? "http(s) 주소가 필요합니다.", nameof(url));
         }
 
-        return check.FullPath;
+        return YouTubeUrl.TryGetVideoId(check.FullPath) ?? check.FullPath;
     }
 
     public static bool TryParse(string? key, out string path, out long size)
@@ -71,5 +72,13 @@ public readonly record struct MediaIdentity(string Path, long Size, MediaSourceK
     }
 
     public static MediaIdentity FromUrl(string url)
-        => new(ResumeKey.FromUrl(url), 0, MediaSourceKind.HttpUrl);
+    {
+        var check = OpenUrlRules.Validate(url);
+        if (!check.Success || check.FullPath is null)
+        {
+            throw new ArgumentException(check.Error ?? "http(s) 주소가 필요합니다.", nameof(url));
+        }
+
+        return new(check.FullPath, 0, MediaSourceKind.HttpUrl);
+    }
 }

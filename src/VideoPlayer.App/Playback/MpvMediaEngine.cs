@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 using VideoPlayer.Core.Playback;
+using VideoPlayer.Core.Shell;
 using Path = System.IO.Path;
 
 namespace VideoPlayer.App.Playback;
@@ -9,6 +10,7 @@ namespace VideoPlayer.App.Playback;
 public sealed class MpvMediaEngine : IMediaEngine, IDisposable
 {
     private const ulong HwdecReply = 1;
+    private const ulong TitleReply = 2;
     private const string SoftwareFallbackError = "하드웨어 가속에 실패하여 소프트웨어로 재생합니다.";
 
     private readonly SynchronizationContext? _ui = SynchronizationContext.Current;
@@ -19,6 +21,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
     private OpenWatchState _watch = OpenWatchState.Begin(true);
     private string? _openPath;
     private bool _httpOpen;
+    private bool _youtube;
     private bool _preferHardware = true;
     private bool _opening;
     private int _watchId;
@@ -75,17 +78,39 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
     public bool HardwareActive => !string.Equals(MpvNative.ReadString(_mpv, "hwdec-current"), "no", StringComparison.OrdinalIgnoreCase)
                                   && !string.IsNullOrEmpty(MpvNative.ReadString(_mpv, "hwdec-current"));
     public string? LastError { get; private set; }
+    public string? MediaTitle { get; private set; }
+    public bool YouTubeLoadFailed { get; private set; }
     public event EventHandler<PlaybackFault>? PlaybackFaulted;
     public IReadOnlyList<MediaChapter> Chapters => ReadChapters();
     public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks => ReadSubtitleTracks();
     public HdrMode HdrMode { get; private set; } = HdrPassThrough.Default;
 
-    public OpenMediaResult Open(string path, bool preferHardware)
+    public OpenMediaResult Open(string path, bool preferHardware, string? ytdlpPath = null)
     {
+        MediaTitle = null;
+        YouTubeLoadFailed = false;
+        _youtube = false;
         if (!_available)
         {
             LastError = "libmpv를 찾을 수 없습니다. Windows 빌드에 libmpv-2.dll을 함께 두세요.";
             return new OpenMediaResult { Success = false, Path = path, Error = LastError, Status = LastError };
+        }
+
+        if (!string.IsNullOrWhiteSpace(ytdlpPath))
+        {
+            foreach (var option in YouTubeMpvOptions.For(ytdlpPath))
+            {
+                if (MpvNative.Set(_mpv, option.Name, option.Value) < 0)
+                {
+                    LastError = StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed);
+                    YouTubeLoadFailed = true;
+                    IsOpen = false;
+                    IsPaused = true;
+                    return new OpenMediaResult { Success = false, Path = path, Error = LastError, Status = LastError };
+                }
+            }
+
+            _youtube = true;
         }
 
         // hwdec-current is empty until the decoder starts, so a read right
@@ -149,6 +174,14 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
         }
 
         return BuildOpenResult(path);
+    }
+
+    public void Pump()
+    {
+        if (_available)
+        {
+            DrainEvents();
+        }
     }
 
     public void Play()
@@ -304,6 +337,12 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
             var status = string.IsNullOrWhiteSpace(_watch.FailureStatus)
                 ? (_httpOpen ? StatusText.PlaybackFailed() : "파일을 열 수 없습니다.")
                 : _watch.FailureStatus;
+            if (_youtube)
+            {
+                status = StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed);
+                YouTubeLoadFailed = true;
+            }
+
             LastError = status;
             IsOpen = false;
             IsPaused = true;
@@ -409,7 +448,14 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
                 break;
             case MpvNative.EventPropertyChange:
                 var change = MpvNative.ReadPropertyChange(ev.Data);
-                if (string.Equals(change.Name, "hwdec-current", StringComparison.Ordinal))
+                if (string.Equals(change.Name, "media-title", StringComparison.Ordinal))
+                {
+                    if (!string.IsNullOrWhiteSpace(change.Value))
+                    {
+                        MediaTitle = change.Value;
+                    }
+                }
+                else if (string.Equals(change.Name, "hwdec-current", StringComparison.Ordinal))
                 {
                     Apply(new OpenSignal(OpenSignalKind.HwdecCurrent, HwdecCurrent: change.Value));
                 }
@@ -440,13 +486,19 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
                 IsOpen = false;
                 IsPaused = true;
                 _wantPause = true;
-                LastError = decision.State.FailureStatus;
+                LastError = _youtube
+                    ? StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed)
+                    : decision.State.FailureStatus;
+                if (_youtube)
+                {
+                    YouTubeLoadFailed = true;
+                }
                 if (!_opening)
                 {
                     PlaybackFaulted?.Invoke(this, new PlaybackFault(
                         Fatal: true,
                         HardwareActive: false,
-                        Status: decision.State.FailureStatus,
+                        Status: LastError,
                         VideoCodec: VideoCodec,
                         AudioCodec: AudioCodec));
                 }
@@ -564,6 +616,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
             }
 
             MpvNative.Observe(_mpv, HwdecReply, "hwdec-current", MpvNative.StringFormat);
+            MpvNative.Observe(_mpv, TitleReply, "media-title", MpvNative.StringFormat);
             MpvNative.SetWakeupCallback(_mpv, _wakeup);
             _wakeupSet = true;
             _available = true;
