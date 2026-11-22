@@ -74,6 +74,9 @@
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <Separator Tag="viewSeparator" Background="#66222222"/>
+                <MenuItem Tag="loopRange" Header="구간 반복" InputGestureText="L" IsCheckable="True"
+                          Click="LoopRange_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="clip" Header="구간 저장" Click="ClipSaveMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
               </ContextMenu>
@@ -616,6 +619,9 @@
                 <Separator/>
                 <MenuItem Tag="capture" Header="캡처" InputGestureText="Ctrl+Shift+C" Click="CaptureMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <Separator Tag="viewSeparator" Background="#66222222"/>
+                <MenuItem Tag="loopRange" Header="구간 반복" InputGestureText="L" IsCheckable="True"
+                          Click="LoopRange_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="clip" Header="구간 저장" Click="ClipSaveMenu_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
               </ContextMenu>
@@ -630,6 +636,8 @@
                   VerticalAlignment="Center" Style="{StaticResource SeriesOnSeekSlider}"
                   PreviewMouseLeftButtonUp="SeekSlider_Committed"/>
           <Canvas x:Name="MarkCanvas" IsHitTestVisible="False" Height="8" VerticalAlignment="Center">
+            <Rectangle x:Name="LoopBand" Height="8" Opacity="0.25" Fill="{StaticResource SeriesOnAccentBrush}"
+                       Visibility="Collapsed" IsHitTestVisible="False"/>
             <Rectangle x:Name="InTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
             <Rectangle x:Name="OutTick" Width="2" Height="2" Fill="{StaticResource SeriesOnAccentBrush}" Visibility="Collapsed"/>
           </Canvas>

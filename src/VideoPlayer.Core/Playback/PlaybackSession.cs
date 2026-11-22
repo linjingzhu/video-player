@@ -877,6 +877,8 @@ public sealed class PlaybackSession
             SyncClipSheet();
         }
 
+        EnforceLoopRange();
+
         if (Engine.IsOpen && Engine.Duration > 0 && Engine.Position >= Engine.Duration - 0.25)
         {
             if (!_endedHandled)
@@ -1060,6 +1062,49 @@ public sealed class PlaybackSession
 
         Shell.Clip.OutMark = ClipSave.ClampMark(Engine.Position, Engine.Duration);
         SyncClipSheet();
+    }
+
+    public bool LoopEnabled { get; private set; }
+
+    public bool LoopMenuEnabled => LoopRange.HasBothMarks(Shell.Clip.InMark, Shell.Clip.OutMark);
+
+    public string LoopMenuHeader => LoopMenuEnabled ? LoopRange.ItemHeader : LoopRange.NeedsMarksHeader;
+
+    public void SyncLoopAvailability()
+    {
+        if (!LoopMenuEnabled)
+        {
+            LoopEnabled = false;
+        }
+    }
+
+    public bool ToggleLoopRange()
+    {
+        SyncLoopAvailability();
+        if (!LoopMenuEnabled)
+        {
+            return false;
+        }
+
+        LoopEnabled = !LoopEnabled;
+        return true;
+    }
+
+    public void EnforceLoopRange()
+    {
+        SyncLoopAvailability();
+        if (_capturing || !Engine.IsOpen || !LoopEnabled)
+        {
+            return;
+        }
+
+        if (LoopRange.RewindTarget(true, Engine.Position, Shell.Clip.InMark, Shell.Clip.OutMark) is not { } target)
+        {
+            return;
+        }
+
+        Engine.Seek(target);
+        _endedHandled = false;
     }
 
     public void MoveClipHandle(ClipHandle handle, double seconds)
