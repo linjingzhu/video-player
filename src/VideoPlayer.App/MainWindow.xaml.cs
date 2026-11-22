@@ -57,6 +57,12 @@ public partial class MainWindow : Window
         RefreshShell();
     }
 
+    public void ReportFailure(string message)
+    {
+        _session.Shell.Status.Fail(message);
+        RefreshShell();
+    }
+
     private void OnTick()
     {
         _session.Tick(DateTimeOffset.UtcNow);

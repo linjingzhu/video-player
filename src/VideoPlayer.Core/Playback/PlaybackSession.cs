@@ -27,12 +27,19 @@ public sealed class PlaybackSession
     private double _unmutedVolume = 1;
     private readonly IWirelessDisplayHost _wirelessDisplay;
     private DateTimeOffset? _skipOsdUntil;
+    private DateTimeOffset? _volumeDueAt;
+    private bool _canWriteResume = true;
+    private bool _canWriteRecent = true;
+    private bool _canWriteRecentSeries = true;
+    private bool _canWriteWindow = true;
+    private bool _canWriteSettings = true;
+    private bool _canWriteSkips = true;
 
     public PlaybackSession(IMediaEngine engine, string? dataDirectory = null, IWirelessDisplayHost? wirelessDisplay = null)
     {
         Engine = engine;
         DataDirectory = dataDirectory ?? Path.Combine(Path.GetTempPath(), "video-player-test");
-        Directory.CreateDirectory(DataDirectory);
+        SessionFiles.TryEnsureDirectory(DataDirectory);
         _wirelessDisplay = wirelessDisplay ?? IdleWirelessDisplayHost.Instance;
         LoadPersisted();
         Speed = PlaybackSpeed.Default;
@@ -553,6 +560,7 @@ public sealed class PlaybackSession
         }
 
         SyncVolumeChrome();
+        MarkVolumeDirty();
     }
 
     public void ToggleMute()
@@ -571,6 +579,7 @@ public sealed class PlaybackSession
         }
 
         SyncVolumeChrome();
+        MarkVolumeDirty();
     }
 
     public bool HandleHotkey(string key)
@@ -783,6 +792,7 @@ public sealed class PlaybackSession
 
     public void Tick(DateTimeOffset now)
     {
+        FlushVolume(now);
         RefreshStreamTracks();
         SyncTransport();
         if (_capturing)
@@ -1498,16 +1508,41 @@ public sealed class PlaybackSession
         return map.Values;
     }
 
+    private void MarkVolumeDirty()
+    {
+        Settings.SetVolume(_unmutedVolume, _muted);
+        _volumeDueAt = VolumePersist.DueAt(DateTimeOffset.UtcNow);
+    }
+
+    private void FlushVolume(DateTimeOffset now)
+    {
+        if (!VolumePersist.ShouldWrite(now, _volumeDueAt))
+        {
+            return;
+        }
+
+        if (!_canWriteSettings)
+        {
+            _volumeDueAt = null;
+            return;
+        }
+
+        if (SessionFiles.TryWrite(DataDirectory, AppSettings.FileName, Settings.ToJson()))
+        {
+            _volumeDueAt = null;
+        }
+    }
+
     private void LoadPersisted()
     {
-        Resume = ResumeStore.FromJson(ReadOptional("resume.json"));
-        Recent = RecentStore.FromJson(ReadOptional("recent.json"));
-        RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json"));
-        Window = WindowMemory.FromJson(ReadOptional("window.json"));
-        Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName));
+        Resume = ResumeStore.FromJson(ReadOptional("resume.json", out _canWriteResume));
+        Recent = RecentStore.FromJson(ReadOptional("recent.json", out _canWriteRecent));
+        RecentSeries = RecentSeriesStore.FromJson(ReadOptional("recent-series.json", out _canWriteRecentSeries));
+        Window = WindowMemory.FromJson(ReadOptional("window.json", out _canWriteWindow));
+        Settings = AppSettings.FromJson(ReadOptional(AppSettings.FileName, out _canWriteSettings));
         ApplyPersistedVolume();
         Shell.Capture.FolderPath = StillFrameCapture.ResolveFolder(Settings.CaptureFolder);
-        _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName));
+        _seasonSkips = SeasonSkipStore.FromJson(ReadOptional(SeasonSkipStore.FileName, out _canWriteSkips));
         RefreshSidebar();
     }
 
@@ -1535,22 +1570,44 @@ public sealed class PlaybackSession
 
     private void Persist()
     {
-        WriteOptional("resume.json", Resume.ToJson());
-        WriteOptional("recent.json", Recent.ToJson());
-        WriteOptional("recent-series.json", RecentSeries.ToJson());
-        WriteOptional("window.json", Window.ToJson());
-        WriteOptional(AppSettings.FileName, Settings.ToJson());
-        WriteOptional(SeasonSkipStore.FileName, _seasonSkips.ToJson());
+        if (_canWriteResume)
+        {
+            SessionFiles.TryWrite(DataDirectory, "resume.json", Resume.ToJson());
+        }
+
+        if (_canWriteRecent)
+        {
+            SessionFiles.TryWrite(DataDirectory, "recent.json", Recent.ToJson());
+        }
+
+        if (_canWriteRecentSeries)
+        {
+            SessionFiles.TryWrite(DataDirectory, "recent-series.json", RecentSeries.ToJson());
+        }
+
+        if (_canWriteWindow)
+        {
+            SessionFiles.TryWrite(DataDirectory, "window.json", Window.ToJson());
+        }
+
+        if (_canWriteSettings
+            && SessionFiles.TryWrite(DataDirectory, AppSettings.FileName, Settings.ToJson()))
+        {
+            _volumeDueAt = null;
+        }
+
+        if (_canWriteSkips)
+        {
+            SessionFiles.TryWrite(DataDirectory, SeasonSkipStore.FileName, _seasonSkips.ToJson());
+        }
     }
 
-    private string? ReadOptional(string name)
+    private string? ReadOptional(string name, out bool canWrite)
     {
-        var path = Path.Combine(DataDirectory, name);
-        return File.Exists(path) ? File.ReadAllText(path) : null;
+        var read = SessionFiles.TryRead(Path.Combine(DataDirectory, name));
+        canWrite = read.Readable;
+        return read.Text;
     }
-
-    private void WriteOptional(string name, string json)
-        => File.WriteAllText(Path.Combine(DataDirectory, name), json);
 }
 
 public static class FullscreenChromeController
