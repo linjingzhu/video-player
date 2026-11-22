@@ -641,6 +641,25 @@ public sealed class PlaybackSession
         Persist();
     }
 
+    public void RemoveRecentFile(string path)
+    {
+        if (Recent.Remove(path) > 0)
+        {
+            Persist();
+        }
+    }
+
+    public void ClearRecentFiles()
+    {
+        if (Recent.Items.Count == 0)
+        {
+            return;
+        }
+
+        Recent.Clear();
+        Persist();
+    }
+
     public SeriesShow OpenSeriesFolder(string folder)
     {
         var show = SeriesScanner.Scan(folder);

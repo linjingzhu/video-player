@@ -49,6 +49,18 @@ public sealed class RecentStore
         return true;
     }
 
+    public int Remove(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return 0;
+        }
+
+        return _items.RemoveAll(item => string.Equals(item.Path, path, PathValidator.PathComparison));
+    }
+
+    public void Clear() => _items.Clear();
+
     public string ToJson() => JsonSerializer.Serialize(_items, JsonOptions);
 
     public static RecentStore FromJson(string? json)
