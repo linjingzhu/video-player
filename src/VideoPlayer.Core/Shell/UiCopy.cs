@@ -45,8 +45,7 @@ public static class UiCopy
     public const string OpenFile = "열기...";
     public const string OpenUrl = "URL 열기";
     public const string OpenUrlPlaceholder = "파일 주소 또는 유튜브 링크";
-    public const string OpenUrlExample = "예: https://example.com/video.mp4";
-    public const string OpenUrlHttpOnly = "파일 주소 또는 유튜브 링크";
+    public const string OpenUrlExample = "예: https://youtu.be/… 또는 .mp4 주소";
     public const string OpenUrlHttpOnlyReason = "http(s)만 열 수 있습니다.";
     public const string OpenUrlEmpty = "주소를 입력하세요.";
     public const string OpenUrlNoFileScheme = "file: 주소는 열 수 없습니다. http(s)만 지원합니다.";
