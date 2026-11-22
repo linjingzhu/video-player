@@ -69,6 +69,7 @@ public static class StatusText
                || text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal)
                || text.StartsWith(UiCopy.PlaybackFailed, StringComparison.Ordinal)
                || text.StartsWith(UiCopy.SaveFailed, StringComparison.Ordinal)
+               || text.Equals(UiCopy.YtDlpRequired, StringComparison.Ordinal)
                || IsCastFailure(text));
 }
 

@@ -35,10 +35,16 @@ public sealed class PlaybackSession
     private bool _canWriteWindow = true;
     private bool _canWriteSettings = true;
     private bool _canWriteSkips = true;
+    private readonly Func<string?> _resolveYtDlp;
 
-    public PlaybackSession(IMediaEngine engine, string? dataDirectory = null, IWirelessDisplayHost? wirelessDisplay = null)
+    public PlaybackSession(
+        IMediaEngine engine,
+        string? dataDirectory = null,
+        IWirelessDisplayHost? wirelessDisplay = null,
+        Func<string?>? ytdlpResolver = null)
     {
         Engine = engine;
+        _resolveYtDlp = ytdlpResolver ?? YtDlpLocator.ResolveFromEnvironment;
         DataDirectory = dataDirectory ?? Path.Combine(Path.GetTempPath(), "video-player-test");
         SessionFiles.TryEnsureDirectory(DataDirectory);
         _wirelessDisplay = wirelessDisplay ?? IdleWirelessDisplayHost.Instance;
@@ -96,6 +102,12 @@ public sealed class PlaybackSession
     public SeriesDrillDown Series => _drill;
     public MediaSourceKind SourceKind => Current?.Kind ?? MediaSourceKind.None;
     public bool IsUrlSource => SourceKind == MediaSourceKind.HttpUrl;
+    public bool IsYouTube => YouTubeUrl.IsYouTube(Current?.Path);
+
+    public string TitleCaption
+        => Current is { } current && YouTubeUrl.IsYouTube(current.Path)
+            ? YouTubeTitle.Display(Engine.MediaTitle, current.Path)
+            : UiCopy.AppTitle;
     public bool CanUseSeriesTree => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.SeriesTree);
     public bool CanAutoNext => AutoNext && FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.AutoNext);
     public bool CanCapture => FileOnlyFeatures.Allows(SourceKind, FileOnlyFeature.Capture) && Engine.IsOpen;
@@ -140,6 +152,30 @@ public sealed class PlaybackSession
         }
 
         var accepted = check.FullPath;
+        if (YouTubeUrl.IsYouTube(accepted))
+        {
+            var ytdlp = _resolveYtDlp();
+            if (string.IsNullOrWhiteSpace(ytdlp))
+            {
+                Shell.Status.Fail(UiCopy.YtDlpRequired);
+                return new OpenMediaResult
+                {
+                    Success = false,
+                    Path = accepted,
+                    AddedToRecent = false,
+                    Error = UiCopy.YtDlpRequired,
+                    Status = Shell.Status.Text
+                };
+            }
+
+            return PlayOpened(
+                accepted,
+                MediaIdentity.FromUrl(accepted),
+                addToRecent: false,
+                loadSidecars: false,
+                ytdlpPath: ytdlp);
+        }
+
         var containerPath = OpenUrlRules.ContainerPath(accepted);
         if (containerPath is not null
             && RejectUnsupportedContainer(containerPath, accepted) is { } rejected)
@@ -266,6 +302,12 @@ public sealed class PlaybackSession
     {
         if (fault.Fatal)
         {
+            if (IsYouTube)
+            {
+                Shell.Status.Fail(StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed));
+                return;
+            }
+
             if (IsUrlSource)
             {
                 Shell.Status.Fail(StatusText.PlaybackFailed());
@@ -294,20 +336,27 @@ public sealed class PlaybackSession
             fault.AudioCodec ?? Engine.AudioCodec).StatusText);
     }
 
-    private OpenMediaResult PlayOpened(string enginePath, MediaIdentity identity, bool addToRecent, bool loadSidecars)
+    private OpenMediaResult PlayOpened(
+        string enginePath,
+        MediaIdentity identity,
+        bool addToRecent,
+        bool loadSidecars,
+        string? ytdlpPath = null)
     {
         EnsurePlaybackFaultHook();
         Checkpoint("episode-change");
 
-        var opened = Engine.Open(enginePath, preferHardware: true);
+        var opened = Engine.Open(enginePath, preferHardware: true, ytdlpPath);
         if (!opened.Success)
         {
             LastUnsupportedCodec = opened.UnsupportedCodecName;
             var message = opened.UnsupportedCodecName is not null
                 ? opened.Status
-                : identity.Kind == MediaSourceKind.HttpUrl
-                    ? StatusText.PlaybackFailed()
-                    : opened.Status;
+                : ytdlpPath is not null
+                    ? StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed)
+                    : identity.Kind == MediaSourceKind.HttpUrl
+                        ? StatusText.PlaybackFailed()
+                        : opened.Status;
             Shell.Status.Fail(message);
             return opened with { AddedToRecent = false, Status = Shell.Status.Text };
         }
@@ -375,7 +424,7 @@ public sealed class PlaybackSession
         }
 
         var added = false;
-        if (addToRecent)
+        if (addToRecent && !YouTubeUrl.IsYouTube(identity.Path))
         {
             added = Recent.TryAdd(identity.Path, identity.Size, opened.VideoCodec ?? Engine.VideoCodec, opened.AudioCodec ?? Engine.AudioCodec);
         }
@@ -886,6 +935,12 @@ public sealed class PlaybackSession
 
     public void Tick(DateTimeOffset now)
     {
+        Engine.Pump();
+        if (IsYouTube && Engine.YouTubeLoadFailed)
+        {
+            Shell.Status.Fail(StatusText.PlaybackFailed(UiCopy.YouTubeLoadFailed));
+        }
+
         FlushVolume(now);
         RefreshStreamTracks();
         SyncTransport();

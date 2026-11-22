@@ -16,7 +16,9 @@ public static class UrlSaveAs
     public const bool PromptsForHeaders = false;
 
     public static bool CanSave(MediaSourceKind source, string? url)
-        => source == MediaSourceKind.HttpUrl && OpenUrlRules.IsAcceptedHttpUrl(url);
+        => source == MediaSourceKind.HttpUrl
+           && OpenUrlRules.IsAcceptedHttpUrl(url)
+           && !YouTubeUrl.IsYouTube(url);
 
     public static string SuggestedFileName(string url)
     {

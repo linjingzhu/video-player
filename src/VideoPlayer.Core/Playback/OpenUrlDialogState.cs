@@ -12,7 +12,6 @@ public sealed class OpenUrlDialogState
     public string Title { get; } = UiCopy.OpenUrl;
     public string Placeholder { get; } = UiCopy.OpenUrlPlaceholder;
     public string Example { get; } = UiCopy.OpenUrlExample;
-    public string HttpOnly { get; } = UiCopy.OpenUrlHttpOnly;
     public string OpenLabel { get; } = UiCopy.OpenUrlAction;
     public string CancelLabel { get; } = UiCopy.NextEpisodeCancel;
     public bool HasCookieAuthUi { get; } = false;

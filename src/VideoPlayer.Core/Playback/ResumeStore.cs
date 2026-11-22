@@ -91,7 +91,8 @@ public sealed class ResumeStore
 
             if (OpenUrlRules.IsAcceptedHttpUrl(entry.Path))
             {
-                if (!string.Equals(entry.Key, entry.Path, StringComparison.Ordinal))
+                var expected = ResumeKey.FromUrl(entry.Path);
+                if (!string.Equals(entry.Key, expected, StringComparison.Ordinal))
                 {
                     continue;
                 }

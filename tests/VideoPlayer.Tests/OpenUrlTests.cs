@@ -240,9 +240,8 @@ public class OpenUrlTests
     {
         Assert.Equal(new[] { "열기...", "URL 열기", "폴더 열기", "다른 이름으로 저장", "종료" }, UiCopy.FileMenuItems);
         Assert.Equal("URL 열기", UiCopy.OpenUrl);
-        Assert.Equal("https://", UiCopy.OpenUrlPlaceholder);
-        Assert.Equal("예: https://example.com/video.mp4", UiCopy.OpenUrlExample);
-        Assert.Equal("http(s) 파일 주소만", UiCopy.OpenUrlHttpOnly);
+        Assert.Equal("파일 주소 또는 유튜브 링크", UiCopy.OpenUrlPlaceholder);
+        Assert.Equal("예: https://youtu.be/… 또는 .mp4 주소", UiCopy.OpenUrlExample);
         Assert.Equal("열기", UiCopy.OpenUrlAction);
         Assert.DoesNotContain(
             PlayerShell.Boot().Transport.Order,
@@ -278,9 +277,8 @@ public class OpenUrlTests
         var dialog = new OpenUrlDialogState();
         Assert.False(dialog.CanOpen);
         Assert.Equal("URL 열기", dialog.Title);
-        Assert.Equal("https://", dialog.Placeholder);
-        Assert.Equal("예: https://example.com/video.mp4", dialog.Example);
-        Assert.Equal("http(s) 파일 주소만", dialog.HttpOnly);
+        Assert.Equal("파일 주소 또는 유튜브 링크", dialog.Placeholder);
+        Assert.Equal("예: https://youtu.be/… 또는 .mp4 주소", dialog.Example);
         Assert.False(dialog.HasCookieAuthUi);
         Assert.False(dialog.HasDrmUi);
         Assert.False(dialog.HasPaidUnlockUi);

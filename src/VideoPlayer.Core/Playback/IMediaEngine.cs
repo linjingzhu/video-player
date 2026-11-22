@@ -1,3 +1,5 @@
+using VideoPlayer.Core.Shell;
+
 namespace VideoPlayer.Core.Playback;
 
 public sealed record MediaChapter(string Title, double Start, double End);
@@ -14,11 +16,14 @@ public interface IMediaEngine
     string? AudioCodec { get; }
     bool HardwareActive { get; }
     string? LastError { get; }
+    string? MediaTitle { get; }
+    bool YouTubeLoadFailed { get; }
     IReadOnlyList<MediaChapter> Chapters { get; }
     IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; }
     HdrMode HdrMode { get; }
 
-    OpenMediaResult Open(string path, bool preferHardware);
+    OpenMediaResult Open(string path, bool preferHardware, string? ytdlpPath = null);
+    void Pump();
     void Play();
     void Pause();
     void Stop();
@@ -54,15 +59,22 @@ public sealed class FakeMediaEngine : IMediaEngine
     public bool FailOpen { get; set; }
     public string? ForcedUnsupportedCodec { get; set; }
     public string? LastError { get; private set; }
+    public string? MediaTitle { get; set; }
+    public bool YouTubeLoadFailed { get; private set; }
+    public string? LastYtDlpPath { get; private set; }
+    public bool ReportYouTubeFailureOnPump { get; set; }
     public int OpenCallCount { get; private set; }
     public List<MediaChapter> Chapters { get; set; } = [];
     IReadOnlyList<MediaChapter> IMediaEngine.Chapters => Chapters;
     public IReadOnlyList<MediaSubtitleTrack> SubtitleTracks { get; set; } = [];
     public HdrMode HdrMode { get; private set; } = HdrPassThrough.Default;
 
-    public OpenMediaResult Open(string path, bool preferHardware)
+    public OpenMediaResult Open(string path, bool preferHardware, string? ytdlpPath = null)
     {
         OpenCallCount++;
+        LastYtDlpPath = ytdlpPath;
+        YouTubeLoadFailed = false;
+        MediaTitle = null;
         if (FailOpen)
         {
             LastError = "열 수 없습니다.";
@@ -161,6 +173,17 @@ public sealed class FakeMediaEngine : IMediaEngine
     public void SetFitMode(string mode) => AppliedFitMode = string.IsNullOrWhiteSpace(mode) ? "contain" : mode;
 
     public void SetHdrMode(HdrMode mode) => HdrMode = HdrPassThrough.Clamp(mode);
+
+    public void Pump()
+    {
+        if (ReportYouTubeFailureOnPump && IsOpen && LastYtDlpPath is not null)
+        {
+            IsOpen = false;
+            YouTubeLoadFailed = true;
+            LastError = UiCopy.YouTubeLoadFailed;
+            ReportYouTubeFailureOnPump = false;
+        }
+    }
 
     public void Close()
     {

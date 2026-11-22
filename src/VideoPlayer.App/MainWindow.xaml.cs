@@ -73,8 +73,9 @@ public partial class MainWindow : Window
     private void RefreshShell()
     {
         var shell = _session.Shell;
+        CaptionTitle.Text = UiCopy.AppTitle;
         Title = _session.Current is { } cur
-            ? $"{UiCopy.AppTitle} — {(_session.IsUrlSource ? OpenUrlRules.DisplayName(cur.Path) : Path.GetFileName(cur.Path))}"
+            ? $"{UiCopy.AppTitle} — {(_session.IsYouTube ? _session.TitleCaption : _session.IsUrlSource ? OpenUrlRules.DisplayName(cur.Path) : Path.GetFileName(cur.Path))}"
             : UiCopy.AppTitle;
         StatusText.Text = shell.Status.Text;
         StatusBar.Visibility = shell.Status.Visible ? Visibility.Visible : Visibility.Collapsed;
