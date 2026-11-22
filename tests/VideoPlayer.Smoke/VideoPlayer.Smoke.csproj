@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>VideoPlayer.Smoke</RootNamespace>
+    <AssemblyName>VideoPlayer.Smoke</AssemblyName>
+    <StartupObject>VideoPlayer.Smoke.Program</StartupObject>
+    <Description>Headless libmpv and main-window probe for 이어서. Not a product surface.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VideoPlayer.App\VideoPlayer.App.csproj" />
+  </ItemGroup>
+</Project>

@@ -2,7 +2,7 @@
 doc_id: ai-project-context
 version: 1.0.0
 canonical_path: .ai/PROJECT_CONTEXT.md
-updated: 2026-09-25
+updated: 2026-11-22
 ---
 
 # video-player Context
@@ -30,7 +30,7 @@ public_ids: unverified; no new public-identifier allowlist established by this p
 owner_ledger: .ai/reports/OWNER_ACTIONS.md
 ```
 
-`merge_deploys: yes` is a conservative assumption because external deployment integrations have not been verified. It does not assert that a deployment is configured. GitHub Actions workflows are removed at the owner's request; do not recreate or re-enable them without a new instruction. Existing README/CI references may describe the previous setup; verification now runs locally. A value of `none` above means no applicable verified command was established, not a passed check.
+`merge_deploys: yes` is a conservative assumption because external deployment integrations have not been verified. It does not assert that a deployment is configured. On 2026-11-22 the product request restored GitHub Actions: `.github/workflows/ci.yml` builds and tests on pull requests and pushes to `stable`, and `.github/workflows/release.yml` builds the downloadable zip. Do not remove those workflows without a new instruction. A value of `none` above means no applicable verified command was established, not a passed check.
 
 ## Authoritative product constraints
 
@@ -42,9 +42,13 @@ No store, DRM, accounts, cookies or login. Casting uses the Windows wireless-dis
 
 VideoPlayer.sln with src/VideoPlayer.App and tests/VideoPlayer.Tests. README specifies Windows application builds, libmpv-2.dll placement beside Ieseo.exe, D3D11VA/DXVA acceleration with software fallback, and the full UI contract.
 
+`tests/VideoPlayer.Smoke` is a Windows console probe. It loads libmpv with `vo=null` and starts the real application long enough to construct and close the main window. It prints SKIP and exits 0 when the runner has no desktop, or when the window process faults in a way that indicates a missing GPU.
+
 ## Current development slice
 
 Adopt the shared ai-dev-rule 3.0.0 policy and Codex/Claude capabilities and remove tracked GitHub Actions workflows. Application implementation and package/build configuration are unchanged. Later application work must consult current source, README and the retained project documentation rather than infer a feature roadmap from this maintenance slice.
+
+The 2026-11-22 product request supersedes the workflow removal for `.github/workflows/ci.yml` and `.github/workflows/release.yml` only.
 
 ## Permanently excluded scope
 
