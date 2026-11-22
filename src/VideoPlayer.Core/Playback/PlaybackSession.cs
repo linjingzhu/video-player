@@ -22,6 +22,7 @@ public sealed class PlaybackSession
     private double _skipBoundDuration;
     private DateTimeOffset _lastActivity = DateTimeOffset.UtcNow;
     private bool _endedHandled;
+    private bool _playbackFaultsHooked;
     private bool _capturing;
     private bool _muted;
     private double _unmutedVolume = 1;
@@ -232,8 +233,52 @@ public sealed class PlaybackSession
         return null;
     }
 
+    private void EnsurePlaybackFaultHook()
+    {
+        if (_playbackFaultsHooked)
+        {
+            return;
+        }
+
+        _playbackFaultsHooked = true;
+        Engine.PlaybackFaulted += OnPlaybackFaulted;
+    }
+
+    private void OnPlaybackFaulted(object? sender, PlaybackFault fault)
+    {
+        if (fault.Fatal)
+        {
+            if (IsUrlSource)
+            {
+                Shell.Status.Fail(StatusText.PlaybackFailed());
+                return;
+            }
+
+            Shell.Status.Fail(string.IsNullOrWhiteSpace(fault.Status)
+                ? StatusText.PlaybackFailed("파일을 열 수 없습니다.")
+                : fault.Status);
+            return;
+        }
+
+        if (fault.HardwareActive)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Shell.Status.Text)
+            && !Shell.Status.Text.StartsWith(UiCopy.SoftwareFallback, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        Shell.Status.Fail(_hw.OnHardwareFailed(
+            fault.VideoCodec ?? Engine.VideoCodec,
+            fault.AudioCodec ?? Engine.AudioCodec).StatusText);
+    }
+
     private OpenMediaResult PlayOpened(string enginePath, MediaIdentity identity, bool addToRecent, bool loadSidecars)
     {
+        EnsurePlaybackFaultHook();
         Checkpoint("episode-change");
 
         var opened = Engine.Open(enginePath, preferHardware: true);

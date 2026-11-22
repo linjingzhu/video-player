@@ -9,7 +9,7 @@ Windows desktop **이어서**. Local files, plus hamburger **URL 열기** for ht
 - **Audio:** AAC, AC-3, E-AC-3, MP3, FLAC, Opus, PCM
 - **Subtitles:** SRT, SMI, embedded in MKV/MOV. Primary autoload prefers `stem.ko.srt`, then `stem.srt` / `stem.smi`. `.en.srt` is suggested for secondary and never auto-on. **퀵메뉴 > 자막** opens the sheet. **CC** click toggles primary only.
 - **Decoder:** libmpv (FFmpeg). Media Foundation alone is not used
-- **GPU:** D3D11VA / DXVA when possible. Hardware failure falls back to software and keeps playing. Status bar shows **failures only** (unsupported codec name, HW fallback)
+- **GPU:** D3D11VA, then DXVA, then software. libmpv file-loaded, end-file, and hwdec-current decide after open. An end-file error uses the existing failure slot. Hardware failure falls back to software, keeps playing, and uses that same slot.
 - **HDR:** automatic pass-through when the display supports it (libmpv / D3D11). **보기** items **HDR 자동** / **HDR 끄기**. Default 자동. No HDR badge on the transport bar. No two-column settings panel
 - **Cast:** the same **보기** list as 퀵메뉴 / hamburger / video right-click. Idle item **연결 장치로 재생** opens the Windows wireless-display / ProjectionManager picker (Miracast / Play to). While projecting that item is **연결 끄기**. No DLNA, Chromecast, AirPlay, custom receiver, cookies, headers, or DRM. No cast badge, eject icon, or transport-bar button. Failure uses the dashed status slot (Korean one-liner) and does not crash. Local files and plain http(s) already in the player.
 - **Out of scope:** ProRes, DNxHD, camera RAW, encrypted WMV, DVD/ISO

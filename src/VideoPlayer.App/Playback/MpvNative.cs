@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using VideoPlayer.Core.Playback;
 
 namespace VideoPlayer.App.Playback;
 
@@ -75,4 +76,99 @@ internal static class MpvNative
 
     private static string Quote(string value)
         => "\"" + value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
+
+    public const int StringFormat = 1;
+    public const int EventNone = 0;
+    public const int EventEndFile = 7;
+    public const int EventFileLoaded = 8;
+    public const int EventPlaybackRestart = 21;
+    public const int EventPropertyChange = 22;
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void WakeupCallback(IntPtr data);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int mpv_observe_property(IntPtr ctx, ulong replyUserdata, byte[] name, int format);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr mpv_wait_event(IntPtr ctx, double timeout);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void mpv_set_wakeup_callback(IntPtr ctx, WakeupCallback? callback, IntPtr data);
+
+    public static int Observe(IntPtr ctx, ulong replyUserdata, string name, int format)
+        => mpv_observe_property(ctx, replyUserdata, Utf8(name), format);
+
+    public static void SetWakeupCallback(IntPtr ctx, WakeupCallback? callback)
+        => mpv_set_wakeup_callback(ctx, callback, IntPtr.Zero);
+
+    public static MpvEventView WaitEvent(IntPtr ctx, double timeoutSeconds)
+    {
+        var ptr = mpv_wait_event(ctx, timeoutSeconds);
+        if (ptr == IntPtr.Zero)
+        {
+            return default;
+        }
+
+        var raw = Marshal.PtrToStructure<MpvEventRaw>(ptr);
+        return new MpvEventView(raw.EventId, raw.Error, raw.ReplyUserdata, raw.Data);
+    }
+
+    public static (int Reason, int Error) ReadEndFile(IntPtr data)
+    {
+        if (data == IntPtr.Zero)
+        {
+            return (OpenSignal.NoEnd, 0);
+        }
+
+        var end = Marshal.PtrToStructure<MpvEventEndFileRaw>(data);
+        return (end.Reason, end.Error);
+    }
+
+    public static (string? Name, string? Value) ReadPropertyChange(IntPtr data)
+    {
+        if (data == IntPtr.Zero)
+        {
+            return (null, null);
+        }
+
+        var property = Marshal.PtrToStructure<MpvEventPropertyRaw>(data);
+        var name = property.Name == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(property.Name);
+        string? value = null;
+        if (property.Format == StringFormat && property.Data != IntPtr.Zero)
+        {
+            value = Marshal.PtrToStringUTF8(property.Data);
+        }
+
+        return (name, value);
+    }
+
+    public readonly record struct MpvEventView(int Id, int Error, ulong ReplyUserdata, IntPtr Data);
+
+    // libmpv-2 mpv_event: two ints, then uint64, then pointer. 24 bytes on 64-bit.
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MpvEventRaw
+    {
+        public int EventId;
+        public int Error;
+        public ulong ReplyUserdata;
+        public IntPtr Data;
+    }
+
+    // First two fields of mpv_event_end_file. Later playlist ids are not read.
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MpvEventEndFileRaw
+    {
+        public int Reason;
+        public int Error;
+    }
+
+    // mpv_event_property. For MPV_FORMAT_STRING, Data is the char*.
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MpvEventPropertyRaw
+    {
+        public IntPtr Name;
+        public int Format;
+        public IntPtr Data;
+    }
 }
