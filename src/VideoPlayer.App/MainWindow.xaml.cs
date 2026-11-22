@@ -224,6 +224,8 @@ public partial class MainWindow : Window
             SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
             SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
         }
+
+        ShellMenuHooks.Apply(this);
     }
 
     private void ApplyChromeVisibility()
@@ -689,6 +691,7 @@ public partial class MainWindow : Window
     {
         PlaceClipTicks();
         PlaceClipHandles();
+        PlaceLoopBand();
     }
 
     private void ShowSeries_Click(object sender, RoutedEventArgs e)
@@ -1064,6 +1067,11 @@ public partial class MainWindow : Window
                 RefreshShell();
                 e.Handled = true;
                 break;
+            case Key.L when Keyboard.Modifiers == ModifierKeys.None:
+                _session.ToggleLoopRange();
+                RefreshShell();
+                e.Handled = true;
+                break;
             case Key.Escape when _session.Shell.Clip.Open:
                 _session.CloseClipSheet();
                 RefreshShell();
@@ -1159,6 +1167,7 @@ public partial class MainWindow : Window
         ClipBannerText.Text = banner.Text;
         PlaceClipTicks();
         PlaceClipHandles();
+        PlaceLoopBand();
     }
 
     private static void ApplyFormatButton(Button button, bool selected)
@@ -1183,6 +1192,28 @@ public partial class MainWindow : Window
         var duration = _session.Shell.Transport.Duration;
         PlaceHandle(StartHandle, clip.ShowStartHandle, ClipSave.TickRatio(clip.InMark, duration));
         PlaceHandle(EndHandle, clip.ShowEndHandle, ClipSave.TickRatio(clip.OutMark, duration));
+    }
+
+    private void PlaceLoopBand()
+    {
+        var clip = _session.Shell.Clip;
+        var duration = _session.Shell.Transport.Duration;
+        var handlesVisible = clip.ShowStartHandle || clip.ShowEndHandle;
+        var show = LoopRange.ShowBand(_session.LoopEnabled, clip.InMark, clip.OutMark, handlesVisible);
+        LoopBand.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        if (!show
+            || SeekHost.ActualWidth <= 0
+            || !LoopRange.TrySpan(clip.InMark, clip.OutMark, out var start, out var end))
+        {
+            return;
+        }
+
+        var left = ClipSave.HandleLeft(ClipSave.TickRatio(start, duration), SeekHost.ActualWidth, InTick.Width);
+        var right = ClipSave.HandleLeft(ClipSave.TickRatio(end, duration), SeekHost.ActualWidth, OutTick.Width);
+        System.Windows.Controls.Canvas.SetLeft(LoopBand, left);
+        System.Windows.Controls.Canvas.SetTop(LoopBand, 0);
+        LoopBand.Width = Math.Max(0, right - left);
+        LoopBand.Height = MarkCanvas.ActualHeight > 0 ? MarkCanvas.ActualHeight : InTick.Height;
     }
 
     private void ClipHandle_DragDelta(object sender, DragDeltaEventArgs e)
