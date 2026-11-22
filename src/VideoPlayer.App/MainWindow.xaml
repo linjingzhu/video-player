@@ -56,6 +56,7 @@
                 <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="chapters" Header="챕터" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
@@ -613,6 +614,7 @@
                 <MenuItem Tag="next" Header="다음 화" Click="Next_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <Separator/>
                 <MenuItem Tag="series" Header="시리즈" Click="ShowSeries_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="chapters" Header="챕터" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="사이드바" Click="ToggleSidebar_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="자막" Click="SubtitlesMenu_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Header="CC" InputGestureText="V" Click="Captions_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
