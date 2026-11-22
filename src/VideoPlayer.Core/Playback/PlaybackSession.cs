@@ -518,12 +518,20 @@ public sealed class PlaybackSession
         ResolveExclusiveCornerCapsule();
     }
 
-    public void SetSpeed(double speed)
+    public void SetSpeed(double speed, bool showOsd = false)
     {
         Speed = PlaybackSpeed.Clamp(speed);
         Engine.Speed = Speed;
         Shell.Transport.Speed = Speed;
+        if (showOsd)
+        {
+            ShowSkipOsd(PlaybackSpeed.OsdText(Speed));
+        }
     }
+
+    public void NudgeSpeed(int direction) => SetSpeed(PlaybackSpeed.Nudge(Speed, direction), showOsd: true);
+
+    public void ResetSpeed() => SetSpeed(PlaybackSpeed.Default, showOsd: true);
 
     public void AdjustVolume(double delta) => SetVolume(Engine.Volume + delta);
 

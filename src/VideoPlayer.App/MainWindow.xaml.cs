@@ -210,7 +210,7 @@ public partial class MainWindow : Window
         {
             SetMenuHeader(menu, "skipBack", shell.Transport.SkipBackLabel);
             SetMenuHeader(menu, "skipForward", shell.Transport.SkipForwardLabel);
-            SetMenuHeader(menu, "speed", shell.Transport.SpeedText);
+            SetMenuHeader(menu, "speed", PlaybackSpeed.MenuHeader(shell.Transport.Speed));
             SetMenuEnabled(menu, "prev", shell.Transport.HasPrevious);
             SetMenuEnabled(menu, "next", shell.Transport.HasNext);
             SetMenuEnabled(menu, "series", shell.Series.Enabled);
@@ -224,6 +224,8 @@ public partial class MainWindow : Window
             SetMenuEnabled(menu, "clip", !_session.IsUrlSource);
             SetMenuEnabled(menu, "saveAs", _session.CanSaveAs);
         }
+
+        ShellMenuHooks.Apply(this);
     }
 
     private void ApplyChromeVisibility()
@@ -1100,6 +1102,18 @@ public partial class MainWindow : Window
                 break;
             case Key.C when Keyboard.Modifiers == ModifierKeys.None:
                 _session.ToggleCaptions();
+                e.Handled = true;
+                break;
+            case Key.X when SpeedKeys.Resolve("X", false, false, false) == SpeedKeys.Binding.Slower
+                            && Keyboard.Modifiers == ModifierKeys.None:
+                _session.NudgeSpeed(-1);
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.Z when SpeedKeys.Resolve("Z", false, false, false) == SpeedKeys.Binding.Reset
+                            && Keyboard.Modifiers == ModifierKeys.None:
+                _session.ResetSpeed();
+                RefreshShell();
                 e.Handled = true;
                 break;
         }
