@@ -2,7 +2,7 @@
 doc_id: ai-project-context
 version: 1.0.0
 canonical_path: .ai/PROJECT_CONTEXT.md
-updated: 2026-11-22
+updated: 2026-09-25
 ---
 
 # video-player Context
@@ -30,7 +30,7 @@ public_ids: unverified; no new public-identifier allowlist established by this p
 owner_ledger: .ai/reports/OWNER_ACTIONS.md
 ```
 
-`merge_deploys: yes` is a conservative assumption because external deployment integrations have not been verified. It does not assert that a deployment is configured. On 2026-11-22 the product request restored GitHub Actions: `.github/workflows/ci.yml` builds and tests on pull requests and pushes to `stable`, and `.github/workflows/release.yml` builds the downloadable zip. Do not remove those workflows without a new instruction. A value of `none` above means no applicable verified command was established, not a passed check.
+`merge_deploys: yes` is a conservative assumption because external deployment integrations have not been verified. It does not assert that a deployment is configured. GitHub Actions workflows are removed at the owner's request; do not recreate or re-enable them without a new instruction. Existing README/CI references may describe the previous setup; verification now runs locally. A value of `none` above means no applicable verified command was established, not a passed check.
 
 ## Authoritative product constraints
 
@@ -46,8 +46,6 @@ VideoPlayer.sln with src/VideoPlayer.App and tests/VideoPlayer.Tests. README spe
 
 Adopt the shared ai-dev-rule 3.0.0 policy and Codex/Claude capabilities and remove tracked GitHub Actions workflows. Application implementation and package/build configuration are unchanged. Later application work must consult current source, README and the retained project documentation rather than infer a feature roadmap from this maintenance slice.
 
-The 2026-11-22 product request supersedes the workflow removal for `.github/workflows/ci.yml` and `.github/workflows/release.yml` only.
-
 ## Permanently excluded scope
 
 Keep the product boundaries stated above and in the repository's product documents. Additional exclusions not established by those sources are unknown; this policy update creates no new product roadmap.
@@ -61,7 +59,3 @@ A successful .NET build does not verify libmpv playback, device projection, GPU/
 ## Verification limits
 
 Policy structural checks and whitespace checks validate the policy update only. Application dependencies, builds, runtime behavior, visual behavior, external deployments, generated-output completeness, external scripts and public identifiers were not fully verified during adoption. Commands above are grounded in tracked README, package/build configuration or prior guidance; they have not been claimed to pass here.
-
-## Release packaging
-
-`scripts/package-release.ps1` publishes a self-contained win-x64 Release build and downloads `libmpv-2.dll`, `ffmpeg.exe`, and `vulkan-1.dll` from pinned SHA-256 URLs. The zip is `artifacts/Ieseo-win-x64.zip`, or `artifacts/Ieseo-<tag>-win-x64.zip` when `-Version` is set. `.github/workflows/release.yml` runs that script and uploads the zip. Native binaries are not committed.
