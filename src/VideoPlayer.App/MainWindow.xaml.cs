@@ -43,6 +43,7 @@ public partial class MainWindow : Window
         PlayerHost.Child = _engine.Host;
         _engine.Host.MouseDoubleClick += (_, _) => Dispatcher.BeginInvoke(new Action(ToggleFullscreen));
         _engine.Host.MouseUp += OnVideoHostMouseUp;
+        _engine.Host.MouseWheel += OnVideoHostMouseWheel;
         ApplySidebar();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => OnTick();
@@ -308,6 +309,41 @@ public partial class MainWindow : Window
         menu.PlacementTarget = VideoHostBorder;
         menu.Placement = PlacementMode.MousePoint;
         menu.IsOpen = true;
+    }
+
+    private void OnVideoHostMouseWheel(object? sender, System.Windows.Forms.MouseEventArgs e)
+    {
+        if (e.Delta == 0)
+        {
+            return;
+        }
+
+        var direction = e.Delta > 0 ? 1 : -1;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            _session.NudgeVolumeBySteps(direction);
+            RefreshShell();
+        }));
+    }
+
+    private bool StageVolumeKeyAllowed()
+    {
+        if (Keyboard.Modifiers != ModifierKeys.None)
+        {
+            return false;
+        }
+
+        if (QuickMenuButton.ContextMenu?.IsOpen == true || HamburgerButton.ContextMenu?.IsOpen == true)
+        {
+            return false;
+        }
+
+        return Keyboard.FocusedElement is not (
+            System.Windows.Controls.Primitives.TextBoxBase
+            or System.Windows.Controls.ListBox
+            or System.Windows.Controls.ListBoxItem
+            or System.Windows.Controls.Slider
+            or System.Windows.Controls.ComboBox);
     }
 
     private void OnVideoHostMouseUp(object? sender, System.Windows.Forms.MouseEventArgs e)
@@ -1052,6 +1088,16 @@ public partial class MainWindow : Window
                 break;
             case Key.Right:
                 _session.SkipForward();
+                e.Handled = true;
+                break;
+            case Key.Up when StageVolumeKeyAllowed():
+                _session.NudgeVolumeBySteps(1);
+                RefreshShell();
+                e.Handled = true;
+                break;
+            case Key.Down when StageVolumeKeyAllowed():
+                _session.NudgeVolumeBySteps(-1);
+                RefreshShell();
                 e.Handled = true;
                 break;
             case Key.I:
