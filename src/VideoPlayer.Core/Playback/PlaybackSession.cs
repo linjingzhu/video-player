@@ -52,6 +52,17 @@ public sealed class PlaybackSession
         SyncVolumeChrome();
         SyncPlayTo();
         SyncJumpLabels();
+        Engine.SetFitMode(FitModes.Normalize(Window.FitMode));
+    }
+
+    public string FitMode => FitModes.Normalize(Window.FitMode);
+
+    public void SetFitMode(string mode)
+    {
+        var next = FitModes.Normalize(mode);
+        Window.FitMode = next;
+        Engine.SetFitMode(next);
+        Persist();
     }
 
     public IMediaEngine Engine { get; }

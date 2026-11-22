@@ -156,7 +156,9 @@ public sealed class FakeMediaEngine : IMediaEngine
         }
     }
 
-    public void SetFitMode(string mode) => _ = mode;
+    public string AppliedFitMode { get; private set; } = "contain";
+
+    public void SetFitMode(string mode) => AppliedFitMode = string.IsNullOrWhiteSpace(mode) ? "contain" : mode;
 
     public void SetHdrMode(HdrMode mode) => HdrMode = HdrPassThrough.Clamp(mode);
 

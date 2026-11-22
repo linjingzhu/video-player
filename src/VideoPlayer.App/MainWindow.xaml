@@ -70,6 +70,12 @@
                           Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="fit" Header="화면 맞춤" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+                  <MenuItem Tag="fit:contain" Header="맞춤" IsCheckable="True" IsChecked="True"
+                            Click="FitMode_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="fit:cover" Header="채우기" IsCheckable="True" IsChecked="False"
+                            Click="FitMode_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                </MenuItem>
                 <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="배속 1.0x" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
@@ -628,6 +634,12 @@
                           Click="HdrAuto_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="hdrOff" Header="HDR 끄기" IsCheckable="True" IsChecked="False"
                           Click="HdrOff_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                <MenuItem Tag="fit" Header="화면 맞춤" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
+                  <MenuItem Tag="fit:contain" Header="맞춤" IsCheckable="True" IsChecked="True"
+                            Click="FitMode_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                  <MenuItem Tag="fit:cover" Header="채우기" IsCheckable="True" IsChecked="False"
+                            Click="FitMode_Click" Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
+                </MenuItem>
                 <MenuItem Tag="playTo" Header="연결 장치로 재생" Click="PlayTo_Click"
                           Background="#FF0E0E0E" Foreground="#FFFFFFFF"/>
                 <MenuItem Tag="speed" Header="배속 1.0x" Background="#FF0E0E0E" Foreground="#FFFFFFFF">
