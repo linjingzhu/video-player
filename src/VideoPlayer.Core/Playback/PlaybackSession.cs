@@ -593,6 +593,17 @@ public sealed class PlaybackSession
         Shell.Volume.PopoverOpen = false;
     }
 
+    public void NudgeVolumeBySteps(int direction)
+    {
+        if (direction == 0)
+        {
+            return;
+        }
+
+        SetVolume(StageVolume.Nudge(Engine.Volume, direction));
+        ShowSkipOsd(StageVolume.Osd(Engine.Volume));
+    }
+
     public void SpeakerRightClick()
     {
         // Locked: right-click does not mute and does not toggle the popover.
