@@ -1,4 +1,6 @@
 using System.Diagnostics;
+// UseWPF removes the implicit System.IO global using.
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Threading;
