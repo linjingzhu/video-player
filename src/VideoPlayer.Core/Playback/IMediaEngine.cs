@@ -28,7 +28,16 @@ public interface IMediaEngine
     void SetFitMode(string mode);
     void SetHdrMode(HdrMode mode);
     void Close();
+
+    event EventHandler<PlaybackFault>? PlaybackFaulted;
 }
+
+public sealed record PlaybackFault(
+    bool Fatal,
+    bool HardwareActive,
+    string? Status,
+    string? VideoCodec,
+    string? AudioCodec);
 
 public sealed class FakeMediaEngine : IMediaEngine
 {
@@ -157,4 +166,9 @@ public sealed class FakeMediaEngine : IMediaEngine
         IsPaused = true;
         Position = 0;
     }
+
+    public event EventHandler<PlaybackFault>? PlaybackFaulted;
+
+    public void RaisePlaybackFault(PlaybackFault fault)
+        => PlaybackFaulted?.Invoke(this, fault);
 }
