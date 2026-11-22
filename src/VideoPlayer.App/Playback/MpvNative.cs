@@ -135,9 +135,14 @@ internal static class MpvNative
         var property = Marshal.PtrToStructure<MpvEventPropertyRaw>(data);
         var name = property.Name == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(property.Name);
         string? value = null;
+        // mpv_event_property.data for MPV_FORMAT_STRING is char**: *(char **)data.
         if (property.Format == StringFormat && property.Data != IntPtr.Zero)
         {
-            value = Marshal.PtrToStringUTF8(property.Data);
+            var text = Marshal.ReadIntPtr(property.Data);
+            if (text != IntPtr.Zero)
+            {
+                value = Marshal.PtrToStringUTF8(text);
+            }
         }
 
         return (name, value);
@@ -163,7 +168,7 @@ internal static class MpvNative
         public int Error;
     }
 
-    // mpv_event_property. For MPV_FORMAT_STRING, Data is the char*.
+    // mpv_event_property. For MPV_FORMAT_STRING, Data is char**.
     [StructLayout(LayoutKind.Sequential)]
     private struct MpvEventPropertyRaw
     {

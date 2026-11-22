@@ -429,7 +429,7 @@ public sealed class MpvMediaEngine : IMediaEngine, IDisposable
             return;
         }
 
-        var decision = OpenFailureWatch.Reduce(_watch, signal, _httpOpen, allowHardwareRetry: _opening);
+        var decision = OpenFailureWatch.Reduce(_watch, signal, _httpOpen);
         _watch = decision.State;
         switch (decision.Action)
         {

@@ -23,28 +23,24 @@ public class OpenFailureWatchTests
     {
         var state = OpenWatchState.Begin(preferHardware: true);
         state = Loaded(state);
-        var dxva = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false, allowHardwareRetry: true);
+        var dxva = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false);
         Assert.Equal(OpenWatchAction.Retry, dxva.Action);
         Assert.Equal(HardwareDecodeAttempt.Dxva2, dxva.State.Attempt);
         Assert.False(dxva.State.FileLoaded);
 
         state = Loaded(dxva.State);
-        var software = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false, allowHardwareRetry: true);
+        var software = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false);
         Assert.Equal(OpenWatchAction.Retry, software.Action);
         Assert.Equal(HardwareDecodeAttempt.None, software.State.Attempt);
 
         state = Loaded(software.State);
-        var playing = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false, allowHardwareRetry: true);
+        var playing = OpenFailureWatch.Reduce(state, Hw("no"), httpUrl: false);
         Assert.Equal(OpenWatchAction.PlayingSoftware, playing.Action);
         Assert.False(playing.State.HardwareActive);
         Assert.True(playing.State.Settled);
         Assert.False(playing.State.Failed);
 
-        var late = OpenFailureWatch.Reduce(
-            Loaded(OpenWatchState.Begin(true)),
-            Hw("no"),
-            httpUrl: false,
-            allowHardwareRetry: false);
+        var late = OpenFailureWatch.Reduce(Loaded(OpenWatchState.Begin(true)), Hw("no"), httpUrl: false);
         Assert.Equal(OpenWatchAction.Retry, late.Action);
         Assert.Equal(HardwareDecodeAttempt.Dxva2, late.State.Attempt);
     }
@@ -53,12 +49,12 @@ public class OpenFailureWatchTests
     public void Hwdec_d3d11va_after_file_loaded_keeps_hardware()
     {
         var state = Loaded(OpenWatchState.Begin(true));
-        var decision = OpenFailureWatch.Reduce(state, Hw("d3d11va"), false, true);
+        var decision = OpenFailureWatch.Reduce(state, Hw("d3d11va"), false);
         Assert.Equal(OpenWatchAction.PlayingHardware, decision.Action);
         Assert.True(decision.State.HardwareActive);
         Assert.False(decision.State.Pending);
 
-        var again = OpenFailureWatch.Reduce(decision.State, Hw("d3d11va"), false, true);
+        var again = OpenFailureWatch.Reduce(decision.State, Hw("d3d11va"), false);
         Assert.Equal(OpenWatchAction.Wait, again.Action);
         Assert.True(again.State.HardwareActive);
     }
@@ -67,13 +63,13 @@ public class OpenFailureWatchTests
     public void Hwdec_before_file_loaded_or_blank_does_not_settle()
     {
         var state = OpenWatchState.Begin(true);
-        var early = OpenFailureWatch.Reduce(state, Hw("no"), false, true);
+        var early = OpenFailureWatch.Reduce(state, Hw("no"), false);
         Assert.Equal(OpenWatchAction.Wait, early.Action);
         Assert.Equal(HardwareDecodeAttempt.D3D11VA, early.State.Attempt);
         Assert.True(early.State.Pending);
 
         var loaded = Loaded(state);
-        var blank = OpenFailureWatch.Reduce(loaded, Hw("  "), false, true);
+        var blank = OpenFailureWatch.Reduce(loaded, Hw("  "), false);
         Assert.True(blank.State.Pending);
         Assert.Equal(OpenWatchAction.Wait, blank.Action);
     }
@@ -85,8 +81,7 @@ public class OpenFailureWatchTests
         var local = OpenFailureWatch.Reduce(
             state,
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndError, OpenSignal.ErrorLoadingFailed),
-            httpUrl: false,
-            allowHardwareRetry: true);
+            httpUrl: false);
         Assert.Equal(OpenWatchAction.Failed, local.Action);
         Assert.Equal(HardwareDecodeAttempt.D3D11VA, local.State.Attempt);
         Assert.Contains("재생 실패", local.State.FailureStatus, StringComparison.Ordinal);
@@ -95,12 +90,11 @@ public class OpenFailureWatchTests
         var http = OpenFailureWatch.Reduce(
             state,
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndError, OpenSignal.ErrorLoadingFailed),
-            httpUrl: true,
-            allowHardwareRetry: true);
+            httpUrl: true);
         Assert.Equal(StatusText.PlaybackFailed(), http.State.FailureStatus);
         Assert.Contains(UiCopy.NetworkFailed, http.State.FailureStatus, StringComparison.Ordinal);
 
-        var ignored = OpenFailureWatch.Reduce(local.State, Hw("d3d11va"), false, true);
+        var ignored = OpenFailureWatch.Reduce(local.State, Hw("d3d11va"), false);
         Assert.True(ignored.State.Failed);
         Assert.Equal(OpenWatchAction.Wait, ignored.Action);
     }
@@ -112,23 +106,20 @@ public class OpenFailureWatchTests
         var dxva = OpenFailureWatch.Reduce(
             state,
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndError, -20),
-            false,
-            true);
+            false);
         Assert.Equal(OpenWatchAction.Retry, dxva.Action);
         Assert.Equal(HardwareDecodeAttempt.Dxva2, dxva.State.Attempt);
 
         var software = OpenFailureWatch.Reduce(
             Loaded(dxva.State),
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndError, -20),
-            false,
-            true);
+            false);
         Assert.Equal(HardwareDecodeAttempt.None, software.State.Attempt);
 
         var failed = OpenFailureWatch.Reduce(
             Loaded(software.State),
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndError, -20),
-            false,
-            true);
+            false);
         Assert.Equal(OpenWatchAction.Failed, failed.Action);
         Assert.Contains("파일을 열 수 없습니다", failed.State.FailureStatus, StringComparison.Ordinal);
     }
@@ -142,8 +133,7 @@ public class OpenFailureWatchTests
             var decision = OpenFailureWatch.Reduce(
                 loaded,
                 new OpenSignal(OpenSignalKind.EndFile, reason, 0),
-                false,
-                true);
+                false);
             Assert.Equal(OpenWatchAction.Wait, decision.Action);
             Assert.False(decision.State.Failed);
             Assert.True(decision.State.FileLoaded);
@@ -152,22 +142,20 @@ public class OpenFailureWatchTests
         var redirect = OpenFailureWatch.Reduce(
             loaded,
             new OpenSignal(OpenSignalKind.EndFile, OpenSignal.EndRedirect, 0),
-            false,
-            true);
+            false);
         Assert.False(redirect.State.FileLoaded);
         Assert.False(redirect.State.Failed);
     }
 
     [Fact]
-    public void After_the_settle_window_software_keeps_playing_without_another_reload()
+    public void Hardware_then_no_still_steps_to_the_next_decoder()
     {
-        var hardware = OpenFailureWatch.Reduce(
-            Loaded(OpenWatchState.Begin(true)),
-            Hw("d3d11va"),
-            false,
-            true);
-        var later = OpenFailureWatch.Reduce(hardware.State, Hw("no"), false, allowHardwareRetry: false);
-        Assert.Equal(OpenWatchAction.PlayingSoftware, later.Action);
+        var hardware = OpenFailureWatch.Reduce(Loaded(OpenWatchState.Begin(true)), Hw("d3d11va"), false);
+        Assert.Equal(OpenWatchAction.PlayingHardware, hardware.Action);
+
+        var later = OpenFailureWatch.Reduce(hardware.State, Hw("no"), false);
+        Assert.Equal(OpenWatchAction.Retry, later.Action);
+        Assert.Equal(HardwareDecodeAttempt.Dxva2, later.State.Attempt);
         Assert.False(later.State.HardwareActive);
         Assert.False(later.State.Failed);
     }
@@ -220,7 +208,7 @@ public class OpenFailureWatchTests
     }
 
     private static OpenWatchState Loaded(OpenWatchState state)
-        => OpenFailureWatch.Reduce(state, new OpenSignal(OpenSignalKind.FileLoaded), false, true).State;
+        => OpenFailureWatch.Reduce(state, new OpenSignal(OpenSignalKind.FileLoaded), false).State;
 
     private static OpenSignal Hw(string value)
         => new(OpenSignalKind.HwdecCurrent, HwdecCurrent: value);

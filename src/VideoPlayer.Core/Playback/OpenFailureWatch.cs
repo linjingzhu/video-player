@@ -110,11 +110,7 @@ public static class OpenFailureWatch
             : StatusText.PlaybackFailed(detail ?? "파일을 열 수 없습니다.");
     }
 
-    public static OpenWatchDecision Reduce(
-        OpenWatchState state,
-        OpenSignal signal,
-        bool httpUrl,
-        bool allowHardwareRetry)
+    public static OpenWatchDecision Reduce(OpenWatchState state, OpenSignal signal, bool httpUrl)
     {
         if (state.Failed)
         {
@@ -127,7 +123,7 @@ public static class OpenFailureWatch
                 OpenWatchAction.Wait,
                 state with { FileLoaded = true }),
             OpenSignalKind.EndFile => ReduceEnd(state, signal, httpUrl),
-            OpenSignalKind.HwdecCurrent => ReduceHwdec(state, signal.HwdecCurrent, allowHardwareRetry),
+            OpenSignalKind.HwdecCurrent => ReduceHwdec(state, signal.HwdecCurrent),
             _ => new OpenWatchDecision(OpenWatchAction.Wait, state)
         };
     }
@@ -157,10 +153,7 @@ public static class OpenFailureWatch
         return Retry(state);
     }
 
-    private static OpenWatchDecision ReduceHwdec(
-        OpenWatchState state,
-        string? hwdec,
-        bool allowHardwareRetry)
+    private static OpenWatchDecision ReduceHwdec(OpenWatchState state, string? hwdec)
     {
         if (!state.FileLoaded || string.IsNullOrWhiteSpace(hwdec))
         {
@@ -174,31 +167,7 @@ public static class OpenFailureWatch
                 return new OpenWatchDecision(OpenWatchAction.Wait, state);
             }
 
-            return new OpenWatchDecision(
-                OpenWatchAction.PlayingHardware,
-                state with
-                {
-                    Settled = true,
-                    Failed = false,
-                    HardwareActive = true,
-                    FailureStatus = null
-                });
-        }
-
-        if (state.Settled && state.HardwareActive)
-        {
-            return allowHardwareRetry
-                ? new OpenWatchDecision(OpenWatchAction.Wait, state)
-                : new OpenWatchDecision(
-                    OpenWatchAction.PlayingSoftware,
-                    state with
-                    {
-                        Settled = true,
-                        Failed = false,
-                        HardwareActive = false,
-                        Attempt = HardwareDecodeAttempt.None,
-                        FailureStatus = null
-                    });
+            return Playing(state, OpenWatchAction.PlayingHardware, hardware: true);
         }
 
         if (state.Settled && !state.HardwareActive)
@@ -206,22 +175,27 @@ public static class OpenFailureWatch
             return new OpenWatchDecision(OpenWatchAction.Wait, state);
         }
 
-        if (!state.Settled && state.PreferHardware && state.Attempt != HardwareDecodeAttempt.None)
+        // "no" after a hardware attempt, including one already marked playing,
+        // still walks D3D11VA → DXVA2 → software. The notification is not repeated.
+        if (state.PreferHardware && state.Attempt != HardwareDecodeAttempt.None)
         {
             return Retry(state);
         }
 
-        return new OpenWatchDecision(
-            OpenWatchAction.PlayingSoftware,
+        return Playing(state, OpenWatchAction.PlayingSoftware, hardware: false);
+    }
+
+    private static OpenWatchDecision Playing(OpenWatchState state, OpenWatchAction action, bool hardware)
+        => new(
+            action,
             state with
             {
                 Settled = true,
                 Failed = false,
-                HardwareActive = false,
-                Attempt = HardwareDecodeAttempt.None,
+                HardwareActive = hardware,
+                Attempt = hardware ? state.Attempt : HardwareDecodeAttempt.None,
                 FailureStatus = null
             });
-    }
 
     private static OpenWatchDecision Retry(OpenWatchState state)
     {
