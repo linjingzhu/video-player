@@ -1,6 +1,8 @@
 using System.IO;
 using System.IO.Pipes;
 using System.Windows;
+using System.Windows.Threading;
+using VideoPlayer.Core.Safety;
 using VideoPlayer.Core.Shell;
 
 namespace VideoPlayer.App;
@@ -12,6 +14,15 @@ public partial class App : System.Windows.Application
 
     private Mutex? _mutex;
     private MainWindow? _main;
+    private int _reportingFailure;
+
+    public App()
+    {
+        DispatcherUnhandledException += OnDispatcherUnhandled;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandled;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTask;
+        InitializeComponent();
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -46,6 +57,54 @@ public partial class App : System.Windows.Application
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
         base.OnExit(e);
+    }
+
+    private void OnDispatcherUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        ReportFailure("Dispatcher", e.Exception, terminating: false);
+    }
+
+    private void OnDomainUnhandled(object? sender, UnhandledExceptionEventArgs e)
+    {
+        var exception = e.ExceptionObject as Exception;
+        CrashLog.TryAppend(
+            CrashLog.DefaultDirectory(),
+            CrashLog.FormatEntry(DateTimeOffset.Now, "AppDomain", exception, e.IsTerminating));
+    }
+
+    private void OnUnobservedTask(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        e.SetObserved();
+        ReportFailure("Task", e.Exception, terminating: false);
+    }
+
+    private void ReportFailure(string source, Exception exception, bool terminating)
+    {
+        if (Interlocked.Exchange(ref _reportingFailure, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            CrashLog.TryAppend(
+                CrashLog.DefaultDirectory(),
+                CrashLog.FormatEntry(DateTimeOffset.Now, source, exception, terminating));
+            if (Dispatcher.HasShutdownStarted)
+            {
+                return;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() => _main?.ReportFailure(CrashLog.BannerText)));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _reportingFailure, 0);
+        }
     }
 }
 
