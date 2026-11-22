@@ -46,7 +46,25 @@ dotnet test tests/VideoPlayer.Tests/VideoPlayer.Tests.csproj
 dotnet build src/VideoPlayer.App/VideoPlayer.App.csproj -c Release
 ```
 
-Place `libmpv-2.dll` beside `Ieseo.exe`. The shell still opens if it is missing.
+Place `libmpv-2.dll` beside `Ieseo.exe`. The shell still opens if it is missing. A local Windows build can fetch the pinned runtime with `scripts/package-release.ps1` (below) instead of copying the DLL by hand.
+
+## Download
+
+Tags named `v*` and a manual run of the **Release** workflow publish `Ieseo-<tag>-win-x64.zip` on the GitHub Release for that tag. Pull requests upload the same zip as a workflow artifact named `Ieseo-win-x64` and do not publish a release.
+
+1. Download `Ieseo-<tag>-win-x64.zip` from the release (or from the workflow artifact).
+2. Unzip it.
+3. Run `Ieseo.exe`.
+
+The zip is a self-contained 64-bit build for Windows 10 or later. It does not need a separate .NET install. Beside `Ieseo.exe` it contains `libmpv-2.dll`, `ffmpeg.exe` (webp and gif clip export), and `vulkan-1.dll`. The pinned libmpv and ffmpeg binaries import `vulkan-1.dll` by name, so the loader is part of the zip. `THIRD-PARTY.txt` in the zip lists the source URL and SHA-256 of each download. Those binaries are not committed to the repository.
+
+Build the zip locally on Windows with PowerShell 7, the .NET 8 SDK, and 7-Zip:
+
+```powershell
+pwsh -File scripts/package-release.ps1
+```
+
+That writes `artifacts/Ieseo-win-x64.zip`. Pass `-Version v0.1.0` to name a release zip `artifacts/Ieseo-v0.1.0-win-x64.zip`. Publishing still happens only from the Release workflow, when a `v*` tag is pushed or the workflow is run manually with that tag.
 
 ## License
 
