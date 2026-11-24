@@ -86,7 +86,7 @@ jobs:
             throw "No zip was produced under artifacts/."
           }
 
-          $notes = "Windows x64 build of 이어서.`n`nUnzip and run Ieseo.exe. The archive is self-contained (no separate .NET install). It includes libmpv-2.dll, ffmpeg.exe for webp/gif clip export, and vulkan-1.dll, which those binaries import. Source URLs and checksums are in THIRD-PARTY.txt inside the zip."
+          $notes = "Windows x64 build of 이어서.`n`nUnzip and run Ieseo.exe. The archive is self-contained (no separate .NET install). It includes libmpv-2.dll, ffmpeg.exe for webp/gif clip export, vulkan-1.dll, which those binaries import, and yt-dlp.exe beside Ieseo.exe. Source URLs and checksums are in THIRD-PARTY.txt inside the zip."
 
           $PSNativeCommandUseErrorActionPreference = $false
           gh release view $tag --json tagName | Out-Null

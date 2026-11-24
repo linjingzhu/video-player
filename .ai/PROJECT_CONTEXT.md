@@ -2,7 +2,7 @@
 doc_id: ai-project-context
 version: 1.0.0
 canonical_path: .ai/PROJECT_CONTEXT.md
-updated: 2026-11-22
+updated: 2026-11-24
 ---
 
 # video-player Context
@@ -66,4 +66,4 @@ Policy structural checks and whitespace checks validate the policy update only. 
 
 ## Release packaging
 
-`scripts/package-release.ps1` publishes a self-contained win-x64 Release build and downloads `libmpv-2.dll`, `ffmpeg.exe`, and `vulkan-1.dll` from pinned SHA-256 URLs. The zip is `artifacts/Ieseo-win-x64.zip`, or `artifacts/Ieseo-<tag>-win-x64.zip` when `-Version` is set. `.github/workflows/release.yml` runs that script and uploads the zip. Native binaries are not committed.
+`scripts/package-release.ps1` publishes a self-contained win-x64 Release build and downloads `libmpv-2.dll`, `ffmpeg.exe`, `vulkan-1.dll`, and official `yt-dlp.exe` 2026.11.23 from pinned SHA-256 URLs. The zip places `yt-dlp.exe` beside `Ieseo.exe`. The zip is `artifacts/Ieseo-win-x64.zip`, or `artifacts/Ieseo-<tag>-win-x64.zip` when `-Version` is set. `.github/workflows/release.yml` runs that script and uploads the zip. Native binaries are not committed.

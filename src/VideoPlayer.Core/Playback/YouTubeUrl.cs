@@ -187,7 +187,8 @@ public static class YouTubeMpvOptions
 }
 
 /// <summary>
-/// yt-dlp.exe beside the application executable, then each PATH directory. The release does not bundle it.
+/// yt-dlp.exe beside the application executable, then each PATH directory.
+/// The release zip places the pinned official yt-dlp.exe beside Ieseo.exe.
 /// </summary>
 public static class YtDlpLocator
 {
