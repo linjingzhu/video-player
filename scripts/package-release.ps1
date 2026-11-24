@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-  Build a Release zip of 이어서 (Ieseo.exe) with libmpv and ffmpeg.
+  Build a Release zip of 이어서 (Ieseo.exe) with libmpv, ffmpeg, and yt-dlp.
 
 .DESCRIPTION
   Publishes the WPF app self-contained for win-x64, downloads pinned public
@@ -9,6 +9,8 @@
   Native binaries are never committed. libmpv-2.dll and ffmpeg.exe import
   vulkan-1.dll as a normal (not delay-loaded) dependency, so the Vulkan loader
   is fetched from a pinned LunarG runtime zip and placed beside them.
+  yt-dlp.exe is the official Windows executable from one yt-dlp GitHub release.
+  Its SHA-256 is pinned. The zip places that file beside Ieseo.exe.
 
 .PARAMETER Version
   Optional release tag such as v0.1.0. When set, the zip is named
@@ -51,6 +53,9 @@ $FfmpegUrl = "https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/
 $FfmpegSha256 = "b943ccb7b7760fd5d2c449ebcbedaac5ce85b64437a9d877af0761ba402ed118"
 $VulkanUrl = "https://sdk.lunarg.com/sdk/download/1.4.321.0/windows/vulkan-runtime-components.zip"
 $VulkanSha256 = "f8ba79303face4b72a2f302f1a46e8c918995b54fbf24c0c9fc6c3d3ef525dca"
+# Verified 2026-11-24. SHA2-256SUMS, the GitHub asset digest, and a local hash of the downloaded exe match.
+$YtDlpUrl = "https://github.com/yt-dlp/yt-dlp/releases/download/2026.11.23/yt-dlp.exe"
+$YtDlpSha256 = "622ed48023cac1daa52a3bf3a6ac38f03514de214b5f0fa069389fd0f6d17e5c"
 
 function Find-SevenZip {
     $candidates = @(
@@ -214,10 +219,12 @@ $sevenZip = Find-SevenZip
 $libmpvArchive = Join-Path $Cache "mpv-dev-x86_64-20261111-git-bcde6b93cc.7z"
 $ffmpegArchive = Join-Path $Cache "ffmpeg-x86_64-git-cd4e96eb3.7z"
 $vulkanArchive = Join-Path $Cache "vulkan-runtime-1.4.321.0-components.zip"
+$ytdlpFile = Join-Path $Cache "yt-dlp-2026.11.23.exe"
 
 Save-PinnedFile -Url $LibmpvUrl -Sha256 $LibmpvSha256 -Destination $libmpvArchive
 Save-PinnedFile -Url $FfmpegUrl -Sha256 $FfmpegSha256 -Destination $ffmpegArchive
 Save-PinnedFile -Url $VulkanUrl -Sha256 $VulkanSha256 -Destination $vulkanArchive
+Save-PinnedFile -Url $YtDlpUrl -Sha256 $YtDlpSha256 -Destination $ytdlpFile
 
 $libmpvExtract = Join-Path $Cache "libmpv"
 $ffmpegExtract = Join-Path $Cache "ffmpeg"
@@ -276,6 +283,7 @@ Get-ChildItem -LiteralPath $PublishDir -Recurse -File | ForEach-Object {
 }
 
 Copy-Item -LiteralPath $libmpv.FullName, $ffmpeg.FullName, $vulkan.FullName -Destination $StageDir -Force
+Copy-Item -LiteralPath $ytdlpFile -Destination (Join-Path $StageDir "yt-dlp.exe") -Force
 
 $zipLeaf = if ([string]::IsNullOrWhiteSpace($Version)) { "Ieseo-win-x64.zip" } else { "Ieseo-$Version-win-x64.zip" }
 $notice = @"
@@ -301,10 +309,15 @@ vulkan-1.dll
   sha256 $VulkanSha256
   LunarG Vulkan Runtime 1.4.321.0 x64 loader (Apache-2.0).
   The pinned libmpv-2.dll and ffmpeg.exe import this DLL by name, so it has to sit beside Ieseo.exe.
+
+yt-dlp.exe
+  $YtDlpUrl
+  sha256 $YtDlpSha256
+  Official yt-dlp 2026.11.23 Windows x64 executable (Unlicense), placed beside Ieseo.exe.
 "@
 Set-Content -LiteralPath (Join-Path $StageDir "THIRD-PARTY.txt") -Value $notice -Encoding utf8
 
-foreach ($required in @("Ieseo.exe", "libmpv-2.dll", "ffmpeg.exe", "vulkan-1.dll", "THIRD-PARTY.txt")) {
+foreach ($required in @("Ieseo.exe", "libmpv-2.dll", "ffmpeg.exe", "vulkan-1.dll", "yt-dlp.exe", "THIRD-PARTY.txt")) {
     $path = Join-Path $StageDir $required
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Package is missing $required"
